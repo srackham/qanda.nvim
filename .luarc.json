@@ -1,0 +1,10 @@
+{
+  "workspace": {
+    "library": ["$VIMRUNTIME", "${3rd}/luv/library"],
+    "checkThirdParty": false,
+    "ignoreDir": [".git", "node_modules", "~/.local/share/nvim/lazy"]
+  },
+  "diagnostics": {
+    "globals": ["vim"]
+  }
+}

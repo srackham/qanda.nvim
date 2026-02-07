@@ -52,15 +52,32 @@ function M.table_size(tbl)
   return count
 end
 
+--- Check if a table contains a specific string value.
+--- @param arr table The array-like table to search through.
+--- @param str string The string value to look for.
+--- @return boolean # Returns true if found, false otherwise.
+function M.table_contains(arr, str)
+  for _, v in ipairs(arr) do
+    if v == str then
+      return true
+    end
+  end
+  return false
+end
+
+--- Set multiple keymaps at once from a list of mode/lhs pairs.
+--- @param mode_lhs_list table[] A list of tables, where each sub-table is {mode, lhs}.
+--- @param rhs string|function The command or function to execute.
+--- @param opts? table Optional mapping options (e.g., { silent = true }).
 function M.map_many(mode_lhs_list, rhs, opts)
   for _, v in ipairs(mode_lhs_list) do
     vim.keymap.set(v[1], v[2], rhs, opts)
   end
 end
 
---- Scheduled `vim.notify`.
-function M.notify(...)
-  vim.schedule_wrap(vim.notify)(...)
+--- Wrapped `vim.notify`.
+function M.notify(msg, ...)
+  vim.schedule_wrap(vim.notify)("qanda.nvim: " .. msg, ...)
 end
 
 function M.write_string_to_file(str, fname, mode)
@@ -175,147 +192,6 @@ end
 --- @return boolean true if in visual mode, false otherwise.
 function M.is_visual_mode()
   return vim.fn.mode() == "v" or vim.fn.mode() == "V"
-end
-
---- Move cursor to the end of the content in a Neovim window and focus it
--- Positions the cursor at the last character of the last line in the window's buffer,
--- then sets the window as the current (focused) window.
--- @param win_id integer|nil The window ID to move cursor to, or nil if invalid
-function M.cursor_to_end(win_id)
-  if win_id ~= nil and vim.api.nvim_win_is_valid(win_id) then
-    -- Move the cursor to the last character in the Responses buffer
-    local buf = vim.api.nvim_win_get_buf(win_id)
-    local last_row = vim.api.nvim_buf_line_count(buf)
-    local last_line = vim.api.nvim_buf_get_lines(buf, last_row - 1, last_row, false)[1] or ""
-    local last_col = math.max(#last_line - 1, 0)
-    vim.api.nvim_win_set_cursor(win_id, { last_row, last_col })
-    -- Focus Responses window
-    vim.api.nvim_set_current_win(win_id)
-  end
-end
-
---- Synchronously select an item from a list using vim.ui.select
--- This function wraps the asynchronous vim.ui.select API to provide
--- a synchronous interface using coroutines.
--- @param items table: List of items to choose from
--- @param opts table|nil: Optional configuration options for the selector
--- @return any|nil: The selected item, or nil if selection was cancelled
--- @return number|nil: The index of the selected item, or nil if cancelled
--- @throws error if not called from within a coroutine
-function M.ui_select_sync(items, opts)
-  local co = coroutine.running()
-  if not co then
-    error "ui_select_sync must be called from a coroutine"
-  end
-
-  vim.ui.select(items, opts, function(choice, idx)
-    coroutine.resume(co, choice, idx)
-  end)
-
-  return coroutine.yield()
-end
-
---- Retrieves the ID of a buffer by its name.
----@param name string The name of the buffer to find.
----@return number|nil The buffer ID if found, otherwise nil.
-function M.get_buf_id(name)
-  for _, b_id in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(b_id) and vim.api.nvim_buf_get_name(b_id) == name then
-      return b_id
-    end
-  end
-  return nil
-end
-
---- Opens a floating window with the specified file
----@param buf_name string The buffer name (see `opts.ephemeral`)
----@param opts table|nil Optional configuration parameters
----  - `width` number Width of the float as a percentage of editor width (default: 0.8)
----  - `height` number Height of the float as a percentage of editor height (default: 0.8)
----  - `border` string Border style ("single", "double", "rounded", etc.) (default: "single")
----  - `style` string Window style (default: "minimal")
----  - `ephemeral` boolean If `false` (default) then the buffer `name` is bound to the same-named file
-function M.open_float(buf_name, opts)
-  -- Set default options
-  opts = vim.tbl_deep_extend("force", {
-    width = 0.8,
-    height = 0.8,
-    border = "single",
-    style = "minimal",
-    ephemeral = false,
-  }, opts or {})
-
-  -- Check if buffer for path already exists
-  local existing_buf = M.get_buf_id(buf_name)
-  local buf = existing_buf or vim.api.nvim_create_buf(false, true)
-
-  -- Check if window for buffer already exists
-  local existing_win = nil
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_buf(win) == buf then
-      existing_win = win
-      break
-    end
-  end
-
-  if existing_win then
-    vim.api.nvim_set_current_win(existing_win)
-    return
-  end
-
-  local ui = vim.api.nvim_list_uis()[1]
-  local width = math.floor(ui.width * opts.width)
-  local height = math.floor(ui.height * opts.height)
-  local col = math.floor((ui.width - width) / 2)
-  local row = math.floor((ui.height - height) / 2)
-
-  local win = vim.api.nvim_open_win(buf, true, {
-    relative = "editor",
-    style = opts.style,
-    border = opts.border,
-    width = width,
-    height = height,
-    col = col,
-    row = row,
-    title = opts.title,
-    title_pos = opts.title_pos,
-  })
-
-  vim.api.nvim_win_call(win, function()
-    if not opts.ephemeral and not existing_buf then
-      vim.cmd.edit(buf_name)
-    end
-  end)
-end
-
---- Creates a window to display a file based on the specified display mode
----@param path string The file path to open
----@param opts table Configuration options containing display_mode and other settings
----  - `display_mode` string How to display the file:
----      - `float` - opens in a floating window
----      - `no-split` or nil - opens in current window
----      - `horizontal-split` - splits horizontally
----      - `vertical-split` - splits vertically
----      - `horizontal-split-bottom` - splits horizontally at bottom
----      - `vertical-split-right` - splits vertically at right
----  Any Other options are passed to the underlying window creation function
-function M.create_window(path, opts)
-  local display_mode = opts.display_mode
-  if display_mode == "float" then
-    M.open_float(path, opts)
-  elseif display_mode == nil or display_mode == "no-split" then
-    vim.cmd("edit " .. vim.fn.fnameescape(path))
-  elseif display_mode == "horizontal-split" then
-    vim.cmd("split " .. vim.fn.fnameescape(path))
-  elseif display_mode == "vertical-split" then
-    vim.cmd("vsplit " .. vim.fn.fnameescape(path))
-  elseif display_mode == "horizontal-split-bottom" then
-    vim.cmd("botright split " .. vim.fn.fnameescape(path))
-  elseif display_mode == "vertical-split-right" then
-    vim.cmd("botright vsplit " .. vim.fn.fnameescape(path))
-  else
-    vim.notify("Gen.nvim: Invalid display mode '" .. display_mode .. "'", vim.log.levels.WARN)
-  end
 end
 
 return M
