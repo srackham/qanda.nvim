@@ -166,23 +166,36 @@ end
 -- end
 
 ---@param prompt Prompt
----@return string
-function M.prompt_to_string(prompt)
-  local str = ""
-  if prompt.model or prompt.extract then
-    str = str .. "___\n"
-    str = str .. "name: .\n"
-    if prompt.model then
-      str = str .. "model: " .. prompt.model .. "\n"
-    end
-    if prompt.extract then
-      str = str .. "extract: " .. utils.escape_string(prompt.extract) .. "\n"
-    end
-    str = str .. "___\n"
+---@return string[]
+local function prompt_to_lines(prompt)
+  local lines = {}
+  local rule = string.rep("─", 40)
+
+  table.insert(lines, rule)
+  table.insert(lines, "name: " .. prompt.name)
+  if prompt.model then
+    table.insert(lines, "model: " .. prompt.model)
   end
-  str = str .. prompt.prompt .. "\n"
-  return str
+  if prompt.extract then
+    table.insert(lines, "extract: " .. utils.escape_string(prompt.extract))
+  end
+  if prompt.model_options then
+    for k, v in pairs(prompt.model_options) do
+      table.insert(lines, k .. ": " .. v)
+    end
+  end
+  table.insert(lines, rule)
+  for _, v in ipairs(vim.split(utils.trim_string(prompt.prompt or ""), "\n")) do
+    table.insert(lines, v)
+  end
+  return lines
 end
+
+-- ---@param prompt Prompt
+-- ---@return string
+-- local function prompt_to_string(prompt)
+--   return table.concat(prompt_to_lines(prompt), "\n")
+-- end
 
 --- Initialise M.prompts table from prompts files (custom markdown file in the configuration prompts directory).
 ---@param opts table: Configuration options containing:
@@ -263,7 +276,7 @@ function M.add_prompt_syntax_highlighting_rules(bufnr)
   end)
 end
 
----Displays a telescope picker for selecting prompts
+---Displays a telescope picker for selecting, editing and executing prompts.
 ---@param callback function Callback function that receives the selected prompt key
 ---@param opts table Configuration options
 function M.prompt_picker(callback, opts)
@@ -291,26 +304,7 @@ function M.prompt_picker(callback, opts)
 
       assert(prompt)
 
-      local lines = {}
-      local rule = string.rep("─", 40)
-
-      table.insert(lines, rule)
-      table.insert(lines, "name: " .. prompt_name)
-      if prompt.model then
-        table.insert(lines, "model: " .. prompt.model)
-      end
-      if prompt.extract then
-        table.insert(lines, "extract: " .. prompt.extract)
-      end
-      if prompt.model_options then
-        for k, v in pairs(prompt.model_options) do
-          table.insert(lines, k .. ": " .. v)
-        end
-      end
-      table.insert(lines, rule)
-      for _, v in ipairs(vim.split(utils.trim_string(prompt.prompt or ""), "\n")) do
-        table.insert(lines, v)
-      end
+      local lines = prompt_to_lines(prompt)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       -- vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
@@ -346,7 +340,7 @@ function M.prompt_picker(callback, opts)
         end)
 
         -- Edit prompts file containing the selected prompt
-        vim.keymap.set({ "n", "v", "i" }, "<C-e>", function()
+        vim.keymap.set({ "n", "i" }, "<C-e>", function()
           local selection = action_state.get_selected_entry()
           if selection then
             local prompt_name = selection.value
@@ -355,6 +349,17 @@ function M.prompt_picker(callback, opts)
             if prompt.filename then
               actions.close(prompt_bufnr)
               vim.cmd("edit " .. vim.fn.fnameescape(prompt.filename))
+              local edited_bufnr = vim.api.nvim_get_current_buf()
+              M.add_prompt_syntax_highlighting_rules(edited_bufnr)
+
+              -- Position cursor at the line containing the prompt name
+              local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
+              for i, line in ipairs(lines) do
+                if line:match("name:%s*" .. prompt_name) then
+                  vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
+                  break
+                end
+              end
             else
               utils.notify("No file associated with built-in prompt '" .. prompt_name .. "'", vim.log.levels.INFO)
             end
