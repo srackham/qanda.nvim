@@ -60,10 +60,10 @@ end
 
 function M.select_provider(current_provider, callback)
   local items = {}
-  for _, v in pairs(M.providers) do
+  for _, v in ipairs(M.providers) do
     table.insert(items, v.name)
   end
-  for i, v in pairs(items) do
+  for i, v in ipairs(items) do
     if v == current_provider.name then -- Highlight current provider
       items[i] = "* " .. v
     else

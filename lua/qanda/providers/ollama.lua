@@ -16,7 +16,7 @@ function M.models(opts)
   local response = vim.fn.systemlist("curl -q --silent --no-buffer http://" .. opts.host .. ":" .. opts.port .. "/api/tags")
   local list = vim.fn.json_decode(response)
   local models = {}
-  for key, _ in pairs(list.models) do
+  for key, _ in ipairs(list.models) do
     table.insert(models, list.models[key].name)
   end
   table.sort(models)

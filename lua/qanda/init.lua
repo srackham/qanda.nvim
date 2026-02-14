@@ -1,18 +1,16 @@
--- This module
-local M = {}
+local M = {} -- This module
 
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state" -- Application state
 local Prompts = require "qanda.prompts"
-local Providers = require "qanda.providers"
+local Providers = require "qanda.providers" -- LLM providers
+local utils = require "qanda.utils"
 
--- For debugging
+-- Expose internals
 M.Config = Config
 M.State = State
 M.Prompts = Prompts
 M.Providers = Providers
-
-local utils = require "qanda.utils"
 
 function M.setup(opts)
   Config.setup(opts)
@@ -24,7 +22,7 @@ end
 
 local function select_model()
   local items = State.provider.module.models(Config)
-  for i, v in pairs(items) do
+  for i, v in ipairs(items) do
     if v == State.provider.model then -- Highlight current model
       items[i] = "* " .. v
     else
@@ -109,7 +107,7 @@ function M.create_user_command()
     nargs = "?",
     complete = function(ArgLead)
       local args = {}
-      for _, p in pairs(Prompts.prompts) do
+      for _, p in ipairs(Prompts.prompts) do
         table.insert(args, p.name)
       end
 
@@ -123,7 +121,7 @@ function M.create_user_command()
       table.insert(args, "/info")
 
       local completion_candidates = {}
-      for _, arg in pairs(args) do
+      for _, arg in ipairs(args) do
         if arg:lower():match("^" .. ArgLead:lower()) then
           table.insert(completion_candidates, arg)
         end

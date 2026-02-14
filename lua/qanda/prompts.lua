@@ -244,7 +244,7 @@ ${input:Enter request:}
         local prompts
         prompts = parse_prompts(file_content)
         if prompts then
-          for _, v in pairs(prompts) do
+          for _, v in ipairs(prompts) do
             v.filename = file_path
             table.insert(M.prompts, v)
           end

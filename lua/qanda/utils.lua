@@ -46,7 +46,7 @@ end
 -- @return number: The count of elements in the table
 function M.table_size(tbl)
   local count = 0
-  for _ in pairs(tbl) do
+  for _ in ipairs(tbl) do
     count = count + 1
   end
   return count
