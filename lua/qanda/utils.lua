@@ -19,9 +19,9 @@ function M.escape_string(s)
     ['"'] = '\\"',
     ["'"] = "\\'",
   }
-  return s:gsub("[\n\r\t\\\"']", function(char)
+  return (s:gsub("[\n\r\t\\\"']", function(char)
     return map[char] or char
-  end)
+  end))
 end
 
 --- Unescapes escape sequences in a string
@@ -36,9 +36,9 @@ function M.unescape_string(s)
     ['"'] = '"',
     ["'"] = "'",
   }
-  return s:gsub("\\(.)", function(char)
+  return (s:gsub("\\(.)", function(char)
     return map[char] or char
-  end)
+  end))
 end
 
 --- Returns the number of elements in a table
@@ -192,6 +192,20 @@ end
 --- @return boolean true if in visual mode, false otherwise.
 function M.is_visual_mode()
   return vim.fn.mode() == "v" or vim.fn.mode() == "V"
+end
+
+---@param prompt string
+---@param items string[]
+---@return number|nil
+function M.select_sync(prompt, items)
+  local menu = { prompt }
+  vim.list_extend(menu, items)
+
+  local idx = vim.fn.inputlist(menu)
+  if idx < 1 or idx > #items then
+    return nil
+  end
+  return idx
 end
 
 return M
