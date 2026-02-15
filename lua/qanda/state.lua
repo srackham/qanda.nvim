@@ -1,5 +1,7 @@
 ---@class State
 ---@field provider Provider|nil
+---@field dot_prompt Prompt|nil
+---@field text_selection string|nil
 local M = {}
 
 local utils = require "qanda.utils"
@@ -22,6 +24,10 @@ function M.setup(config, providers)
 
   M.provider = provider
 
+end
+
+function M.set_dot_prompt(prompt)
+    local dot_prompt = vim.tbl_deep_extend("force", {}, options)
 end
 
 return M

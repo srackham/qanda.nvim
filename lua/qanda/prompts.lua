@@ -373,133 +373,99 @@ function M.prompt_picker(callback, opts)
     :find()
 end
 
-    --- Substitutes placeholders in the prompt with actual values.
-    -- This function processes a prompt string and replaces special placeholders
-    -- with their corresponding values from the current context.
-    --
-    -- NOTE: Must be called from a coroutine.
-    --
-    -- Placeholders processed:
-    -- - `$input`: Prompts user for input and substitutes the value
-    -- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
-    -- - `$yanked`: Substitutes most recently yanked text (alias for `$register_0`)
-    -- - `$register_<name>`: Substitutes content of specified register
-    -- - `$register`: Substitutes content of default (unnamed) register
-    -- - `$text`: Substitutes selected text content
-    -- - `$filetype`: Substitutes current buffer's filetype
-    --
-    -- @param prompt string: The prompt string containing placeholders to substitute
-    -- @return string|nil: The prompt with placeholders substituted, or nil if processing should abort
-    function M.substitute_placeholders(prompt)
+--- Substitutes placeholders in the prompt with actual values.
+---This function processes a prompt string and replaces special placeholders
+---with their corresponding values from the current context.
+--
+---NOTE: Must be called from a coroutine.
+--
+---Placeholders processed:
+--- - `$input`: Prompts user for input and substitutes the value
+--- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
+--- - `$yanked`: Substitutes most recently yanked text (alias for `$register_0`)
+--- - `$filetype`: Substitutes current buffer's filetype
+--- - `$register_<name>`: Substitutes content of specified register
+--
+---@param prompt_string string: The prompt string containing placeholders to substitute
+---@return string|nil: The prompt with placeholders substituted, or nil if processing should abort
+function M.substitute_placeholders(prompt_string, state)
 
-        -- Handle the $select placeholder first
-        if string.find(prompt, "%$select") then
-            local choice
+  -- Handle the $select placeholder first
+  if string.find(prompt_string, "%$select") then
+    local placeholders = { "$clipboard", "$text", "$input", "$yanked" }
+    local options = { "1. Clipboard", "2. Selected text", "3. User input", "4. Yanked text" }
 
-            local items_map = {
-                ["$clipboard"] = "Clipboard ($clipboard)",
-                ["$text"] = "Selected text ($text)",
-                ["$input"] = "User input` ($input)",
-                ["$yanked"] = "Yanked text ($yanked)",
-                ["__CANCEL__"] = "Cancel (or press Esc)",
-            }
-            choice, _ = utils.ui_select_sync(
-              {
-                "$clipboard",
-                "$text",
-                "$input",
-                "$yanked",
-                string.rep("─", 100), -- Full-width visual break
-                "__CANCEL__",
-              },
-              { prompt = "Select input source",
-                format_item = function(item)
-                  local item_text = items_map[item]
-                  if item_text then
-                    return item_text
-                  end
-                  return item
-                end,
-              })
-
-            -- Arrive here after the user selection.
-            if not choice or choice == "__CANCEL__" then
-                return nil
-            end
-            prompt = string.gsub(prompt, "%$select", choice)
-            dot_prompt.prompt = prompt -- Remember the $select source in the dot prompt
-        end
-
-        M.prompts["."] = dot_prompt -- Save the dot-prompt after the $select placeholder has been substituted
-
-        -- Handle the ${input:<prompt>} syntax
-        local cancelled = false
-        prompt = string.gsub(prompt, "%${input:(.-)}", function(prompt_text)
-          local answer = vim.fn.input(prompt_text .. ": ")
-          if answer == "" then
-            cancelled = true
-          end
-          return answer
-        end)
-
-        if cancelled then
-            return nil
-        end
-
-        -- Handle the $input syntax
-        if string.find(prompt, "%$input") then
-          local answer = vim.fn.input "Input: "
-          if answer == "" then
-            return nil
-          end
-          prompt = string.gsub(prompt, "%$input", answer)
-        end
-
-        prompt = string.gsub(prompt, "%$clipboard", "$register_+")
-        prompt = string.gsub(prompt, "%$yanked", "$register_0")
-
-        local register_error = false
-        prompt = string.gsub(prompt, "%$register_([%w*+:/\"])", function(r_name)
-            local register = vim.fn.getreg(r_name)
-            if not register or register:match("^%s*$") then
-                utils.notify("Prompt uses $register_" .. r_name .. " but register " .. r_name .. " is empty", vim.log.levels.ERROR)
-                register_error = true
-                return ""
-            end
-            return register
-        end)
-
-        if register_error then
-            return nil
-        end
-
-        if string.find(prompt, "%$register") then
-            local register = vim.fn.getreg('"')
-            if not register or register:match("^%s*$") then
-                utils.notify("Prompt uses $register but yank register is empty", vim.log.levels.ERROR)
-                return nil
-            end
-            prompt = string.gsub(prompt, "%$register", register)
-        end
-
-        if string.find(prompt, "%$text") then
-            -- Check if text_selection_only is enabled and we're not in visual mode
-            if opts.text_selection_only and (globals.start_pos == globals.end_pos) then
-                utils.notify("No visual mode text selection (select $text in visual mode)", vim.log.levels.ERROR)
-                return nil
-            end
-
-            if selected_text == "" then
-                utils.notify("Prompt uses $text but no text is selected", vim.log.levels.ERROR)
-                return nil
-            end
-
-            selected_text = string.gsub(selected_text, "%%", "%%%%")
-            prompt = string.gsub(prompt, "%$text", selected_text)
-        end
-
-        prompt = string.gsub(prompt, "%$filetype", vim.bo.filetype)
-        return prompt
+    local idx = utils.select_sync("Select input source:", options)
+    if not idx then
+      return nil
     end
+    vim.cmd "redraw"
+
+    prompt_string = string.gsub(prompt_string, "%$select", placeholders[idx])
+    state.dot_prompt.prompt = prompt_string -- Remember the $select source in the dot prompt
+  end
+
+  -- Handle the ${input:<prompt>} syntax
+  local cancelled = false
+  prompt_string = string.gsub(prompt_string, "%${input:(.-)}", function(prompt_text)
+    local answer = vim.fn.input(prompt_text .. ": ")
+    if answer == "" then
+      cancelled = true
+    end
+    return answer
+  end)
+
+  if cancelled then
+    return nil
+  end
+
+  -- Handle the $input syntax
+  if string.find(prompt_string, "%$input") then
+    local answer = vim.fn.input "Input: "
+    if answer == "" then
+      return nil
+    end
+    prompt_string = string.gsub(prompt_string, "%$input", answer)
+  end
+
+  prompt_string = string.gsub(prompt_string, "%$clipboard", "$register_+")
+  prompt_string = string.gsub(prompt_string, "%$yanked", "$register_0")
+
+  local register_error = false
+  prompt_string = string.gsub(prompt_string, '%$register_([%w*+:/"])', function(r_name)
+    local register = vim.fn.getreg(r_name)
+    if not register or register:match "^%s*$" then
+      local msg = "Register" .. r_name
+      if r_name == "+" then
+        msg = "Clipboard"
+      elseif r_name == "0" then
+        msg = "Yanked text"
+      end
+      utils.notify(msg .. " is empty", vim.log.levels.ERROR)
+      register_error = true
+      return ""
+    end
+    return register
+  end)
+  if register_error then
+    return nil
+  end
+
+    print(prompt_string)
+  if string.find(prompt_string, "%$text") then
+    local selection = state.text_selection
+    if selection == nil or selection == "" then
+      utils.notify("No text is selected", vim.log.levels.ERROR)
+      return nil
+    end
+
+    selection = string.gsub(selection, "%%", "%%%%")
+    prompt_string = string.gsub(prompt_string, "%$text", selection)
+  end
+
+  prompt_string = string.gsub(prompt_string, "%$filetype", vim.bo.filetype)
+
+  return prompt_string
+end
 
 return M

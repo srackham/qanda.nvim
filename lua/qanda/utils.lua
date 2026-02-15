@@ -194,4 +194,39 @@ function M.is_visual_mode()
   return vim.fn.mode() == "v" or vim.fn.mode() == "V"
 end
 
+---@param prompt string
+---@param items string[]
+---@return number|nil
+function M.select_sync(prompt, items)
+  local menu = { prompt }
+  vim.list_extend(menu, items)
+
+  local idx = vim.fn.inputlist(menu)
+  if idx < 1 or idx > #items then
+    return nil
+  end
+  return idx
+end
+
+function M.get_text_selection()
+  -- Get start and end positions of the visual selection
+  -- 1-indexed: {bufnum, lnum, col, off}
+  local s_pos = vim.fn.getpos "'<"
+  local e_pos = vim.fn.getpos "'>"
+
+  -- Check if marks are set
+  if s_pos[2] == 0 or e_pos[2] == 0 then
+    return nil
+  end
+
+  -- Convert to 0-indexed for API calls
+  local start_row, start_col = s_pos[2] - 1, s_pos[3] - 1
+  local end_row, end_col = e_pos[2] - 1, e_pos[3]
+
+  -- Fetch the text from the current buffer (0)
+  local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
+
+  return table.concat(lines, "\n")
+end
+
 return M
