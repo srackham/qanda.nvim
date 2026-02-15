@@ -134,12 +134,14 @@ end
 
 function M.execute_prompt(prompt)
   ---@todo
-  State.dot_prompt = vim.tbl_deep_extend("force", {}, prompt)
-  local prompt_string = Prompts.substitute_placeholders(prompt.prompt, State)
-  if not prompt_string then
-    return
-  end
-  utils.notify("prompt_string: " .. prompt_string, vim.log.levels.INFO)
+  coroutine.wrap(function()
+    State.dot_prompt = vim.tbl_deep_extend("force", {}, prompt)
+    local prompt_string = Prompts.substitute_placeholders(prompt.prompt, State)
+    if not prompt_string then
+      return
+    end
+    utils.notify("prompt_string: " .. prompt_string, vim.log.levels.INFO)
+  end)()
 end
 
 return M

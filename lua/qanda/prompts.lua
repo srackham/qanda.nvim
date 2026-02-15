@@ -377,30 +377,61 @@ end
 ---This function processes a prompt string and replaces special placeholders
 ---with their corresponding values.
 ---Placeholders within placeholder values are not replaced.
---
+---
+---NOTE: Must be called from a coroutine.
+---
 ---Placeholders processed:
 --- - `$input`: Prompts user for input and substitutes the value
 --- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
 --- - `$yanked`: Substitutes most recently yanked text (alias for `$register_0`)
 --- - `$filetype`: Substitutes current buffer's filetype
 --- - `$register_<name>`: Substitutes content of specified register
---
+---
 ---@param prompt_string string: The prompt string containing placeholders to substitute
 ---@return string|nil: The prompt with placeholders substituted, or nil if processing should abort
 function M.substitute_placeholders(prompt_string, state)
 
   -- Handle the $select placeholder first
   if string.find(prompt_string, "%$select") then
-    local placeholders = { "$clipboard", "$yanked", "$input" }
-    local options = { "1. Clipboard", "2. Yanked text", "3. User input" }
+    -- DEPRECATED: Switched to coroutine-based (async) `vim.ui.select` implementation.
+    -- local placeholders = { "$clipboard", "$yanked", "$input" }
+    -- local options = { "1. Clipboard", "2. Yanked text", "3. User input" }
+    --
+    -- local idx = utils.inputlist("Select input source:", options)
+    -- if not idx then
+    --   return nil
+    -- end
+    -- vim.cmd "redraw"
+    --
+    -- prompt_string = prompt_string:gsub("%$select", placeholders[idx])
 
-    local idx = utils.select_sync("Select input source:", options)
-    if not idx then
+    local items_map = {
+      ["$clipboard"] = "Clipboard",
+      ["$input"] = "User input",
+      ["$yanked"] = "Yanked text",
+      ["__CANCEL__"] = "Cancel (or press Esc)",
+    }
+
+    local choice
+    choice, _ = utils.ui_select_sync({
+      "$clipboard",
+      "$input",
+      "$yanked",
+      string.rep("─", 100), -- Full-width visual break
+      "__CANCEL__",
+    }, {
+      prompt = "Select input source",
+      format_item = function(item)
+        return items_map[item]
+      end,
+    })
+
+    -- Arrive here after the user selection.
+    if not choice or choice == "__CANCEL__" then
       return nil
     end
-    vim.cmd "redraw"
+    prompt_string = prompt_string:gsub("%$select", choice)
 
-    prompt_string = prompt_string:gsub("%$select", placeholders[idx])
     state.dot_prompt.prompt = prompt_string -- Remember the $select source in the dot prompt
   end
 
