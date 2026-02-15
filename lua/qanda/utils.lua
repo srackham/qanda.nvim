@@ -19,9 +19,9 @@ function M.escape_string(s)
     ['"'] = '\\"',
     ["'"] = "\\'",
   }
-  return s:gsub("[\n\r\t\\\"']", function(char)
+  return (s:gsub("[\n\r\t\\\"']", function(char)
     return map[char] or char
-  end)
+  end))
 end
 
 --- Unescapes escape sequences in a string
@@ -36,9 +36,9 @@ function M.unescape_string(s)
     ['"'] = '"',
     ["'"] = "'",
   }
-  return s:gsub("\\(.)", function(char)
+  return (s:gsub("\\(.)", function(char)
     return map[char] or char
-  end)
+  end))
 end
 
 --- Returns the number of elements in a table
@@ -206,27 +206,6 @@ function M.select_sync(prompt, items)
     return nil
   end
   return idx
-end
-
-function M.get_text_selection()
-  -- Get start and end positions of the visual selection
-  -- 1-indexed: {bufnum, lnum, col, off}
-  local s_pos = vim.fn.getpos "'<"
-  local e_pos = vim.fn.getpos "'>"
-
-  -- Check if marks are set
-  if s_pos[2] == 0 or e_pos[2] == 0 then
-    return nil
-  end
-
-  -- Convert to 0-indexed for API calls
-  local start_row, start_col = s_pos[2] - 1, s_pos[3] - 1
-  local end_row, end_col = e_pos[2] - 1, e_pos[3]
-
-  -- Fetch the text from the current buffer (0)
-  local lines = vim.api.nvim_buf_get_text(0, start_row, start_col, end_row, end_col, {})
-
-  return table.concat(lines, "\n")
 end
 
 return M

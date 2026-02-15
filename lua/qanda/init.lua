@@ -135,9 +135,7 @@ end
 function M.execute_prompt(prompt)
   ---@todo
   State.dot_prompt = vim.tbl_deep_extend("force", {}, prompt)
-  State.text_selection = utils.get_text_selection()
-  utils.notify("prompt: " .. vim.inspect(prompt), vim.log.levels.INFO)
-  local prompt_string = Prompts.substitute_placeholders(prompt.prompt,State)
+  local prompt_string = Prompts.substitute_placeholders(prompt.prompt, State)
   if not prompt_string then
     return
   end

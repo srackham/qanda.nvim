@@ -375,9 +375,8 @@ end
 
 --- Substitutes placeholders in the prompt with actual values.
 ---This function processes a prompt string and replaces special placeholders
----with their corresponding values from the current context.
---
----NOTE: Must be called from a coroutine.
+---with their corresponding values.
+---Placeholders within placeholder values are not replaced.
 --
 ---Placeholders processed:
 --- - `$input`: Prompts user for input and substitutes the value
@@ -392,8 +391,8 @@ function M.substitute_placeholders(prompt_string, state)
 
   -- Handle the $select placeholder first
   if string.find(prompt_string, "%$select") then
-    local placeholders = { "$clipboard", "$text", "$input", "$yanked" }
-    local options = { "1. Clipboard", "2. Selected text", "3. User input", "4. Yanked text" }
+    local placeholders = { "$clipboard", "$yanked", "$input" }
+    local options = { "1. Clipboard", "2. Yanked text", "3. User input" }
 
     local idx = utils.select_sync("Select input source:", options)
     if not idx then
@@ -401,18 +400,18 @@ function M.substitute_placeholders(prompt_string, state)
     end
     vim.cmd "redraw"
 
-    prompt_string = string.gsub(prompt_string, "%$select", placeholders[idx])
+    prompt_string = prompt_string:gsub("%$select", placeholders[idx])
     state.dot_prompt.prompt = prompt_string -- Remember the $select source in the dot prompt
   end
 
   -- Handle the ${input:<prompt>} syntax
   local cancelled = false
-  prompt_string = string.gsub(prompt_string, "%${input:(.-)}", function(prompt_text)
+  prompt_string = prompt_string:gsub("%${input:(.-)}", function(prompt_text)
     local answer = vim.fn.input(prompt_text .. ": ")
     if answer == "" then
       cancelled = true
     end
-    return answer
+    return (answer:gsub("%$", "\27"))
   end)
 
   if cancelled then
@@ -425,14 +424,14 @@ function M.substitute_placeholders(prompt_string, state)
     if answer == "" then
       return nil
     end
-    prompt_string = string.gsub(prompt_string, "%$input", answer)
+    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%$", "\27")))
   end
 
-  prompt_string = string.gsub(prompt_string, "%$clipboard", "$register_+")
-  prompt_string = string.gsub(prompt_string, "%$yanked", "$register_0")
+  prompt_string = prompt_string:gsub("%$clipboard", "$register_+")
+  prompt_string = prompt_string:gsub("%$yanked", "$register_0")
 
   local register_error = false
-  prompt_string = string.gsub(prompt_string, '%$register_([%w*+:/"])', function(r_name)
+  prompt_string = prompt_string:gsub('%$register_([%w*+:/"])', function(r_name)
     local register = vim.fn.getreg(r_name)
     if not register or register:match "^%s*$" then
       local msg = "Register" .. r_name
@@ -445,25 +444,15 @@ function M.substitute_placeholders(prompt_string, state)
       register_error = true
       return ""
     end
-    return register
+    return (register:gsub("%$", "\27"))
   end)
   if register_error then
     return nil
   end
 
-    print(prompt_string)
-  if string.find(prompt_string, "%$text") then
-    local selection = state.text_selection
-    if selection == nil or selection == "" then
-      utils.notify("No text is selected", vim.log.levels.ERROR)
-      return nil
-    end
+  prompt_string = prompt_string:gsub("%$filetype", (vim.bo.filetype:gsub("%$", "\27")))
 
-    selection = string.gsub(selection, "%%", "%%%%")
-    prompt_string = string.gsub(prompt_string, "%$text", selection)
-  end
-
-  prompt_string = string.gsub(prompt_string, "%$filetype", vim.bo.filetype)
+  prompt_string = prompt_string:gsub("\27", "$") -- Restore the $'s
 
   return prompt_string
 end

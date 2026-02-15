@@ -1,7 +1,6 @@
 ---@class State
 ---@field provider Provider|nil
 ---@field dot_prompt Prompt|nil
----@field text_selection string|nil
 local M = {}
 
 local utils = require "qanda.utils"
