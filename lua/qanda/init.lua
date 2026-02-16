@@ -135,8 +135,9 @@ end
 function M.execute_prompt(prompt)
   ---@todo
   coroutine.wrap(function()
-    State.dot_prompt = vim.tbl_deep_extend("force", {}, prompt)
-    local prompt_string = Prompts.substitute_placeholders(prompt.prompt, State)
+    local dot_prompt= Prompts.set_prompt(prompt,".")
+    dot_prompt.filename = nil -- Dot prompt is ephemeral
+    local prompt_string = Prompts.substitute_placeholders(prompt.prompt)
     if not prompt_string then
       return
     end

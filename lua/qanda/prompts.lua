@@ -21,6 +21,20 @@ function M.get_prompt(name)
   return nil
 end
 
+---Make a copy of `prompt`, set its name to `name` and add/replace to `M.prompts`.
+---@param prompt Prompt The prompt.
+---@param name string? The name of the prompt.
+---@return Prompt The new prompt.
+function M.set_prompt(prompt, name)
+  local p = vim.tbl_deep_extend("force", {}, prompt)
+  p.name = name or p.name
+  utils.insert_replace(M.prompts, p, function(p1, p2)
+    return p1.name == p2.name
+  end)
+  -- print(vim.inspect(M.prompts))
+  return p
+end
+
 --- Parses markdown-style prompt files into a Prompts array.
 ---Each prompt section starts and ends with either `---` or `___`.
 ---The header envelopes prompt fields formatted like `<name>: <value>`.
@@ -201,7 +215,11 @@ end
 ---@param opts table: Configuration options containing:
 ---| - `prompts_dir` (string): Directory path where custom .prompts.md files are located
 function M.load_prompts(opts)
+  local dot_prompt = M.get_prompt(".")
   M.prompts = {}
+  if dot_prompt then
+    table.insert(M.prompts,dot_prompt) -- Restore ephemeral dot prompt
+  end
 
   -- Read and merge prompts from all .prompts.md files
   local prompts_dir = opts.prompts_dir
@@ -389,7 +407,7 @@ end
 ---
 ---@param prompt_string string: The prompt string containing placeholders to substitute
 ---@return string|nil: The prompt with placeholders substituted, or nil if processing should abort
-function M.substitute_placeholders(prompt_string, state)
+function M.substitute_placeholders(prompt_string)
 
   -- Handle the $select placeholder first
   if string.find(prompt_string, "%$select") then
@@ -432,7 +450,7 @@ function M.substitute_placeholders(prompt_string, state)
     end
     prompt_string = prompt_string:gsub("%$select", choice)
 
-    state.dot_prompt.prompt = prompt_string -- Remember the $select source in the dot prompt
+    M.get_prompt(".").prompt = prompt_string -- Remember the $select source in the dot prompt
   end
 
   -- Handle the ${input:<prompt>} syntax

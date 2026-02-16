@@ -65,6 +65,20 @@ function M.table_contains(arr, str)
   return false
 end
 
+---Search an array for the first element where the `match` function returns `true`, then replace the element with the `item` element.
+---@param array table<number, table> Array of tables to search
+---@param item any The item table to insert or use for replacement
+---@param match fun(element: any, item: any): boolean Function returning true if element should be replaced by item
+function M.insert_replace(array, item, match)
+  for i, element in ipairs(array) do
+    if match(element, item) then
+      array[i] = item
+      return
+    end
+  end
+  table.insert(array, item)
+end
+
 --- Set multiple keymaps at once from a list of mode/lhs pairs.
 --- @param mode_lhs_list table[] A list of tables, where each sub-table is {mode, lhs}.
 --- @param rhs string|function The command or function to execute.
@@ -219,7 +233,7 @@ end
 function M.ui_select_sync(items, opts)
   local co = coroutine.running()
   if not co then
-    error("ui_select_sync must be called from a coroutine")
+    error "ui_select_sync must be called from a coroutine"
   end
 
   vim.ui.select(items, opts, function(choice, idx)
