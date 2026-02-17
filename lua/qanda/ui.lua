@@ -1,4 +1,4 @@
-local M = {}
+local M = {} -- This module
 
 --- Move cursor to the end of the content in a Neovim window and focus it
 -- Positions the cursor at the last character of the last line in the window's buffer,
@@ -50,7 +50,7 @@ function M.get_buf_id(name)
   return nil
 end
 
---- Opens a floating window with the specified file
+--- Opens a floating window.
 ---@param opts table|nil Optional configuration parameters
 ---  - `width` number Width of the float as a percentage of editor width (default: 0.8)
 ---  - `height` number Height of the float as a percentage of editor height (default: 0.8)
@@ -84,6 +84,18 @@ local function open_float(buf, opts)
   })
 end
 
+function M.get_winid_of_buffer(bufnr)
+  -- Check if window for buffer already exists
+  local winid = nil
+  for _, win in ipairs(vim.api.nvim_list_wins()) do
+    if vim.api.nvim_win_get_buf(win) == bufnr then
+      winid = win
+      break
+    end
+  end
+  return winid
+end
+
 --- Open a window according to the requested window options.
 ---
 --- If `opts.window_mode` is omitted or `"normal"`, the window replaces the current window.
@@ -92,22 +104,14 @@ end
 ---@param buf_name string Buffer name
 ---@param opts? CreateWindowOpts Window and buffer options.
 ---@return nil
-function M.create_window(buf_name, opts)
-  opts = opts or {}
+function M.open_window(buf_name, opts)
+  opts = opts or {window_mode="normal"}
 
   -- Check if buffer for path already exists
   local existing_buf = M.get_buf_id(buf_name)
   local buf = existing_buf or vim.api.nvim_create_buf(false, true)
 
-  -- Check if window for buffer already exists
-  local existing_win = nil
-  for _, win in ipairs(vim.api.nvim_list_wins()) do
-    if vim.api.nvim_win_get_buf(win) == buf then
-      existing_win = win
-      break
-    end
-  end
-
+  local existing_win = M.get_winid_of_buffer(buf)
   if existing_win then
     vim.api.nvim_set_current_win(existing_win)
     return
@@ -116,7 +120,7 @@ function M.create_window(buf_name, opts)
   local window_mode = opts.window_mode
   if window_mode == "float" then
     open_float(buf, opts)
-  elseif window_mode == nil or window_mode == "normal" then
+  elseif window_mode == "normal" then
     vim.cmd "enew"
   elseif window_mode == "top" then
     vim.cmd("split " .. vim.fn.fnameescape(buf_name))
@@ -145,10 +149,11 @@ UIWindow.__index = UIWindow
 function UIWindow.new(opts)
   local self = setmetatable({}, UIWindow)
 
-  self.mode = opts.mode
+  opts = opts or {}
+  self.mode = opts.mode or "normal"
   self.bufnr = opts.bufnr
   self.winid = opts.winid
-  self.modifiable = opts.modifiable
+  self.modifiable = opts.modifiable or false
 
   return self
 end
@@ -156,6 +161,7 @@ end
 --- Focus or create the window
 function UIWindow:open()
   -- stub
+  ---@todo
 end
 
 --- Activate and show cursor position
@@ -163,6 +169,7 @@ end
 ---@param cursor_position? table
 function UIWindow:set_cursor(cursor_position)
   -- stub
+  ---@todo
   _ = cursor_position
 end
 
@@ -170,6 +177,7 @@ end
 ---@param lines string[]
 function UIWindow:append(lines)
   -- stub
+  ---@todo
   _ = lines
 end
 
@@ -177,6 +185,7 @@ end
 ---@return string[]
 function UIWindow:get_lines()
   -- stub
+  ---@todo
   return {}
 end
 
@@ -184,6 +193,7 @@ end
 ---@param lines string[]
 function UIWindow:set_lines(lines)
   -- stub
+  ---@todo
   _ = lines
 end
 

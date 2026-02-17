@@ -73,3 +73,6 @@
 ---@class Chat
 ---@field name string The title or topic of the chat
 ---@field messages ChatMessage[] A list of messages in the conversation
+
+---@alias Chats Chat[]
+

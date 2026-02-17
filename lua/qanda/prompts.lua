@@ -1,4 +1,7 @@
+local Config = require "qanda.config" -- User configuration options
+local State = require "qanda.state"
 local utils = require "qanda.utils"
+local ui = require "qanda.ui"
 
 local M = {
   prompts = {}, ---@type Prompts
@@ -17,7 +20,6 @@ function M.get_prompt(name)
       return prompt
     end
   end
-  utils.notify("No prompt named '" .. name .. "'.", vim.log.levels.ERROR)
   return nil
 end
 
@@ -31,7 +33,6 @@ function M.set_prompt(prompt, name)
   utils.insert_replace(M.prompts, p, function(p1, p2)
     return p1.name == p2.name
   end)
-  -- print(vim.inspect(M.prompts))
   return p
 end
 
@@ -212,23 +213,21 @@ end
 -- end
 
 --- Initialise M.prompts table from prompts files (custom markdown file in the configuration prompts directory).
----@param opts table: Configuration options containing:
----| - `prompts_dir` (string): Directory path where custom .prompts.md files are located
-function M.load_prompts(opts)
-  local dot_prompt = M.get_prompt(".")
+function M.load_prompts()
+  local dot_prompt = M.get_prompt "."
   M.prompts = {}
   if dot_prompt then
-    table.insert(M.prompts,dot_prompt) -- Restore ephemeral dot prompt
+    table.insert(M.prompts, dot_prompt) -- Restore ephemeral dot prompt
   end
 
   -- Read and merge prompts from all .prompts.md files
-  local prompts_dir = opts.prompts_dir
+  local prompts_dir = Config.prompts_dir
   local glob_pattern = prompts_dir .. "/*.prompts.md"
   local prompt_files = vim.fn.glob(glob_pattern, false, true)
 
   -- If there are no prompts files then create one
   if #prompt_files == 0 then
-    local path = opts.prompts_dir .. "/default.prompts.md"
+    local path = Config.prompts_dir .. "/default.prompts.md"
 
     -- Create parent directory if it does not already exist
     local dir = vim.fn.fnamemodify(path, ":h")
@@ -274,6 +273,36 @@ ${input:Enter request:}
   end
 end
 
+local function edit_prompt(prompt)
+  vim.cmd("edit " .. vim.fn.fnameescape(prompt.filename))
+  local edited_bufnr = vim.api.nvim_get_current_buf()
+  M.add_prompt_syntax_highlighting_rules(edited_bufnr)
+
+  -- Position cursor at the line containing the prompt name
+  local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
+  for i, line in ipairs(lines) do
+    if line:match("name:%s*" .. prompt.name) then
+      vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
+      break
+    end
+  end
+end
+
+---Open prompt window, load the prompt.
+---If the prompt window does not exist, create it and attach key-mapped commands.
+local function open_prompt(prompt)
+  ---@todo
+  _ = prompt
+  ui.open_window(Config.PROMPT_BUFFER_NAME, {display_mode = "float"})
+
+  local window = State.prompt_window
+  window.winid = vim.api.nvim_get_current_win()
+  window.bufrn = vim.api.nvim_win_get_buf(window.winid)
+  window.prompt = prompt
+
+
+end
+
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|model|extract|prompt|temperature|top_p|max_tokens|stream):]],
   QandaPromptPlaceholder = [[\v\$(text|input|select|clipboard|yanked|filetype|register_.|register)|\$\{input:.{-}\}]],
@@ -295,17 +324,14 @@ function M.add_prompt_syntax_highlighting_rules(bufnr)
 end
 
 ---Displays a telescope picker for selecting, editing and executing prompts.
----@param callback function Callback function that receives the selected prompt key
----@param opts table Configuration options
-function M.prompt_picker(callback, opts)
+---@param callback function Callback to execute the selected prompt
+function M.prompt_picker(callback)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
-
-  assert(opts)
 
   -- Prepare prompt data for telescope
   local prompt_names = {}
@@ -333,7 +359,6 @@ function M.prompt_picker(callback, opts)
   -- Create and run the telescope picker
   pickers
     .new({}, {
-      -- prompt_title = "Select Prompt (<Enter> open, <C-Space> execute, <C-e> edit)",
       finder = finders.new_table {
         results = prompt_names,
         entry_maker = function(entry)
@@ -347,46 +372,49 @@ function M.prompt_picker(callback, opts)
       sorter = conf.generic_sorter {},
       previewer = prompt_previewer,
       attach_mappings = function(prompt_bufnr)
+
+        -- Close the picker and open the prompt in the prompt window
         actions.select_default:replace(function()
           local selection = action_state.get_selected_entry()
           actions.close(prompt_bufnr)
-          if selection and selection.value then
-            callback(selection.value)
+          if selection then
+            local prompt = M.get_prompt(selection.value)
+            open_prompt(prompt)
           else
             utils.notify("User cancelled", vim.log.levels.INFO)
           end
         end)
 
-        -- Edit prompts file containing the selected prompt
+        -- Close the picker and execute the selected prompt template
+        vim.keymap.set({ "n", "i" }, "<C-Space>", function()
+          local selection = action_state.get_selected_entry()
+          actions.close(prompt_bufnr)
+          if selection then
+            callback(M.get_prompt(selection.value))
+          else
+            utils.notify("User cancelled", vim.log.levels.INFO)
+          end
+        end, { buffer = prompt_bufnr })
+
+        -- Close the picker and edit prompts file containing the selected prompt
         vim.keymap.set({ "n", "i" }, "<C-e>", function()
           local selection = action_state.get_selected_entry()
           if selection then
             local prompt_name = selection.value
             local prompt = M.get_prompt(prompt_name)
             assert(prompt)
+            actions.close(prompt_bufnr)
             if prompt.filename then
-              actions.close(prompt_bufnr)
-              vim.cmd("edit " .. vim.fn.fnameescape(prompt.filename))
-              local edited_bufnr = vim.api.nvim_get_current_buf()
-              M.add_prompt_syntax_highlighting_rules(edited_bufnr)
-
-              -- Position cursor at the line containing the prompt name
-              local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
-              for i, line in ipairs(lines) do
-                if line:match("name:%s*" .. prompt_name) then
-                  vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
-                  break
-                end
-              end
+              edit_prompt(prompt)
             else
-              utils.notify("No file associated with built-in prompt '" .. prompt_name .. "'", vim.log.levels.INFO)
+              utils.notify("No file associated with built-in prompt '" .. prompt_name .. "'", vim.log.levels.WARN)
             end
           end
-        end, { buffer = prompt_bufnr, desc = "Edit prompts file containing the selected prompt" })
+        end, { buffer = prompt_bufnr })
 
         return true
       end,
-      layout_config = opts.prompt_picker_layout,
+      layout_config = Config.prompt_picker_layout,
     })
     :find()
 end

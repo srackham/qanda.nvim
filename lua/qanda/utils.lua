@@ -1,4 +1,4 @@
-local M = {}
+local M = {} -- This module
 
 --- Strip leading and trailing whitespace from a string
 --- @param s string The input string to trim

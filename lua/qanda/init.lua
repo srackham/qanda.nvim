@@ -1,10 +1,10 @@
-local M = {} -- This module
-
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state" -- Application state
 local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
+
+local M = {} -- This module
 
 -- Expose internals
 M.Config = Config
@@ -16,7 +16,7 @@ function M.setup(opts)
   Config.setup(opts)
   Providers.setup()
   Prompts.setup()
-  State.setup(Config, Providers)
+  State.setup()
   M.create_user_command()
 end
 
@@ -46,8 +46,8 @@ local function select_provider()
 end
 
 local function prompt_picker(callback)
-  Prompts.load_prompts(Config)
-  Prompts.prompt_picker(callback, Config)
+  Prompts.load_prompts()
+  Prompts.prompt_picker(callback)
 end
 
 function M.open_qanda()
@@ -79,8 +79,7 @@ function M.create_user_command()
       ---@todo
       return
     elseif args == "/prompts" then
-      prompt_picker(function(item)
-        local prompt = Prompts.get_prompt(item)
+      prompt_picker(function(prompt)
         M.execute_prompt(prompt)
       end)
       return
@@ -134,8 +133,9 @@ end
 
 function M.execute_prompt(prompt)
   ---@todo
+  assert(prompt)
   coroutine.wrap(function()
-    local dot_prompt= Prompts.set_prompt(prompt,".")
+    local dot_prompt = Prompts.set_prompt(prompt, ".")
     dot_prompt.filename = nil -- Dot prompt is ephemeral
     local prompt_string = Prompts.substitute_placeholders(prompt.prompt)
     if not prompt_string then

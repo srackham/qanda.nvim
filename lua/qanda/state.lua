@@ -1,24 +1,32 @@
----@class State
----@field provider Provider|nil
-local M = {}
-
+local Config = require "qanda.config" -- User configuration options
+local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
 
+---@class State
+---@field provider Provider
+---@field chats Chats
+---@field prompt_window UIWindow
+
+local M = {
+  chats = {},
+  prompt_window = {},
+}
+
 ---Initialise state from configuration.
-function M.setup(config, providers)
+function M.setup()
 
   -- Set model provider
-  local provider = providers.get_provider(config.provider)
+  local provider = Providers.get_provider(Config.provider)
   if not provider then
     return
   end
 
-  local models = provider.module.models(config)
-  if not utils.table_contains(models, config.model) then
-    utils.notify("Unable to  find model '" .. config.model .. "' for provider '" .. config.provider.name .. "'.", vim.log.levels.ERROR)
+  local models = provider.module.models(Config)
+  if not utils.table_contains(models, Config.model) then
+    utils.notify("Unable to  find model '" .. Config.model .. "' for provider '" .. Config.provider.name .. "'.", vim.log.levels.ERROR)
     return
   end
-  provider.model = config.model
+  provider.model = Config.model
 
   M.provider = provider
 

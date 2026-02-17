@@ -1,4 +1,4 @@
-local M = {}
+local M = {} -- This module
 
 -- Constants
 M.CHAT_BUFFER_NAME = "[qanda.chat]"

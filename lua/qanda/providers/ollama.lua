@@ -2,7 +2,7 @@
 -- Replace job.nvim with vim.fn.jobstart with Neovim's vim.system.
 --  See: https://gemini.google.com/share/02fe3ad7f355, https://chatgpt.com/share/69800de8-72d0-8003-b893-e68905c55f51
 
-local M = {}
+local M = {} -- This module
 
 ---Local model provider initialisation.
 function M.setup()
@@ -10,7 +10,7 @@ function M.setup()
 end
 
 ---Returns a list of the names of available models.
----@param opts table
+---@param opts table User configuration options
 ---@return string[]
 function M.models(opts)
   local response = vim.fn.systemlist("curl -q --silent --no-buffer http://" .. opts.host .. ":" .. opts.port .. "/api/tags")
