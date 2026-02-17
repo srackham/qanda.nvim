@@ -8,26 +8,32 @@
 
 --- Display mode for opening a window.
 ---@alias WindowMode
----| '"normal"'  # Open in the current window
+---| '"normal"'  # Open in the current window (default)
 ---| '"float"'   # Open in a floating window
 ---| '"top"'     # Horizontal split above
 ---| '"bottom"'  # Horizontal split below
 ---| '"left"'    # Vertical split to the left
 ---| '"right"'   # Vertical split to the right
 
+---@class FloatWindowOptions
+---@field width number Width of the float as a percentage of editor width (default: 0.8)
+---@field height number Height of the float as a percentage of editor height (default: 0.8)
+---@field border string Border style ("single", "double", "rounded", etc.) (default: "single")
+---@field style string Window style (default: "minimal")
+---@field [string] any Additional options forwarded to the underlying `vim.api.nvim_open_win` window creation function.
+
 ---@class UIWindow
 ---@field mode WindowMode
 ---@field bufnr number
 ---@field winid number
 ---@field modifiable boolean
-
----@class CreateWindowOpts Options for `ui.create_window`.
----@field window_mode? WindowMode How the window should be displayed. Defaults to `"normal"`.
----@field buffer_options? string Vim `:setlocal` options. Summary:
+---@field buf_name string? The name of the buffer. Required if bufnr is not provided and window is to be opened.
+---@field setlocal? string Vim `:setlocal` options. Summary:
 ---| - `buftype=nofile` : No disk I/O
 ---| - `buflisted=true` : Shows in `:ls`
 ---| - `bufhidden=hide` : Buffer persists when not shown
 ---| - `bufhidden=wipe` : Buffer erased entirely
+---@field float_options FloatWindowOptions
 ---@field [string] any Additional options forwarded to the underlying window creation function.
 
 -- Model definitions --

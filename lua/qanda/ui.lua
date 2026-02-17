@@ -1,3 +1,5 @@
+local utils = require "qanda.utils"
+
 local M = {} -- This module
 
 --- Move cursor to the end of the content in a Neovim window and focus it
@@ -38,24 +40,28 @@ function M.select_sync(items, opts)
   return coroutine.yield()
 end
 
---- Retrieves the ID of a buffer by its name.
----@param name string The name of the buffer to find.
+---Retrieves the ID of a buffer by its name. If `name` contains a directory separator, it's matched against the full buffer path; otherwise, it's matched against the buffer's basename.
+---@param name string The name of the buffer to find (can be a full path or basename).
 ---@return number|nil The buffer ID if found, otherwise nil.
 function M.get_buf_id(name)
-  for _, b_id in ipairs(vim.api.nvim_list_bufs()) do
-    if vim.api.nvim_buf_is_loaded(b_id) and vim.api.nvim_buf_get_name(b_id) == name then
-      return b_id
+  local compare_full_path = name:find "/" ~= nil
+  for _, bufnr in ipairs(vim.api.nvim_list_bufs()) do
+    local buf_path = vim.api.nvim_buf_get_name(bufnr)
+    local target_name
+    if compare_full_path then
+      target_name = buf_path
+    else
+      target_name = vim.fn.fnamemodify(buf_path, ":t")
+    end
+    if target_name == name then
+      return bufnr
     end
   end
   return nil
 end
 
 --- Opens a floating window.
----@param opts table|nil Optional configuration parameters
----  - `width` number Width of the float as a percentage of editor width (default: 0.8)
----  - `height` number Height of the float as a percentage of editor height (default: 0.8)
----  - `border` string Border style ("single", "double", "rounded", etc.) (default: "single")
----  - `style` string Window style (default: "minimal")
+---@param opts FloatLayout? Optional configuration parameters
 local function open_float(buf, opts)
   -- Set default options
   opts = vim.tbl_deep_extend("force", {
@@ -102,10 +108,10 @@ end
 --- Other options are passed to the underlying window creation function
 ---
 ---@param buf_name string Buffer name
----@param opts? CreateWindowOpts Window and buffer options.
+---@param opts? UIWindow Window and buffer options.
 ---@return nil
 function M.open_window(buf_name, opts)
-  opts = opts or {window_mode="normal"}
+  opts = opts or { mode = "normal" }
 
   -- Check if buffer for path already exists
   local existing_buf = M.get_buf_id(buf_name)
@@ -117,84 +123,123 @@ function M.open_window(buf_name, opts)
     return
   end
 
-  local window_mode = opts.window_mode
-  if window_mode == "float" then
-    open_float(buf, opts)
-  elseif window_mode == "normal" then
+  if opts.mode == "float" then
+    open_float(buf, opts.float_layout)
+  elseif opts.mode == "normal" then
     vim.cmd "enew"
-  elseif window_mode == "top" then
+  elseif opts.mode == "top" then
     vim.cmd("split " .. vim.fn.fnameescape(buf_name))
-  elseif window_mode == "left" then
+  elseif opts.mode == "left" then
     vim.cmd("vsplit " .. vim.fn.fnameescape(buf_name))
-  elseif window_mode == "bottom" then
+  elseif opts.mode == "bottom" then
     vim.cmd("botright split " .. vim.fn.fnameescape(buf_name))
-  elseif window_mode == "right" then
+  elseif opts.mode == "right" then
     vim.cmd("botright vsplit " .. vim.fn.fnameescape(buf_name))
   else
-    M.notify("Invalid window mode '" .. window_mode .. "'", vim.log.levels.WARN)
+    utils.notify("Invalid window mode '" .. opts.mode .. "'", vim.log.levels.WARN)
   end
 
-  vim.cmd("setlocal " .. (opts.buffer_options or "buftype=nofile bufhidden=hide"))
+  vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide"))
   vim.cmd("file " .. buf_name)
 end
 
 -- UIWindow class --
 
-local UIWindow = {}
-UIWindow.__index = UIWindow
+M.UIWindow = {}
+M.UIWindow.__index = M.UIWindow
 
 --- Constructor
 ---@param opts table Initialises UIWindow fields
 ---@return UIWindow
-function UIWindow.new(opts)
-  local self = setmetatable({}, UIWindow)
+function M.UIWindow.new(opts)
+  local self = setmetatable({}, M.UIWindow)
 
-  opts = opts or {}
-  self.mode = opts.mode or "normal"
-  self.bufnr = opts.bufnr
-  self.winid = opts.winid
-  self.modifiable = opts.modifiable or false
+  for k, v in pairs(opts or {}) do
+    self[k] = v
+  end
 
   return self
 end
 
 --- Focus or create the window
-function UIWindow:open()
-  -- stub
-  ---@todo
+---@param opts table Initialises UIWindow fields
+function M.UIWindow:open(opts)
+  for k, v in pairs(opts or {}) do
+    self[k] = v
+  end
+
+  if not self.buf_name then
+    utils.notify("Cannot open UIWindow: buf_name is required.", vim.log.levels.ERROR)
+    return
+  end
+
+  -- M.open_window handles creating the buffer if it doesn't exist and opening/focusing the window.
+  -- It sets the current window and buffer.
+  M.open_window(self.buf_name, self)
+
+  -- After opening, update self.bufnr and self.winid based on the currently active window/buffer
+  self.bufnr = vim.api.nvim_get_current_buf()
+  self.winid = vim.api.nvim_get_current_win()
+
+  vim.api.nvim_set_option_value("modifiable", self.modifiable, { buf = self.bufnr })
 end
 
 --- Activate and show cursor position
 --- If cursor_position is nil, go to end of buffer
----@param cursor_position? table
-function UIWindow:set_cursor(cursor_position)
-  -- stub
-  ---@todo
-  _ = cursor_position
+---@param cursor_position? {row: number, col: number}
+function M.UIWindow:set_cursor(cursor_position)
+  if not self.winid or not vim.api.nvim_win_is_valid(self.winid) then
+    utils.notify("Cannot set cursor: window is not valid.", vim.log.levels.WARN)
+    return
+  end
+
+  vim.api.nvim_set_current_win(self.winid) -- Ensure the window is focused
+  if cursor_position == nil then
+    M.cursor_to_end(self.winid)
+  else
+    vim.api.nvim_win_set_cursor(self.winid, cursor_position)
+  end
 end
 
 --- Append lines and position cursor at end
 ---@param lines string[]
-function UIWindow:append(lines)
-  -- stub
-  ---@todo
-  _ = lines
+function M.UIWindow:append(lines)
+  if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
+    utils.notify("Cannot append lines: buffer is not valid.", vim.log.levels.WARN)
+    return
+  end
+
+  local current_lines_count = vim.api.nvim_buf_line_count(self.bufnr)
+  -- Insert at the end of the buffer (after the last line)
+  vim.api.nvim_set_option_value("modifiable", true, { buf = self.bufnr })
+  vim.api.nvim_buf_set_lines(self.bufnr, current_lines_count, current_lines_count, false, lines)
+  vim.api.nvim_set_option_value("modifiable", self.modifiable, { buf = self.bufnr })
+  self:set_cursor(nil) -- Move cursor to end
 end
 
 --- Return list of buffer lines
 ---@return string[]
-function UIWindow:get_lines()
-  -- stub
-  ---@todo
-  return {}
+function M.UIWindow:get_lines()
+  if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
+    utils.notify("Cannot get lines: buffer is not valid.", vim.log.levels.WARN)
+    return {}
+  end
+  return vim.api.nvim_buf_get_lines(self.bufnr, 0, -1, false)
 end
 
 --- Set buffer lines and position cursor at end
 ---@param lines string[]
-function UIWindow:set_lines(lines)
-  -- stub
-  ---@todo
-  _ = lines
+function M.UIWindow:set_lines(lines)
+  if not self.bufnr or not vim.api.nvim_buf_is_valid(self.bufnr) then
+    utils.notify("Cannot set lines: buffer is not valid.", vim.log.levels.WARN)
+    return
+  end
+
+  -- Replace all lines in the buffer
+  vim.api.nvim_set_option_value("modifiable", true, { buf = self.bufnr })
+  vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, lines)
+  vim.api.nvim_set_option_value("modifiable", self.modifiable, { buf = self.bufnr })
+  self:set_cursor(nil) -- Move cursor to end
 end
 
 return M

@@ -1,6 +1,7 @@
 local Config = require "qanda.config" -- User configuration options
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
+local ui = require "qanda.ui"
 
 ---@class State
 ---@field provider Provider
@@ -9,7 +10,7 @@ local utils = require "qanda.utils"
 
 local M = {
   chats = {},
-  prompt_window = {},
+  prompt_window = ui.UIWindow.new { mode = "right", buf_name = Config.PROMPT_BUFFER_NAME, modifiable = false },
 }
 
 ---Initialise state from configuration.

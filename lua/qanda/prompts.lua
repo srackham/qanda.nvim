@@ -1,7 +1,6 @@
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
-local ui = require "qanda.ui"
 
 local M = {
   prompts = {}, ---@type Prompts
@@ -291,16 +290,10 @@ end
 ---Open prompt window, load the prompt.
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 local function open_prompt(prompt)
-  ---@todo
-  _ = prompt
-  ui.open_window(Config.PROMPT_BUFFER_NAME, {display_mode = "float"})
-
-  local window = State.prompt_window
-  window.winid = vim.api.nvim_get_current_win()
-  window.bufrn = vim.api.nvim_win_get_buf(window.winid)
-  window.prompt = prompt
-
-
+  local win = State.prompt_window
+  win:open()
+  local lines = vim.split(prompt.prompt, "\n")
+  win:set_lines(lines)
 end
 
 local prompt_syntax_rules = {
