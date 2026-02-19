@@ -184,6 +184,14 @@ function M.UIWindow:open(opts)
   vim.api.nvim_set_option_value("modifiable", self.modifiable, { buf = self.bufnr })
 end
 
+---Close the window. The buffer is not deleted.
+function M.UIWindow:close()
+  if self.winid and vim.api.nvim_win_is_valid(self.winid) then
+    vim.api.nvim_win_close(self.winid, true)
+    self.winid = nil
+  end
+end
+
 --- Activate and show cursor position
 --- If cursor_position is nil, go to end of buffer
 ---@param cursor_position? {row: number, col: number}

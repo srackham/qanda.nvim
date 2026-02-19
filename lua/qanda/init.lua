@@ -1,5 +1,6 @@
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state" -- Application state
+local Chats = require "qanda.chats"
 local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
@@ -15,6 +16,7 @@ M.Providers = Providers
 function M.setup(opts)
   Config.setup(opts)
   Providers.setup()
+  Chats.setup()
   Prompts.setup()
   State.setup()
   M.create_user_command()
@@ -67,7 +69,8 @@ function M.create_user_command()
     end
 
     if args == "/chat" then
-      M.open_chat()
+      State.prompt_window:close()
+      Chats.open_chat()
       return
     elseif args == "/new" then
       M:new_chat()

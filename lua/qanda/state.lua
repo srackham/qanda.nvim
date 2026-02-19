@@ -6,10 +6,16 @@ local ui = require "qanda.ui"
 ---@class State
 ---@field provider Provider
 ---@field chats Chats
+---@field chat_window UIWindow
 ---@field prompt_window UIWindow
 
 local M = {
   chats = {},
+  chat_window = ui.UIWindow.new {
+    buf_name = Config.CHAT_BUFFER_NAME,
+    modifiable = false,
+    mode = "right",
+  },
   prompt_window = ui.UIWindow.new {
     buf_name = Config.PROMPT_BUFFER_NAME,
     modifiable = true,
