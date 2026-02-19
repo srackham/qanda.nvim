@@ -289,11 +289,15 @@ end
 
 ---Open prompt window, load the prompt.
 ---If the prompt window does not exist, create it and attach key-mapped commands.
-local function open_prompt(prompt)
+---If the `prompt` is `nil` then don't load the prompt text into the window.
+---@param prompt Prompt?
+function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
+  if prompt then
   local lines = vim.split(prompt.prompt, "\n")
   win:set_lines(lines)
+end
 end
 
 local prompt_syntax_rules = {
@@ -372,7 +376,7 @@ function M.prompt_picker(callback)
           actions.close(prompt_bufnr)
           if selection then
             local prompt = M.get_prompt(selection.value)
-            open_prompt(prompt)
+            M.open_prompt(prompt)
           else
             utils.notify("User cancelled", vim.log.levels.INFO)
           end

@@ -10,7 +10,15 @@ local ui = require "qanda.ui"
 
 local M = {
   chats = {},
-  prompt_window = ui.UIWindow.new { mode = "right", buf_name = Config.PROMPT_BUFFER_NAME, modifiable = false },
+  prompt_window = ui.UIWindow.new {
+    buf_name = Config.PROMPT_BUFFER_NAME,
+    modifiable = true,
+    mode = "float",
+    float_layout = {
+      border = "rounded",
+      height = 0.5,
+    },
+  },
 }
 
 ---Initialise state from configuration.

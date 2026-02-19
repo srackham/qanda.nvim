@@ -15,7 +15,7 @@
 ---| '"left"'    # Vertical split to the left
 ---| '"right"'   # Vertical split to the right
 
----@class FloatWindowOptions
+---@class FloatLayout
 ---@field width number Width of the float as a percentage of editor width (default: 0.8)
 ---@field height number Height of the float as a percentage of editor height (default: 0.8)
 ---@field border string Border style ("single", "double", "rounded", etc.) (default: "single")
@@ -33,7 +33,7 @@
 ---| - `buflisted=true` : Shows in `:ls`
 ---| - `bufhidden=hide` : Buffer persists when not shown
 ---| - `bufhidden=wipe` : Buffer erased entirely
----@field float_options FloatWindowOptions
+---@field float_layout FloatLayout
 ---@field [string] any Additional options forwarded to the underlying window creation function.
 
 -- Model definitions --

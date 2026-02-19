@@ -73,7 +73,7 @@ function M.create_user_command()
       M:new_chat()
       return
     elseif args == "/prompt" then
-      M.open_prompt()
+      Prompts.open_prompt()
       return
     elseif args == "/chats" then
       ---@todo
