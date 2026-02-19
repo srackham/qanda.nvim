@@ -137,10 +137,14 @@ end
 function M.execute_prompt(prompt)
   ---@todo
   assert(prompt)
+  local dot_prompt = Prompts.set_prompt(prompt, ".")
+  dot_prompt.filename = nil -- Dot prompt is ephemeral
+  M.execute_prompt_string(prompt.prompt)
+end
+
+function M.execute_prompt_string(prompt_string)
   coroutine.wrap(function()
-    local dot_prompt = Prompts.set_prompt(prompt, ".")
-    dot_prompt.filename = nil -- Dot prompt is ephemeral
-    local prompt_string = Prompts.substitute_placeholders(prompt.prompt)
+    prompt_string = Prompts.substitute_placeholders(prompt_string)
     if not prompt_string then
       return
     end

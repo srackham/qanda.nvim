@@ -21,6 +21,13 @@ function M.open_chat(chat)
     local lines = M.chat_lines(chat)
     win:set_lines(lines)
   end
+  -- Attach key commands.
+  vim.keymap.set("n", "q", function()
+    win:close()
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", "<Tab>", function()
+    vim.cmd "Qanda /prompt"
+  end, { buffer = win.bufnr })
 end
 
 return M

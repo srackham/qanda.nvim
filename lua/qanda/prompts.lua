@@ -7,7 +7,7 @@ local M = {
 }
 
 function M.setup()
-  -- Currently no setup required
+  M.load_prompts()
 end
 
 ---Retrieve a prompt by its name.
@@ -295,9 +295,21 @@ function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
   if prompt then
-  local lines = vim.split(prompt.prompt, "\n")
-  win:set_lines(lines)
-end
+    local lines = vim.split(prompt.prompt, "\n")
+    win:set_lines(lines)
+  end
+  -- Attach key commands.
+  vim.keymap.set("n", "q", function()
+    win:close()
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", "<Tab>", function()
+    vim.cmd "Qanda /chat"
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", "<C-Space>", function()
+    local prompt_string = table.concat(win:get_lines(), "\n")
+    win:close()
+    require("qanda").execute_prompt_string(prompt_string)
+  end, { buffer = win.bufnr })
 end
 
 local prompt_syntax_rules = {
@@ -475,7 +487,10 @@ function M.substitute_placeholders(prompt_string)
     end
     prompt_string = prompt_string:gsub("%$select", choice)
 
-    M.get_prompt(".").prompt = prompt_string -- Remember the $select source in the dot prompt
+    local dot_prompt = M.get_prompt "."
+    if dot_prompt then
+      dot_prompt.prompt = prompt_string -- Remember the $select source in the dot prompt
+    end
   end
 
   -- Handle the ${input:<prompt>} syntax
