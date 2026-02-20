@@ -205,19 +205,9 @@ local function prompt_to_lines(prompt)
   return lines
 end
 
--- ---@param prompt Prompt
--- ---@return string
--- local function prompt_to_string(prompt)
---   return table.concat(prompt_to_lines(prompt), "\n")
--- end
-
 --- Initialise M.prompts table from prompts files (custom markdown file in the configuration prompts directory).
 function M.load_prompts()
-  local dot_prompt = M.get_prompt "."
   M.prompts = {}
-  if dot_prompt then
-    table.insert(M.prompts, dot_prompt) -- Restore ephemeral dot prompt
-  end
 
   -- Read and merge prompts from all .prompts.md files
   local prompts_dir = Config.prompts_dir
@@ -486,11 +476,6 @@ function M.substitute_placeholders(prompt_string)
       return nil
     end
     prompt_string = prompt_string:gsub("%$select", choice)
-
-    local dot_prompt = M.get_prompt "."
-    if dot_prompt then
-      dot_prompt.prompt = prompt_string -- Remember the $select source in the dot prompt
-    end
   end
 
   -- Handle the ${input:<prompt>} syntax

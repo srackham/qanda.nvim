@@ -137,8 +137,6 @@ end
 function M.execute_prompt(prompt)
   ---@todo
   assert(prompt)
-  local dot_prompt = Prompts.set_prompt(prompt, ".")
-  dot_prompt.filename = nil -- Dot prompt is ephemeral
   M.execute_prompt_string(prompt.prompt)
 end
 
