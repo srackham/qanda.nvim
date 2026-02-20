@@ -140,7 +140,10 @@ function M.execute_prompt_string(prompt_string)
     if not prompt_string then
       return
     end
-    utils.notify("prompt_string: " .. prompt_string, vim.log.levels.INFO)
+    State.prompt_window:close()
+    Chats.open_chat()
+    local lines = vim.split(prompt_string, "\n")
+    State.chat_window:set_lines(lines)
   end)()
 end
 
