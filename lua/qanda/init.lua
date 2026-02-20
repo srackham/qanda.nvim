@@ -83,7 +83,7 @@ function M.create_user_command()
       return
     elseif args == "/prompts" then
       prompt_picker(function(prompt)
-        M.execute_prompt(prompt)
+        M.execute_prompt_string(prompt.prompt)
       end)
       return
     elseif args == "/models" then
@@ -101,7 +101,7 @@ function M.create_user_command()
         utils.notify("Invalid " .. (args:sub(1, 1) == "/" and "command" or "prompt") .. "'" .. args .. "'", vim.log.levels.ERROR)
         return
       end
-      M.execute_prompt(prompt)
+      M.execute_prompt_string(prompt.prompt)
       return
     end
   end, {
@@ -132,12 +132,6 @@ function M.create_user_command()
       return completion_candidates
     end,
   })
-end
-
-function M.execute_prompt(prompt)
-  ---@todo
-  assert(prompt)
-  M.execute_prompt_string(prompt.prompt)
 end
 
 function M.execute_prompt_string(prompt_string)

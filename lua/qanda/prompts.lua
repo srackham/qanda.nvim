@@ -435,6 +435,9 @@ end
 ---@param prompt_string string: The prompt string containing placeholders to substitute
 ---@return string|nil: The prompt with placeholders substituted, or nil if processing should abort
 function M.substitute_placeholders(prompt_string)
+  if not prompt_string or prompt_string:match "^%s*$" ~= nil then
+    return nil
+  end
 
   -- Handle the $select placeholder first
   if string.find(prompt_string, "%$select") then
