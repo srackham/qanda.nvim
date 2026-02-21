@@ -284,6 +284,8 @@ end
 function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
+  vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
+  M.add_prompt_syntax_highlighting_rules(win.bufnr)
   if prompt then
     local lines = vim.split(prompt.prompt, "\n")
     win:set_lines(lines)

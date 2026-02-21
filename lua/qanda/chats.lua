@@ -17,6 +17,7 @@ end
 function M.open_chat(chat)
   local win = State.chat_window
   win:open()
+  vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   if chat then
     local lines = M.chat_lines(chat)
     win:set_lines(lines)
