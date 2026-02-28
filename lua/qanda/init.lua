@@ -101,6 +101,7 @@ function M.create_user_command()
         utils.notify("Invalid " .. (args:sub(1, 1) == "/" and "command" or "prompt") .. "'" .. args .. "'", vim.log.levels.ERROR)
         return
       end
+      -- TODO: Synthesise a Prompt and execute it
       M.execute_prompt_string(prompt.prompt)
       return
     end
@@ -134,6 +135,7 @@ function M.create_user_command()
   })
 end
 
+-- TODO: We need to execute a Prompt not a string.
 function M.execute_prompt_string(prompt_string)
   coroutine.wrap(function()
     prompt_string = Prompts.substitute_placeholders(prompt_string)

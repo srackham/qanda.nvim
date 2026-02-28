@@ -45,11 +45,13 @@
 
 ---@alias Providers Provider[]
 
+---@alias Role "user" | "assistant"
+
 ---@class Message
 ---@field role Role The role of the model message
 ---@field content string The text of the message
 
----@class RequestData : { [string]: any } Model request data (model, messages et al)
+---@class RequestData
 ---@field model string
 ---@field messages Message[]
 
@@ -58,10 +60,9 @@
 ---@field port? string
 ---@field data RequestData
 
----@alias Role "user" | "assistant" | "system" | "tool"
-
----@class Prompt
----@field name string The prompt name.
+---@readonly
+---@class Prompt An immutable prompt template loaded from prompt files or previously executed prompt extracted fro chat history.
+---@field name? string The prompt name.
 ---@field prompt string The prompt string.
 ---@field extract string? A regex pattern to extract content from the model's response.
 ---@field model string? The model name to use for this prompt.
@@ -70,15 +71,19 @@
 
 ---@alias Prompts Prompt[]
 
----@class ChatMessage
----@field role Role The role of the message sender
----@field content string The text of the message
----@field model? string The model used (optional, usually present for user/assistant)
----@field date? string The timestamp of the message (optional)
+---@class ChatReqResp A model user request and response
+---@field request string Model prompt (fully expanded)
+---@field response string Model response (extracted)
+---@field model string The model
+---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
+---@field extract string? A regex pattern to extract content from the model's response.
+---@field timestamp string The time/date the request was sent
 
 ---@class Chat
----@field name string The title or topic of the chat
----@field messages ChatMessage[] A list of messages in the conversation
+---@field dialog Dialog A list of conversation request/response pairs
+---@field filename string? The chat JSON file path
+
+---@alias Dialog ChatReqResp[]
 
 ---@alias Chats Chat[]
 
