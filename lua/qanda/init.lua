@@ -47,16 +47,6 @@ local function select_provider()
   end)
 end
 
-local function user_prompt_picker(callback)
-  Prompts.load_prompts() -- TODO: replace with load_user_prompts()
-  Prompts.prompt_picker(callback) -- TODO: replace with user_prompt_picker()
-end
-
-local function system_prompt_picker(callback)
-  Prompts.load_system_prompts()
-  Prompts.system_prompt_picker(callback)
-end
-
 function M.open_qanda()
   ---@todo
   utils.create_window(Config.CHAT_BUFFER_NAME, { window_mode = "right" })
@@ -87,15 +77,21 @@ function M.create_user_command()
       ---@todo
       return
     elseif args == "/prompts" then
-      user_prompt_picker(function(prompt)
+      Prompts.user_prompts = Prompts.load_prompts "user"
+      Prompts.user_prompt_picker(function(prompt)
         M.execute_prompt_string(prompt.prompt)
       end)
       return
     elseif args == "/system" then
-      system_prompt_picker(function(prompt)
-        State.system_prompt = prompt
-      end)
-      return
+      coroutine.wrap(function()
+        Prompts.system_prompts = Prompts.load_prompts "system"
+        Prompts.system_prompt_picker(function(prompt)
+          prompt = vim.tbl_deep_extend("force", {}, prompt)
+          prompt.prompt = Prompts.substitute_placeholders(prompt.prompt)
+          prompt.consumed = false
+          State.system_prompt = prompt
+        end)
+      end)()
     elseif args == "/models" then
       select_model()
       return
@@ -103,12 +99,18 @@ function M.create_user_command()
       select_provider()
       return
     elseif args == "/info" then
-      local system_prompt
-      system_prompt= State.system_prompt or "" and State.system_prompt.name
-      utils.notify('provider: "' .. State.provider.name .. '", model: "' .. tostring(State.provider.model) .. '", system: "' .. system_prompt .. '', vim.log.levels.INFO)
+      utils.notify(
+        "provider: "
+          .. vim.inspect(State.provider.name)
+          .. ", model: "
+          .. vim.inspect(State.provider.model)
+          .. ", system: "
+          .. vim.inspect((State.system_prompt or {}).name),
+        vim.log.levels.INFO
+      )
       return
     else
-      local prompt = Prompts.get_prompt(args)
+      local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
       if not prompt then
         utils.notify("Invalid " .. (args:sub(1, 1) == "/" and "command" or "prompt") .. "'" .. args .. "'", vim.log.levels.ERROR)
         return
@@ -122,7 +124,7 @@ function M.create_user_command()
     nargs = "?",
     complete = function(ArgLead)
       local args = {}
-      for _, p in ipairs(Prompts.prompts) do
+      for _, p in ipairs(Prompts.user_prompts) do
         table.insert(args, p.name)
       end
 

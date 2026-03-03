@@ -3,18 +3,21 @@ local State = require "qanda.state"
 local utils = require "qanda.utils"
 
 local M = {
-  prompts = {}, ---@type Prompts
+  user_prompts = {}, ---@type Prompts
+  system_prompts = {}, ---@type Prompts
 }
 
 function M.setup()
-  M.load_prompts()
+  M.user_prompts = M.load_prompts "user"
+  M.system_prompts = M.load_prompts "system"
 end
 
 ---Retrieve a prompt by its name.
+---@param prompts Prompts The prompts array to search
 ---@param name string The name of the prompt.
 ---@return Prompt|nil The prompt.
-function M.get_prompt(name)
-  for _, prompt in ipairs(M.prompts) do
+function M.get_prompt(prompts, name)
+  for _, prompt in ipairs(prompts) do
     if prompt.name == name then
       return prompt
     end
@@ -29,7 +32,7 @@ end
 function M.set_prompt(prompt, name)
   local p = vim.tbl_deep_extend("force", {}, prompt)
   p.name = name or p.name
-  utils.insert_replace(M.prompts, p, function(p1, p2)
+  utils.insert_replace(M.user_prompts, p, function(p1, p2)
     return p1.name == p2.name
   end)
   return p
@@ -205,58 +208,42 @@ local function prompt_to_lines(prompt)
   return lines
 end
 
-function M.load_system_prompts()
-  ---@todo
-end
-
-function M.system_prompt_picker(callback)
-  ---@todo
-  _ = callback
-end
-
-function M.load_user_prompts()
-  ---@todo
-end
-
-function M.user_prompt_picker(callback)
-  ---@todo
-  _ = callback
-end
-
 --- Initialise M.prompts table from prompts files (custom markdown file in the configuration prompts directory).
-function M.load_prompts()
-  M.prompts = {}
+function M.load_prompts(role)
+  local result = {} ---@type Prompts
 
   -- Read and merge prompts from all .user.md files
   local prompts_dir = Config.prompts_dir
-  local glob_pattern = prompts_dir .. "/*.user.md"
+  local glob_pattern = prompts_dir .. "/*." .. role .. ".md"
   local prompt_files = vim.fn.glob(glob_pattern, false, true)
 
-  -- If there are no prompts files then create one
-  if #prompt_files == 0 then
-    local path = Config.prompts_dir .. "/default.user.md"
+  if role == "user" then
+    -- If there are no prompts files then create one
+    if #prompt_files == 0 then
+      local path = Config.prompts_dir .. "/default.user.md"
 
-    -- Create parent directory if it does not already exist
-    local dir = vim.fn.fnamemodify(path, ":h")
-    if vim.fn.isdirectory(dir) == 0 then
-      vim.fn.mkdir(dir, "p")
-    end
+      -- Create parent directory if it does not already exist
+      local dir = vim.fn.fnamemodify(path, ":h")
+      if vim.fn.isdirectory(dir) == 0 then
+        vim.fn.mkdir(dir, "p")
+      end
 
-    local f, err = io.open(path, "w")
-    if not f then
-      utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
-      return false
-    end
-    local content = [[
+      local f, err = io.open(path, "w")
+      if not f then
+        utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+        return false
+      end
+      local content = [[
 ___
 name: Make a request
 ___
 ${input:Enter request:}
 ]]
-    f:write(content)
-    f:close()
-    prompt_files = vim.fn.glob(glob_pattern, false, true)
-    assert(#prompt_files == 1)
+      f:write(content)
+      f:close()
+      prompt_files = vim.fn.glob(glob_pattern, false, true)
+      assert(#prompt_files == 1)
+    end
   end
 
   -- Load the prompts files
@@ -270,7 +257,7 @@ ${input:Enter request:}
         if prompts then
           for _, v in ipairs(prompts) do
             v.filename = file_path
-            table.insert(M.prompts, v)
+            table.insert(result, v)
           end
         else
           utils.notify("Failed to parse prompts from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
@@ -278,9 +265,10 @@ ${input:Enter request:}
       end
     end
   end
+  return result
 end
 
-local function edit_prompt(prompt)
+local function edit_prompt(prompt, pattern)
   vim.cmd("edit " .. vim.fn.fnameescape(prompt.filename))
   local edited_bufnr = vim.api.nvim_get_current_buf()
   M.add_prompt_syntax_highlighting_rules(edited_bufnr)
@@ -288,7 +276,7 @@ local function edit_prompt(prompt)
   -- Position cursor at the line containing the prompt name
   local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
   for i, line in ipairs(lines) do
-    if line:match("name:%s*" .. prompt.name) then
+    if line:match(pattern) then
       vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
       break
     end
@@ -342,11 +330,95 @@ function M.add_prompt_syntax_highlighting_rules(bufnr)
   end)
 end
 
----Displays a telescope picker for selecting, editing and executing prompts.
----@param callback function Callback to execute the selected prompt
-function M.prompt_picker(callback)
+function M.user_prompt_picker(callback)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
+
+  M.prompt_picker(M.user_prompts, function(prompt_bufnr)
+
+    -- <Enter> - Close the picker and open the prompt in the prompt window
+    actions.select_default:replace(function()
+      local selection = action_state.get_selected_entry()
+      actions.close(prompt_bufnr)
+      if selection then
+        local prompt = M.get_prompt(M.user_prompts, selection.value)
+        M.open_prompt(prompt)
+      else
+        utils.notify("User cancelled", vim.log.levels.INFO)
+      end
+    end)
+
+    -- Close the picker and execute the selected prompt template
+    vim.keymap.set({ "n", "i" }, Config.exec_key, function()
+      local selection = action_state.get_selected_entry()
+      actions.close(prompt_bufnr)
+      if selection then
+        callback(M.get_prompt(M.user_prompts, selection.value))
+      else
+        utils.notify("User cancelled", vim.log.levels.INFO)
+      end
+    end, { buffer = prompt_bufnr })
+
+    -- Close the picker and edit prompts file containing the selected prompt
+    vim.keymap.set({ "n", "i" }, Config.edit_key, function()
+      local selection = action_state.get_selected_entry()
+      if selection then
+        local prompt_name = selection.value
+        local prompt = M.get_prompt(M.user_prompts, prompt_name)
+        assert(prompt)
+        actions.close(prompt_bufnr)
+        if prompt.filename then
+          edit_prompt(prompt, "^name:%s*" .. prompt.name)
+        else
+          utils.notify("No file associated with built-in prompt '" .. prompt_name .. "'", vim.log.levels.WARN)
+        end
+      end
+    end, { buffer = prompt_bufnr })
+
+    return true
+  end)
+end
+
+function M.system_prompt_picker(callback)
+  local actions = require "telescope.actions"
+  local action_state = require "telescope.actions.state"
+
+  M.prompt_picker(M.system_prompts, function(prompt_bufnr)
+
+    -- <Enter> - Close the picker window; execute callback
+    actions.select_default:replace(function()
+      local selection = action_state.get_selected_entry()
+      actions.close(prompt_bufnr)
+      if selection then
+        callback(M.get_prompt(M.system_prompts, selection.value))
+      else
+        utils.notify("User cancelled", vim.log.levels.INFO)
+      end
+    end)
+
+    -- Close the picker and edit prompts file containing the selected prompt
+    vim.keymap.set({ "n", "i" }, Config.edit_key, function()
+      local selection = action_state.get_selected_entry()
+      if selection then
+        local prompt_name = selection.value
+        local prompt = M.get_prompt(M.system_prompts, prompt_name)
+        assert(prompt)
+        actions.close(prompt_bufnr)
+        if prompt.filename then
+          edit_prompt(prompt, "^name:%s*" .. prompt.name)
+        else
+          utils.notify("No file associated with built-in prompt '" .. prompt_name .. "'", vim.log.levels.WARN)
+        end
+      end
+    end, { buffer = prompt_bufnr })
+
+    return true
+  end)
+end
+
+---Displays a telescope picker for selecting, editing and executing prompts.
+---@param mappings function Telescope attach_mappings callback
+function M.prompt_picker(prompts, mappings)
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
@@ -354,7 +426,7 @@ function M.prompt_picker(callback)
 
   -- Prepare prompt data for telescope
   local prompt_names = {}
-  for _, prompt in ipairs(M.prompts) do
+  for _, prompt in ipairs(prompts) do
     table.insert(prompt_names, prompt.name)
   end
   table.sort(prompt_names)
@@ -363,7 +435,7 @@ function M.prompt_picker(callback)
   local prompt_previewer = previewers.new_buffer_previewer {
     define_preview = function(self, entry)
       local prompt_name = entry.value
-      local prompt = M.get_prompt(prompt_name)
+      local prompt = M.get_prompt(prompts, prompt_name)
 
       assert(prompt)
 
@@ -390,49 +462,7 @@ function M.prompt_picker(callback)
       },
       sorter = conf.generic_sorter {},
       previewer = prompt_previewer,
-      attach_mappings = function(prompt_bufnr)
-
-        -- Close the picker and open the prompt in the prompt window
-        actions.select_default:replace(function()
-          local selection = action_state.get_selected_entry()
-          actions.close(prompt_bufnr)
-          if selection then
-            local prompt = M.get_prompt(selection.value)
-            M.open_prompt(prompt)
-          else
-            utils.notify("User cancelled", vim.log.levels.INFO)
-          end
-        end)
-
-        -- Close the picker and execute the selected prompt template
-        vim.keymap.set({ "n", "i" }, "<C-Space>", function()
-          local selection = action_state.get_selected_entry()
-          actions.close(prompt_bufnr)
-          if selection then
-            callback(M.get_prompt(selection.value))
-          else
-            utils.notify("User cancelled", vim.log.levels.INFO)
-          end
-        end, { buffer = prompt_bufnr })
-
-        -- Close the picker and edit prompts file containing the selected prompt
-        vim.keymap.set({ "n", "i" }, "<C-e>", function()
-          local selection = action_state.get_selected_entry()
-          if selection then
-            local prompt_name = selection.value
-            local prompt = M.get_prompt(prompt_name)
-            assert(prompt)
-            actions.close(prompt_bufnr)
-            if prompt.filename then
-              edit_prompt(prompt)
-            else
-              utils.notify("No file associated with built-in prompt '" .. prompt_name .. "'", vim.log.levels.WARN)
-            end
-          end
-        end, { buffer = prompt_bufnr })
-
-        return true
-      end,
+      attach_mappings = mappings,
       layout_config = Config.prompt_picker_layout,
     })
     :find()

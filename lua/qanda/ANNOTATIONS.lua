@@ -45,7 +45,7 @@
 
 ---@alias Providers Provider[]
 
----@alias Role "user" | "assistant"
+---@alias Role "user" | "assistant" | "system"
 
 ---@class Message
 ---@field role Role The role of the model message
