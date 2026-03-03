@@ -156,7 +156,7 @@ end
 --
 -- ---Helper to get full path for a prompt name
 -- local function get_prompt_file_path(prompts_dir, name)
---   return prompts_dir .. "/" .. name .. ".prompts.md"
+--   return prompts_dir .. "/" .. name .. ".user.md"
 -- end
 --
 -- -- Helper to validate new prompts file name
@@ -209,14 +209,14 @@ end
 function M.load_prompts()
   M.prompts = {}
 
-  -- Read and merge prompts from all .prompts.md files
+  -- Read and merge prompts from all .user.md files
   local prompts_dir = Config.prompts_dir
-  local glob_pattern = prompts_dir .. "/*.prompts.md"
+  local glob_pattern = prompts_dir .. "/*.user.md"
   local prompt_files = vim.fn.glob(glob_pattern, false, true)
 
   -- If there are no prompts files then create one
   if #prompt_files == 0 then
-    local path = Config.prompts_dir .. "/default.prompts.md"
+    local path = Config.prompts_dir .. "/default.user.md"
 
     -- Create parent directory if it does not already exist
     local dir = vim.fn.fnamemodify(path, ":h")
