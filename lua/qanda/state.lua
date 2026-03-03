@@ -10,6 +10,7 @@ local ui = require "qanda.ui"
 ---@field prompt_window UIWindow
 
 local M = {
+  system_prompt = nil,
   chats = {},
   chat_window = ui.UIWindow.new {
     buf_name = Config.CHAT_BUFFER_NAME,
@@ -42,8 +43,9 @@ function M.setup()
     return
   end
   provider.model = Config.model
-
   M.provider = provider
+
+  M.system_prompt = nil
 
 end
 

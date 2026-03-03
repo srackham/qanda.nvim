@@ -205,6 +205,24 @@ local function prompt_to_lines(prompt)
   return lines
 end
 
+function M.load_system_prompts()
+  ---@todo
+end
+
+function M.system_prompt_picker(callback)
+  ---@todo
+  _ = callback
+end
+
+function M.load_user_prompts()
+  ---@todo
+end
+
+function M.user_prompt_picker(callback)
+  ---@todo
+  _ = callback
+end
+
 --- Initialise M.prompts table from prompts files (custom markdown file in the configuration prompts directory).
 function M.load_prompts()
   M.prompts = {}

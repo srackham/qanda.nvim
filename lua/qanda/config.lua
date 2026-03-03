@@ -12,20 +12,23 @@ local default = {
   host = "localhost",
   port = "11434",
 
-  quit_key = "q",
   cancel_key = "<C-c>",
+  delete_key = "<C-d>",
   edit_key = "<C-e>",
   exec_key = "<C-Space>",
-  save_key = "<C-s>",
-  switch_key = "<Tab>",
   next_key = "<C-j>",
   prev_key = "<C-k>",
+  quit_key = "q",
+  rewind_key = "<C-r>",
+  save_key = "<C-s>",
+  switch_key = "<Tab>",
 
   ---@type UIMode
   ui_mode = "separate",
 
   prompts_dir = vim.fn.stdpath "data" .. "/qanda_nvim/prompts",
   chats_dir = vim.fn.stdpath "data" .. "/qanda_nvim/chats",
+  system_prompt_name = nil, -- Default system prompt name
 
   response_register = "r", -- Holds the most recent response (extracted)
   prompt_register = "p", -- Holds the most recent submitted prompt (mandatory, cannot be nil)

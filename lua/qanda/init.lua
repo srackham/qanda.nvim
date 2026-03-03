@@ -47,9 +47,14 @@ local function select_provider()
   end)
 end
 
-local function prompt_picker(callback)
-  Prompts.load_prompts()
-  Prompts.prompt_picker(callback)
+local function user_prompt_picker(callback)
+  Prompts.load_prompts() -- TODO: replace with load_user_prompts()
+  Prompts.prompt_picker(callback) -- TODO: replace with user_prompt_picker()
+end
+
+local function system_prompt_picker(callback)
+  Prompts.load_system_prompts()
+  Prompts.system_prompt_picker(callback)
 end
 
 function M.open_qanda()
@@ -73,7 +78,7 @@ function M.create_user_command()
       Chats.open_chat()
       return
     elseif args == "/new" then
-      M:new_chat()
+      M.new_chat()
       return
     elseif args == "/prompt" then
       Prompts.open_prompt()
@@ -82,8 +87,13 @@ function M.create_user_command()
       ---@todo
       return
     elseif args == "/prompts" then
-      prompt_picker(function(prompt)
+      user_prompt_picker(function(prompt)
         M.execute_prompt_string(prompt.prompt)
+      end)
+      return
+    elseif args == "/system" then
+      system_prompt_picker(function(prompt)
+        State.system_prompt = prompt
       end)
       return
     elseif args == "/models" then
@@ -93,7 +103,9 @@ function M.create_user_command()
       select_provider()
       return
     elseif args == "/info" then
-      utils.notify('provider: "' .. State.provider.name .. '", model: "' .. tostring(State.provider.model) .. '"', vim.log.levels.INFO)
+      local system_prompt
+      system_prompt= State.system_prompt or "" and State.system_prompt.name
+      utils.notify('provider: "' .. State.provider.name .. '", model: "' .. tostring(State.provider.model) .. '", system: "' .. system_prompt .. '', vim.log.levels.INFO)
       return
     else
       local prompt = Prompts.get_prompt(args)
@@ -121,6 +133,7 @@ function M.create_user_command()
       table.insert(args, "/prompts")
       table.insert(args, "/models")
       table.insert(args, "/providers")
+      table.insert(args, "/system")
       table.insert(args, "/info")
 
       local completion_candidates = {}
