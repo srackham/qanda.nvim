@@ -413,23 +413,31 @@ function M.system_prompt_picker(callback)
     end, { buffer = prompt_bufnr })
 
     return true
+  end, function(prompt)
+    if State.system_prompt and State.system_prompt.name == prompt.name then
+      return "* " .. prompt.name
+    else
+      return "  " .. prompt.name
+    end
   end)
 end
 
 ---Displays a telescope picker for selecting, editing and executing prompts.
 ---@param mappings function Telescope attach_mappings callback
-function M.prompt_picker(prompts, mappings)
+function M.prompt_picker(prompts, mappings, display_entry)
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
 
   -- Prepare prompt data for telescope
-  local prompt_names = {}
+  local picker_entries = {}
   for _, prompt in ipairs(prompts) do
-    table.insert(prompt_names, prompt.name)
+    table.insert(picker_entries, prompt)
   end
-  table.sort(prompt_names)
+  table.sort(picker_entries, function(a, b)
+    return a.name < b.name
+  end)
 
   -- Create previewer that shows the prompt value
   local prompt_previewer = previewers.new_buffer_previewer {
@@ -451,12 +459,12 @@ function M.prompt_picker(prompts, mappings)
   pickers
     .new({}, {
       finder = finders.new_table {
-        results = prompt_names,
-        entry_maker = function(entry)
+        results = picker_entries,
+        entry_maker = function(prompt) -- 'entry' is now the full prompt object
           return {
-            value = entry,
-            display = entry,
-            ordinal = entry,
+            value = prompt.name, -- Keep value as the name for the previewer
+            display = display_entry and display_entry(prompt) or prompt.name,
+            ordinal = prompt.name,
           }
         end,
       },
@@ -482,17 +490,17 @@ function M.resolve_prompt_path(file_path)
   -- Check if the file_path is just a filename (no directory separators).
   -- vim.fn.fnamemodify(file_path, ':t') extracts only the filename part.
   -- If it's equal to the original file_path, then there was no directory component.
-  if vim.fn.fnamemodify(file_path, ':t') == file_path then
+  if vim.fn.fnamemodify(file_path, ":t") == file_path then
     -- If it's just a filename, prepend Config.prompts_dir and then resolve to an absolute path.
-    local full_path = Config.prompts_dir .. '/' .. file_path
-    return vim.fn.fnamemodify(full_path, ':p')
+    local full_path = Config.prompts_dir .. "/" .. file_path
+    return vim.fn.fnamemodify(full_path, ":p")
   else
     -- Otherwise, the path either has directory components (relative to cwd) or is already absolute.
     -- The ':p' modifier handles both cases correctly:
     -- - For relative paths, it makes them absolute relative to vim.fn.cwd().
     -- - For already absolute paths (including those starting with '~'), it returns them as is,
     --   with '~' expanded.
-    return vim.fn.fnamemodify(file_path, ':p')
+    return vim.fn.fnamemodify(file_path, ":p")
   end
 end
 
