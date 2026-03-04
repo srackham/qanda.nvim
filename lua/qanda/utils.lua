@@ -1,5 +1,9 @@
 local M = {} -- This module
 
+function M.debug(v)
+  print(vim.inspect(v))
+end
+
 --- Strip leading and trailing whitespace from a string
 --- @param s string The input string to trim
 --- @return string The trimmed string
@@ -92,6 +96,21 @@ end
 --- Wrapped `vim.notify`.
 function M.notify(msg, ...)
   vim.schedule_wrap(vim.notify)("qanda.nvim: " .. msg, ...)
+end
+
+--- Reads the entire content of a file into a string.
+---
+--- @param filepath string The path to the file to be read.
+--- @return string|nil content The file contents if successful, or nil if an error occurred.
+--- @return string|nil error_message An error message if the file could not be opened, otherwise nil.
+function M.read_file_to_string(filepath)
+  local file = io.open(filepath, "r")
+  if not file then
+    return nil, "Could not open file: '" .. filepath .. "'"
+  end
+  local content = file:read "*all"
+  file:close()
+  return content
 end
 
 function M.write_string_to_file(str, fname, mode)

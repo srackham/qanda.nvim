@@ -468,6 +468,34 @@ function M.prompt_picker(prompts, mappings)
     :find()
 end
 
+--- Converts a file path to an absolute path based on specific rules.
+---
+--- Rules:
+--- - If the file name has no directory component, it is assumed to reside in `Config.prompts_dir`.
+--- - If the file name is relative (e.g., "my/path/file.txt"), it is resolved relative
+---   to the current Neovim working directory (`vim.fn.cwd()`).
+--- - If the file name is already absolute (e.g., "/home/user/file.txt"), it is returned as is.
+---
+--- @param file_path string The file path to convert.
+--- @return string The absolute file path.
+function M.resolve_prompt_path(file_path)
+  -- Check if the file_path is just a filename (no directory separators).
+  -- vim.fn.fnamemodify(file_path, ':t') extracts only the filename part.
+  -- If it's equal to the original file_path, then there was no directory component.
+  if vim.fn.fnamemodify(file_path, ':t') == file_path then
+    -- If it's just a filename, prepend Config.prompts_dir and then resolve to an absolute path.
+    local full_path = Config.prompts_dir .. '/' .. file_path
+    return vim.fn.fnamemodify(full_path, ':p')
+  else
+    -- Otherwise, the path either has directory components (relative to cwd) or is already absolute.
+    -- The ':p' modifier handles both cases correctly:
+    -- - For relative paths, it makes them absolute relative to vim.fn.cwd().
+    -- - For already absolute paths (including those starting with '~'), it returns them as is,
+    --   with '~' expanded.
+    return vim.fn.fnamemodify(file_path, ':p')
+  end
+end
+
 --- Substitutes placeholders in the prompt with actual values.
 ---This function processes a prompt string and replaces special placeholders
 ---with their corresponding values.
@@ -553,6 +581,22 @@ function M.substitute_placeholders(prompt_string)
     end
     prompt_string = prompt_string:gsub("%$input", (answer:gsub("%$", "\27")))
   end
+
+  if cancelled then
+    return nil
+  end
+
+  -- Handle the ${file:<filename>} syntax
+  prompt_string = prompt_string:gsub("%${file:(.-)}", function(file_name)
+    file_name = M.resolve_prompt_path(file_name)
+    utils.debug("Reading file: " .. vim.inspect(file_name))
+    local file_content, err = utils.read_file_to_string(file_name)
+    if not file_content then
+      utils.notify("Error: " .. err, vim.log.levels.ERROR)
+      return file_content
+    end
+    return (file_content:gsub("%$", "\27"))
+  end)
 
   prompt_string = prompt_string:gsub("%$clipboard", "$register_+")
   prompt_string = prompt_string:gsub("%$yanked", "$register_0")

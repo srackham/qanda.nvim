@@ -1,9 +1,7 @@
 ___
 name: default
 ___
-- Do not use introductory phrases like 'I understand' or 'Based on your request.' Get straight to the point.
-- Use bullet lists for multiple items.
-- Prefer italics markup (using the Markdown underscore syntax) to bold.
+${file:RULES.md}
 
 ___
 name: Sarcastic math teacher

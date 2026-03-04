@@ -90,6 +90,7 @@ function M.create_user_command()
           prompt.prompt = Prompts.substitute_placeholders(prompt.prompt)
           prompt.consumed = false
           State.system_prompt = prompt
+          utils.debug(State.system_prompt)
         end)
       end)()
     elseif args == "/models" then
