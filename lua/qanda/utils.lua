@@ -155,6 +155,10 @@ function M.message(msg, opts)
   vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, opts.history or false, echo_opts)
 end
 
+vim.cmd([[
+    highlight default QandaSpinner  gui=NONE  cterm=NONE  guifg=#a6e3a1 ctermfg=157
+]])
+
 --- Display a notification message with an animated spinner
 --- Creates a visual spinner animation that runs while processing occurs,
 --- and returns a function to stop the animation and display a completion message.

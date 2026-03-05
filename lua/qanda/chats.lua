@@ -23,12 +23,17 @@ function M.open_chat(chat)
     win:set_lines(lines)
   end
   -- Attach key commands.
-  vim.keymap.set("n", "q", function()
+  vim.keymap.set("n", Config.quit_key, function()
     win:close()
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", "<Tab>", function()
+  vim.keymap.set("n", Config.switch_key, function()
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
+end
+
+function M.new_chat()
+  -- TODO: should init to default system prompt if defined.
+  State.system_prompt=nil
 end
 
 return M
