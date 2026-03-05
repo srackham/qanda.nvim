@@ -285,28 +285,25 @@ end
 
 ---Open prompt window, load the prompt.
 ---If the prompt window does not exist, create it and attach key-mapped commands.
----If the `prompt` is `nil` then don't load the prompt text into the window.
----@param prompt Prompt?
+---@param prompt Prompt
 function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting_rules(win.bufnr)
-  if prompt then
-    local lines = vim.split(prompt.prompt, "\n")
-    win:set_lines(lines)
-  end
+  local lines = vim.split(prompt.prompt, "\n")
+  win:set_lines(lines)
   -- Attach key commands.
-  vim.keymap.set("n", "q", function()
+  vim.keymap.set("n", Config.quit_key, function()
     win:close()
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", "<Tab>", function()
+  vim.keymap.set("n", Config.switch_key, function()
     vim.cmd "Qanda /chat"
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", "<C-Space>", function()
-    local prompt_string = table.concat(win:get_lines(), "\n")
+  vim.keymap.set("n", Config.exec_key, function()
+    prompt.prompt = table.concat(win:get_lines(), "\n")
     win:close()
-    require("qanda").execute_prompt_string(prompt_string)
+    require("qanda").execute_prompt(prompt)
   end, { buffer = win.bufnr })
 end
 
@@ -342,6 +339,7 @@ function M.user_prompt_picker(callback)
       actions.close(prompt_bufnr)
       if selection then
         local prompt = M.get_prompt(M.user_prompts, selection.value)
+        assert(prompt)
         M.open_prompt(prompt)
       else
         utils.notify("User cancelled", vim.log.levels.INFO)

@@ -61,22 +61,23 @@
 ---@field data RequestData
 
 ---@readonly
----@class Prompt An immutable prompt template loaded from prompt files or previously executed prompt extracted fro chat history.
----@field name? string The prompt name.
----@field prompt string The prompt string.
----@field extract string? A regex pattern to extract content from the model's response.
+---@class Prompt An immutable prompt template loaded from prompt files or previously executed prompt extracted fro chat history
+---@field name? string The prompt name
+---@field prompt string The prompt string
+---@field expanded? string The prompt string after placeholder expansion
+---@field extract string? A regex pattern to extract content from the model's response
 ---@field system string? Name of system prompt template
----@field model string? The model name to use for this prompt.
+---@field model string? The model name to use for this prompt
 ---@field model_options table? Additional model request fields
 ---@field filename string? The prompt definition's source file
 ---@field consumed boolean? Flag the prompt as having been appended to the model messages array
 
 ---@alias Prompts Prompt[]
 
----@class ChatTurn A model user request and response (sometimes called a turn or a turn-about)
----@field request string Model prompt (fully expanded)
+---@class ChatTurn A model user request and response (called a turn or a turn-about)
+---@field request string Model prompt (expanded)
 ---@field response string Model response (extracted)
----@field system string? System prompt (fully expanded)
+---@field system string? System prompt (expanded)
 ---@field model string The model
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
 ---@field extract string? A regex pattern to extract content from the model's response.

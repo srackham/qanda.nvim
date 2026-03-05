@@ -71,7 +71,7 @@ function M.create_user_command()
       M.new_chat()
       return
     elseif args == "/prompt" then
-      Prompts.open_prompt()
+      Prompts.open_prompt { prompt = "" }
       return
     elseif args == "/chats" then
       ---@todo
@@ -79,15 +79,14 @@ function M.create_user_command()
     elseif args == "/prompts" then
       Prompts.user_prompts = Prompts.load_prompts "user"
       Prompts.user_prompt_picker(function(prompt)
-        M.execute_prompt_string(prompt.prompt)
+        M.execute_prompt(prompt)
       end)
       return
     elseif args == "/system" then
       coroutine.wrap(function()
         Prompts.system_prompts = Prompts.load_prompts "system"
         Prompts.system_prompt_picker(function(prompt)
-          prompt = vim.tbl_deep_extend("force", {}, prompt)
-          prompt.prompt = Prompts.substitute_placeholders(prompt.prompt)
+          prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
           prompt.consumed = false
           State.system_prompt = prompt
           utils.debug(State.system_prompt)
@@ -116,8 +115,7 @@ function M.create_user_command()
         utils.notify("Invalid " .. (args:sub(1, 1) == "/" and "command" or "prompt") .. "'" .. args .. "'", vim.log.levels.ERROR)
         return
       end
-      -- TODO: Synthesise a Prompt and execute it
-      M.execute_prompt_string(prompt.prompt)
+      M.execute_prompt(prompt)
       return
     end
   end, {
@@ -152,15 +150,13 @@ function M.create_user_command()
 end
 
 -- TODO: We need to execute a Prompt not a string.
-function M.execute_prompt_string(prompt_string)
+function M.execute_prompt(prompt)
   coroutine.wrap(function()
-    prompt_string = Prompts.substitute_placeholders(prompt_string)
-    if not prompt_string then
-      return
-    end
+    utils.debug(prompt) -- "$select" ???
+    prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
     State.prompt_window:close()
     Chats.open_chat()
-    local lines = vim.split(prompt_string, "\n")
+    local lines = vim.split(prompt.expanded, "\n")
     State.chat_window:set_lines(lines)
   end)()
 end
