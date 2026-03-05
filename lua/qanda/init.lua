@@ -77,14 +77,14 @@ function M.create_user_command()
       ---@todo
       return
     elseif args == "/prompts" then
-      Prompts.user_prompts = Prompts.load_prompts "user"
+      Prompts.load_user_prompts()
       Prompts.user_prompt_picker(function(prompt)
         M.execute_prompt(prompt)
       end)
       return
     elseif args == "/system" then
       coroutine.wrap(function()
-        Prompts.system_prompts = Prompts.load_prompts "system"
+        Prompts.load_system_prompts()
         Prompts.system_prompt_picker(function(prompt)
           prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
           prompt.consumed = false
@@ -149,10 +149,8 @@ function M.create_user_command()
   })
 end
 
--- TODO: We need to execute a Prompt not a string.
 function M.execute_prompt(prompt)
   coroutine.wrap(function()
-    utils.debug(prompt) -- "$select" ???
     prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
     State.prompt_window:close()
     Chats.open_chat()

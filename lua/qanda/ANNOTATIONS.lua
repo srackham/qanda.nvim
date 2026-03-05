@@ -61,7 +61,7 @@
 ---@field data RequestData
 
 ---@readonly
----@class Prompt An immutable prompt template loaded from prompt files or previously executed prompt extracted fro chat history
+---@class Prompt An immutable prompt template loaded from user prompt template files or previously executed prompt extracted from chat history
 ---@field name? string The prompt name
 ---@field prompt string The prompt string
 ---@field expanded? string The prompt string after placeholder expansion
