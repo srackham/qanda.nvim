@@ -1,7 +1,11 @@
+local Config = require "qanda.config" -- User configuration options
+
 local M = {} -- This module
 
 function M.debug(v)
-  print(vim.inspect(v))
+  if Config.debug then
+    print(vim.inspect(v))
+  end
 end
 
 --- Strip leading and trailing whitespace from a string

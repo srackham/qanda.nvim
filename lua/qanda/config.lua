@@ -7,6 +7,8 @@ M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 local default = {
 
   -- User configuration
+  debug = true,
+
   provider = "ollama",
   model = "mistral",
   host = "localhost",
