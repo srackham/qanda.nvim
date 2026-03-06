@@ -74,7 +74,8 @@ function M.create_user_command()
       Prompts.open_prompt { prompt = "" }
       return
     elseif args == "/chats" then
-      ---@todo
+      State.chats = Chats.load_chats()
+      Chats.chat_picker()
       return
     elseif args == "/prompts" then
       Prompts.load_user_prompts()

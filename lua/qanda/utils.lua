@@ -155,9 +155,9 @@ function M.message(msg, opts)
   vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, opts.history or false, echo_opts)
 end
 
-vim.cmd([[
+vim.cmd [[
     highlight default QandaSpinner  gui=NONE  cterm=NONE  guifg=#a6e3a1 ctermfg=157
-]])
+]]
 
 --- Display a notification message with an animated spinner
 --- Creates a visual spinner animation that runs while processing occurs,
@@ -268,6 +268,44 @@ function M.ui_select_sync(items, opts)
   end)
 
   return coroutine.yield()
+end
+
+function M.edit_file(filename, add_syntax_highlighting, pattern)
+  vim.cmd("edit " .. vim.fn.fnameescape(filename))
+  local edited_bufnr = vim.api.nvim_get_current_buf()
+  add_syntax_highlighting(edited_bufnr)
+
+  local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
+  if pattern then
+    -- Position cursor at the first line containing the pattern name
+    for i, line in ipairs(lines) do
+      if line:match(pattern) then
+        vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
+        break
+      end
+    end
+  end
+end
+
+---Truncates a string to a maximum length, appending "..." if truncated.
+---@param s string The string to truncate.
+---@param max_len number The maximum desired length of the string, including ellipsis.
+---@return string The truncated or original string.
+function M.truncate_string(s, max_len)
+  local s_len = #s -- Get string length
+
+  if s_len <= max_len then
+    return s
+  else
+    if max_len < 3 then
+      -- If max_len is too small to fit "...", just truncate without it.
+      -- Handles cases where max_len is 0, 1, or 2.
+      return s:sub(1, max_len)
+    else
+      -- Truncate to make space for "..."
+      return s:sub(1, max_len - 3) .. "..."
+    end
+  end
 end
 
 return M

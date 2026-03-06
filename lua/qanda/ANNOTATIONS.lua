@@ -84,10 +84,8 @@
 ---@field timestamp string The time/date the request was sent
 
 ---@class Chat
----@field dialog Dialog A list of conversation request/response pairs
----@field filename string? The chat JSON file path
-
----@alias Dialog ChatTurn[]
+---@field dialog ChatTurn[] A list of conversation request/response pairs
+---@field filename string? The chat JSONL file path, set when the chat is saved for the first time
 
 ---@alias Chats Chat[]
 
