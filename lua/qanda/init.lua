@@ -74,10 +74,13 @@ function M.create_user_command()
       Prompts.open_prompt { prompt = "" }
       return
     elseif args == "/chats" then
-      Chats.load_chats()
+      State.chats = Chats.load_chats()
       Chats.chat_picker(function(chat)
-        ---@todo load selected chat into chat window
-        _ = chat
+        Chats.open_chat(chat)
+        local win = State.chat_window
+        win.chat = chat
+        win.turn_index = #chat
+        win:open()
       end)
       return
     elseif args == "/prompts" then

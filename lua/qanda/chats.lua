@@ -10,35 +10,74 @@ function M.setup()
   -- Currently no setup required
 end
 
----Open chat window, load the chat.
+local function parse_turns(lines)
+  local turns = {}
+  for _, line in ipairs(lines) do
+    local ok, parsed_line = pcall(vim.fn.json_decode, line)
+    if ok and type(parsed_line) == "table" then
+      table.insert(turns, parsed_line)
+    else
+      return nil
+    end
+  end
+  return turns
+end
+
+function M.load_chats()
+  local result = {} ---@type Chats
+
+  -- Read and merge chats from all .chat.jsonl files
+  local chats_dir = Config.chats_dir
+  local glob_pattern = chats_dir .. "/*.chat.jsonl"
+  local chat_files = vim.fn.glob(glob_pattern, false, true)
+
+  -- Load the chats files
+  for _, file_path in ipairs(chat_files) do
+    if vim.fn.filereadable(file_path) == 1 then
+      local file_content = vim.fn.readfile(file_path)
+      if file_content then
+        local turns = parse_turns(file_content)
+        if turns then
+          assert(#turns > 0)
+          local chat = { dialog = turns }
+          table.insert(result, chat)
+        else
+          utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
+        end
+      end
+    end
+  end
+  return result
+end
+
+---Open chat window, load the chat turn at chat index `idx`.
 ---If the chat window does not exist, create it and attach key-mapped commands.
----If the `chat` is `nil` then don't load the chat text into the window.
 ---@param chat Chat?
-function M.open_chat(chat)
+function M.open_chat(chat, turn_index)
+  assert(chat)
   local win = State.chat_window
   win:open()
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
-  if chat then
-    local lines = M.chat_lines(chat)
-    win:set_lines(lines)
-  end
+  win.turn_index = turn_index or #chat
+  win.chat = chat
+  local lines = M.turn_to_lines(chat.dialog[win.turn_index])
+  win:set_lines(lines)
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
     win:close()
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.switch_key, function()
-    vim.cmd "Qanda /chat"
+    vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
 end
 
 function M.new_chat()
-  ---@todo  should init to default system chat if defined.
-  State.system_chat=nil
+  State.system_chat = nil ---@todo  should init to default system chat if defined.
 end
 
 ---@param turn ChatTurn
 ---@return string[]
-local function turn_to_lines(turn)
+function M.turn_to_lines(turn)
   local lines = {}
   local rule = string.rep("─", 40)
 
@@ -90,7 +129,7 @@ local function chat_picker(chats, mappings, display_entry)
 
       assert(chat)
 
-      local lines = turn_to_lines(chat)
+      local lines = M.turn_to_lines(chat)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       -- vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
