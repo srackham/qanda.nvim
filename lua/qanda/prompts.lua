@@ -285,21 +285,6 @@ function M.load_user_prompts()
   M.user_prompts = load_prompts "user"
 end
 
-local function edit_prompt(prompt, pattern)
-  vim.cmd("edit " .. vim.fn.fnameescape(prompt.filename))
-  local edited_bufnr = vim.api.nvim_get_current_buf()
-  M.add_prompt_syntax_highlighting_rules(edited_bufnr)
-
-  -- Position cursor at the line containing the prompt name
-  local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
-  for i, line in ipairs(lines) do
-    if line:match(pattern) then
-      vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
-      break
-    end
-  end
-end
-
 ---Open prompt window, load the prompt.
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 ---@param prompt Prompt
@@ -435,7 +420,7 @@ function M.user_prompt_picker(callback)
         assert(prompt)
         actions.close(prompt_bufnr)
         if prompt.filename then
-          edit_prompt(prompt, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
@@ -471,7 +456,7 @@ function M.system_prompt_picker(callback)
         assert(prompt)
         actions.close(prompt_bufnr)
         if prompt.filename then
-          edit_prompt(prompt, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
