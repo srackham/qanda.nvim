@@ -275,12 +275,14 @@ function M.edit_file(filename, pattern)
   local edited_bufnr = vim.api.nvim_get_current_buf()
   M.add_prompt_syntax_highlighting_rules(edited_bufnr)
 
-  -- Position cursor at the first line containing the pattern name
   local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
-  for i, line in ipairs(lines) do
-    if line:match(pattern) then
-      vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
-      break
+  if pattern then
+    -- Position cursor at the first line containing the pattern name
+    for i, line in ipairs(lines) do
+      if line:match(pattern) then
+        vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
+        break
+      end
     end
   end
 end

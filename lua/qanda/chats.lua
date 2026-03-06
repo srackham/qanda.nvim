@@ -34,9 +34,9 @@ function M.load_chats()
   -- Load the chats files
   for _, file_path in ipairs(chat_files) do
     if vim.fn.filereadable(file_path) == 1 then
-      local file_content = vim.fn.readfile(file_path)
-      if file_content then
-        local turns = parse_turns(file_content)
+      local lines = vim.fn.readfile(file_path)
+      if lines then
+        local turns = parse_turns(lines)
         if turns then
           assert(#turns > 0)
           local chat = { dialog = turns }
@@ -158,11 +158,11 @@ local function chat_picker(chats, mappings, display_entry)
     :find()
 end
 
-function M.chat_picker(callback)
+function M.chat_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  chat_picker(M.user_chats, function(chat_bufnr)
+  chat_picker(State.chats, function(chat_bufnr)
 
     -- <Enter> - Close the picker and open the chat in the chat window
     actions.select_default:replace(function()
@@ -177,12 +177,12 @@ function M.chat_picker(callback)
       end
     end)
 
-    -- Close the picker and execute the selected chat template
-    vim.keymap.set({ "n", "i" }, Config.exec_key, function()
+    -- Close the picker and delete the selected chat file
+    vim.keymap.set({ "n", "i" }, Config.delete_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
       if selection then
-        callback(selection.value)
+        ---@todo Delete selected chat file
       else
         utils.notify("User cancelled", vim.log.levels.INFO)
       end
@@ -194,12 +194,9 @@ function M.chat_picker(callback)
       if selection then
         local chat = selection.value
         assert(chat)
+        assert(chat.filename)
         actions.close(chat_bufnr)
-        if chat.filename then
-          utils.edit_chat(chat.filename, "^name:%s*" .. chat.name)
-        else
-          utils.notify("No file associated with built-in chat '" .. chat.name .. "'", vim.log.levels.WARN)
-        end
+        utils.edit_file(chat.filename)
       end
     end, { buffer = chat_bufnr })
 
