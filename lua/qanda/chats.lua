@@ -54,22 +54,33 @@ end
 ---If the chat window does not exist, create it and attach key-mapped commands.
 ---@param chat Chat?
 function M.open_chat(chat, turn_index)
-  assert(chat)
   local win = State.chat_window
+  if chat then
+    win.chat = chat
+  end
+  assert(win.chat)
+  win.turn_index = turn_index or win.turn_index or #win.chat.dialog
   win:open()
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
-  win.turn_index = turn_index or #chat
-  win.chat = chat
-  local lines = M.turn_to_lines(chat.dialog[win.turn_index])
+  M.add_chat_syntax_highlighting(win.bufnr)
+  local lines = M.turn_to_lines(win.chat.dialog[win.turn_index])
   win:set_lines(lines)
-  win.chat = chat
-  win.turn_index = turn_index
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
     win:close()
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.switch_key, function()
     vim.cmd "Qanda /prompt"
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.prev_key, function()
+    if win.turn_index > 1 then
+      M.open_chat(win.chat, win.turn_index - 1)
+    end
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.next_key, function()
+    if win.turn_index < #win.chat.dialog then
+      M.open_chat(win.chat, win.turn_index + 1)
+    end
   end, { buffer = win.bufnr })
 end
 
@@ -120,7 +131,7 @@ function M.turn_to_lines(turn)
 end
 
 local chat_syntax_rules = {
-  QandaChatProperty = [[\v^(timestamp|prompt|system|model|extract|prompt|temperature|top_p|max_tokens|stream):]],
+  QandaChatProperty = [[\v^(timestamp|prompt|system|model|provider|extract|prompt|temperature|top_p|max_tokens|stream):]],
 }
 
 -- Define highlight groups once (link to existing groups)
