@@ -88,7 +88,7 @@ function M.turn_to_lines(turn)
     table.insert(lines, "model: " .. turn.model)
   end
   if turn.timestamp then
-    table.insert(lines, "timestamp: " .. turn.model)
+    table.insert(lines, "timestamp: " .. turn.timestamp)
   end
   if turn.extract then
     table.insert(lines, "extract: " .. utils.escape_string(turn.extract))
@@ -104,12 +104,14 @@ function M.turn_to_lines(turn)
     for _, v in ipairs(vim.split(utils.trim_string(turn.system or ""), "\n")) do
       table.insert(lines, "> " .. v)
     end
+    table.insert(lines, "")
   end
   table.insert(lines, "prompt:")
   table.insert(lines, "")
   for _, v in ipairs(vim.split(utils.trim_string(turn.request or ""), "\n")) do
     table.insert(lines, "> " .. v)
   end
+  table.insert(lines, "")
   table.insert(lines, rule)
   for _, v in ipairs(vim.split(utils.trim_string(turn.response or ""), "\n")) do
     table.insert(lines, v)
@@ -149,7 +151,7 @@ local function chat_picker(chats, mappings, display_entry)
     table.insert(picker_entries, chat)
   end
   table.sort(picker_entries, function(a, b)
-    return a.filename < b.filename
+    return a.filename > b.filename
   end)
 
   -- Create previewer that shows the chat value
@@ -159,7 +161,8 @@ local function chat_picker(chats, mappings, display_entry)
 
       assert(chat)
 
-      local lines = M.turn_to_lines(chat)
+      local turn = chat.dialog[#chat.dialog]
+      local lines = M.turn_to_lines(turn)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
