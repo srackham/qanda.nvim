@@ -292,7 +292,7 @@ function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
-  M.add_prompt_syntax_highlighting_rules(win.bufnr)
+  M.add_prompt_syntax_highlighting(win.bufnr)
   local lines = vim.split(prompt.prompt, "\n")
   win:set_lines(lines)
   -- Attach key commands.
@@ -321,7 +321,7 @@ vim.api.nvim_set_hl(0, "QandaPromptPlaceholder", { link = "Identifier" })
 --- Add extra syntax prompt file highlighting rules to a buffer
 --- NOTE: Treesitter highlighting may override these.
 ---@param bufnr integer
-function M.add_prompt_syntax_highlighting_rules(bufnr)
+function M.add_prompt_syntax_highlighting(bufnr)
   vim.api.nvim_buf_call(bufnr, function()
     for group, pattern in pairs(prompt_syntax_rules) do
       vim.cmd(("syntax match %s /%s/"):format(group, pattern))
@@ -357,7 +357,7 @@ local function prompt_picker(prompts, mappings, display_entry)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
-      M.add_prompt_syntax_highlighting_rules(self.state.bufnr)
+      M.add_prompt_syntax_highlighting(self.state.bufnr)
     end,
   }
 
@@ -420,7 +420,7 @@ function M.user_prompt_picker(callback)
         assert(prompt)
         actions.close(prompt_bufnr)
         if prompt.filename then
-          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting_rules, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
@@ -456,7 +456,7 @@ function M.system_prompt_picker(callback)
         assert(prompt)
         actions.close(prompt_bufnr)
         if prompt.filename then
-          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting_rules, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end

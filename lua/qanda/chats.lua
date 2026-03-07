@@ -129,7 +129,7 @@ vim.api.nvim_set_hl(0, "QandaChatProperty", { link = "Keyword" })
 --- Add extra syntax prompt file highlighting rules to a buffer
 --- NOTE: Treesitter highlighting may override these.
 ---@param bufnr integer
-function M.add_chat_syntax_highlighting_rules(bufnr)
+function M.add_chat_syntax_highlighting(bufnr)
   vim.api.nvim_buf_call(bufnr, function()
     for group, pattern in pairs(chat_syntax_rules) do
       vim.cmd(("syntax match %s /%s/"):format(group, pattern))
@@ -166,7 +166,7 @@ local function chat_picker(chats, mappings, display_entry)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
-      M.add_chat_syntax_highlighting_rules(self.state.bufnr)
+      M.add_chat_syntax_highlighting(self.state.bufnr)
     end,
   }
 
@@ -215,12 +215,21 @@ function M.chat_picker()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
       if selection then
-        local chat = selection.value
-        -- Synchronously delete selected chat file
-        local ok, err = os.remove(chat.filename)
-        if not ok then
-          utils.notify("Error deleting file: " .. err, vim.log.levels.ERROR)
-        end
+        vim.schedule(function()
+          local chat = selection.value
+          local confirm_result = vim.fn.confirm("Delete '" .. chat.filename .. "'?", "&Yes\n&No", 2)
+          if confirm_result == 1 then -- User selected 'Yes'
+            -- Synchronously delete selected chat file
+            local ok, err = os.remove(chat.filename)
+            if ok then
+              utils.notify("Deleted '" .. chat.filename .. "'", vim.log.levels.INFO)
+            else
+              utils.notify("Failed to delete file '" .. chat.filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+            end
+          else
+            utils.notify("User aborted", vim.log.levels.INFO)
+          end
+        end)
       end
     end, { buffer = chat_bufnr })
 
@@ -232,7 +241,7 @@ function M.chat_picker()
         assert(chat)
         assert(chat.filename)
         actions.close(chat_bufnr)
-        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting_rules)
+        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting)
       end
     end, { buffer = chat_bufnr })
 
