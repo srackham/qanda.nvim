@@ -356,7 +356,7 @@ local function prompt_picker(prompts, mappings, display_entry)
       local lines = prompt_to_lines(prompt)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
-      -- vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
+      vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
       M.add_prompt_syntax_highlighting_rules(self.state.bufnr)
     end,
   }
@@ -420,7 +420,7 @@ function M.user_prompt_picker(callback)
         assert(prompt)
         actions.close(prompt_bufnr)
         if prompt.filename then
-          utils.edit_file(prompt.filename, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting_rules, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
@@ -456,7 +456,7 @@ function M.system_prompt_picker(callback)
         assert(prompt)
         actions.close(prompt_bufnr)
         if prompt.filename then
-          utils.edit_file(prompt.filename, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting_rules, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end

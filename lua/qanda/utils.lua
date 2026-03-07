@@ -270,10 +270,10 @@ function M.ui_select_sync(items, opts)
   return coroutine.yield()
 end
 
-function M.edit_file(filename, pattern)
+function M.edit_file(filename, add_syntax_highlighting, pattern)
   vim.cmd("edit " .. vim.fn.fnameescape(filename))
   local edited_bufnr = vim.api.nvim_get_current_buf()
-  M.add_prompt_syntax_highlighting_rules(edited_bufnr)
+  add_syntax_highlighting(edited_bufnr)
 
   local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
   if pattern then

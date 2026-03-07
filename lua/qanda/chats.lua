@@ -232,7 +232,7 @@ function M.chat_picker()
         assert(chat)
         assert(chat.filename)
         actions.close(chat_bufnr)
-        utils.edit_file(chat.filename)
+        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting_rules)
       end
     end, { buffer = chat_bufnr })
 
