@@ -49,6 +49,13 @@ function M.unescape_string(s)
   end))
 end
 
+-- Escape special characters in Lua regular expressions
+function M.escape_pattern(text)
+    -- Matches any of: ^ $ ( ) % . [ ] * + - ?
+    -- And prefixes them with a %
+    return (text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
+end
+
 --- Returns the number of elements in a table
 -- @param tbl table: The table to count elements in
 -- @return number: The count of elements in the table

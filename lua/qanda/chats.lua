@@ -82,6 +82,16 @@ function M.open_chat(chat, turn_index)
       M.open_chat(win.chat, win.turn_index + 1)
     end
   end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.edit_key, function()
+    if win.chat.filename then
+      win:close()
+      local timestamp = win.chat.dialog[win.turn_index].timestamp
+      utils.debug('"timestamp":%s*"' .. timestamp .. '"')
+      utils.edit_file(win.chat.filename, M.add_chat_syntax_highlighting, '"timestamp":%s*"' .. utils.escape_pattern(timestamp) .. '"')
+    else
+      utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.INFO)
+    end
+  end, { buffer = win.bufnr })
 end
 
 function M.new_chat()
