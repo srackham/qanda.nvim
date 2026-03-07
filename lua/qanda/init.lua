@@ -75,13 +75,7 @@ function M.create_user_command()
       return
     elseif args == "/chats" then
       State.chats = Chats.load_chats()
-      Chats.chat_picker(function(chat)
-        Chats.open_chat(chat)
-        local win = State.chat_window
-        win.chat = chat
-        win.turn_index = #chat
-        win:open()
-      end)
+      Chats.chat_picker()
       return
     elseif args == "/prompts" then
       Prompts.load_user_prompts()

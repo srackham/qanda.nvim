@@ -62,6 +62,8 @@ function M.open_chat(chat, turn_index)
   win.chat = chat
   local lines = M.turn_to_lines(chat.dialog[win.turn_index])
   win:set_lines(lines)
+  win.chat = chat
+  win.turn_index = turn_index
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
     win:close()
@@ -160,7 +162,7 @@ local function chat_picker(chats, mappings, display_entry)
       local lines = M.turn_to_lines(chat)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
-      -- vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
+      vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
       M.add_chat_syntax_highlighting_rules(self.state.bufnr)
     end,
   }
@@ -173,8 +175,8 @@ local function chat_picker(chats, mappings, display_entry)
         entry_maker = function(chat)
           return {
             value = chat,
-            display = display_entry and display_entry(chat) or chat.name,
-            ordinal = chat.name,
+            display = display_entry and display_entry(chat) or chat.filename,
+            ordinal = chat.filename, -- File name ensures chronological chat sorting
           }
         end,
       },
