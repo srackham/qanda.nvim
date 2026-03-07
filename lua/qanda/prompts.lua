@@ -386,12 +386,12 @@ function M.user_prompt_picker(callback)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  prompt_picker(M.user_prompts, function(prompt_bufnr)
+  prompt_picker(M.user_prompts, function(bufnr, map)
 
     -- <Enter> - Close the picker and open the prompt in the prompt window
     actions.select_default:replace(function()
       local selection = action_state.get_selected_entry()
-      actions.close(prompt_bufnr)
+      actions.close(bufnr)
       if selection then
         local prompt = selection.value
         assert(prompt)
@@ -402,30 +402,30 @@ function M.user_prompt_picker(callback)
     end)
 
     -- Close the picker and execute the selected prompt template
-    vim.keymap.set({ "n", "i" }, Config.exec_key, function()
+    map({ "n", "i" }, Config.exec_key, function()
       local selection = action_state.get_selected_entry()
-      actions.close(prompt_bufnr)
+      actions.close(bufnr)
       if selection then
         callback(selection.value)
       else
         utils.notify("User cancelled", vim.log.levels.INFO)
       end
-    end, { buffer = prompt_bufnr })
+    end)
 
     -- Close the picker and edit prompts file containing the selected prompt
-    vim.keymap.set({ "n", "i" }, Config.edit_key, function()
+    map({ "n", "i" }, Config.edit_key, function()
       local selection = action_state.get_selected_entry()
       if selection then
         local prompt = selection.value
         assert(prompt)
-        actions.close(prompt_bufnr)
+        actions.close(bufnr)
         if prompt.filename then
           utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
       end
-    end, { buffer = prompt_bufnr })
+    end)
 
     return true
   end)
@@ -435,12 +435,12 @@ function M.system_prompt_picker(callback)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  prompt_picker(M.system_prompts, function(prompt_bufnr)
+  prompt_picker(M.system_prompts, function(bufnr, map)
 
     -- <Enter> - Close the picker window; execute callback
     actions.select_default:replace(function()
       local selection = action_state.get_selected_entry()
-      actions.close(prompt_bufnr)
+      actions.close(bufnr)
       if selection then
         callback(selection.value)
       else
@@ -449,19 +449,19 @@ function M.system_prompt_picker(callback)
     end)
 
     -- Close the picker and edit prompts file containing the selected prompt
-    vim.keymap.set({ "n", "i" }, Config.edit_key, function()
+    map({ "n", "i" }, Config.edit_key, function()
       local selection = action_state.get_selected_entry()
       if selection then
         local prompt = selection.value
         assert(prompt)
-        actions.close(prompt_bufnr)
+        actions.close(bufnr)
         if prompt.filename then
           utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. prompt.name)
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
       end
-    end, { buffer = prompt_bufnr })
+    end)
 
     return true
   end, function(prompt)
