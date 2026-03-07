@@ -287,4 +287,25 @@ function M.edit_file(filename, pattern)
   end
 end
 
+---Truncates a string to a maximum length, appending "..." if truncated.
+---@param s string The string to truncate.
+---@param max_len number The maximum desired length of the string, including ellipsis.
+---@return string The truncated or original string.
+function M.truncate_string(s, max_len)
+  local s_len = #s -- Get string length
+
+  if s_len <= max_len then
+    return s
+  else
+    if max_len < 3 then
+      -- If max_len is too small to fit "...", just truncate without it.
+      -- Handles cases where max_len is 0, 1, or 2.
+      return s:sub(1, max_len)
+    else
+      -- Truncate to make space for "..."
+      return s:sub(1, max_len - 3) .. "..."
+    end
+  end
+end
+
 return M

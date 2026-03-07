@@ -11,16 +11,16 @@ function M.setup()
 end
 
 local function parse_turns(lines)
-  local turns = {}
+  local result = {}
   for _, line in ipairs(lines) do
     local ok, parsed_line = pcall(vim.fn.json_decode, line)
     if ok and type(parsed_line) == "table" then
-      table.insert(turns, parsed_line)
+      table.insert(result, parsed_line)
     else
       return nil
     end
   end
-  return turns
+  return result
 end
 
 function M.load_chats()
@@ -39,7 +39,7 @@ function M.load_chats()
         local turns = parse_turns(lines)
         if turns then
           assert(#turns > 0)
-          local chat = { dialog = turns }
+          local chat = { dialog = turns, filename = file_path }
           table.insert(result, chat)
         else
           utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
@@ -85,12 +85,22 @@ function M.turn_to_lines(turn)
   if turn.model then
     table.insert(lines, "model: " .. turn.model)
   end
+  if turn.timestamp then
+    table.insert(lines, "timestamp: " .. turn.model)
+  end
   if turn.extract then
     table.insert(lines, "extract: " .. utils.escape_string(turn.extract))
   end
   if turn.model_options then
     for k, v in pairs(turn.model_options) do
       table.insert(lines, k .. ": " .. v)
+    end
+  end
+  if turn.system then
+    table.insert(lines, "system:")
+    table.insert(lines, "")
+    for _, v in ipairs(vim.split(utils.trim_string(turn.system or ""), "\n")) do
+      table.insert(lines, "> " .. v)
     end
   end
   table.insert(lines, "prompt:")
@@ -103,6 +113,24 @@ function M.turn_to_lines(turn)
     table.insert(lines, v)
   end
   return lines
+end
+
+local chat_syntax_rules = {
+  QandaChatProperty = [[\v^(timestamp|prompt|system|model|extract|prompt|temperature|top_p|max_tokens|stream):]],
+}
+
+-- Define highlight groups once (link to existing groups)
+vim.api.nvim_set_hl(0, "QandaChatProperty", { link = "Keyword" })
+
+--- Add extra syntax prompt file highlighting rules to a buffer
+--- NOTE: Treesitter highlighting may override these.
+---@param bufnr integer
+function M.add_chat_syntax_highlighting_rules(bufnr)
+  vim.api.nvim_buf_call(bufnr, function()
+    for group, pattern in pairs(chat_syntax_rules) do
+      vim.cmd(("syntax match %s /%s/"):format(group, pattern))
+    end
+  end)
 end
 
 ---Displays a telescope picker for selecting chats
@@ -119,7 +147,7 @@ local function chat_picker(chats, mappings, display_entry)
     table.insert(picker_entries, chat)
   end
   table.sort(picker_entries, function(a, b)
-    return a.name < b.name
+    return a.filename < b.filename
   end)
 
   -- Create previewer that shows the chat value
@@ -182,9 +210,12 @@ function M.chat_picker()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
       if selection then
-        ---@todo Delete selected chat file
-      else
-        utils.notify("User cancelled", vim.log.levels.INFO)
+        local chat = selection.value
+        -- Synchronously delete selected chat file
+        local ok, err = os.remove(chat.filename)
+        if not ok then
+          utils.notify("Error deleting file: " .. err, vim.log.levels.ERROR)
+        end
       end
     end, { buffer = chat_bufnr })
 
@@ -201,6 +232,13 @@ function M.chat_picker()
     end, { buffer = chat_bufnr })
 
     return true
+  end, function(chat)
+    local display_entry = utils.truncate_string(chat.dialog[1].request, 20)
+    if chat.filename == State.chat_window.chat.filename then
+      return "* " .. display_entry
+    else
+      return "  " .. display_entry
+    end
   end)
 end
 
