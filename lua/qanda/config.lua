@@ -15,7 +15,7 @@ local default = {
   port = "11434",
 
   cancel_key = "<C-c>",
-  delete_key = "<Del>",
+  delete_key = "<C-d>",
   edit_key = "<C-e>",
   exec_key = "<C-Space>",
   next_key = "<C-j>",

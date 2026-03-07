@@ -195,7 +195,7 @@ function M.chat_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  chat_picker(State.chats, function(chat_bufnr)
+  chat_picker(State.chats, function(chat_bufnr, map)
 
     -- <Enter> - Close the picker and open the chat in the chat window
     actions.select_default:replace(function()
@@ -211,7 +211,7 @@ function M.chat_picker()
     end)
 
     -- Close the picker and delete the selected chat file
-    vim.keymap.set({ "n", "i" }, Config.delete_key, function()
+    map({ "n", "i" }, Config.delete_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
       if selection then
@@ -231,10 +231,10 @@ function M.chat_picker()
           end
         end)
       end
-    end, { buffer = chat_bufnr })
+    end)
 
     -- Close the picker and edit chats file containing the selected chat
-    vim.keymap.set({ "n", "i" }, Config.edit_key, function()
+    map({ "n", "i" }, Config.edit_key, function()
       local selection = action_state.get_selected_entry()
       if selection then
         local chat = selection.value
@@ -243,7 +243,7 @@ function M.chat_picker()
         actions.close(chat_bufnr)
         utils.edit_file(chat.filename, M.add_chat_syntax_highlighting)
       end
-    end, { buffer = chat_bufnr })
+    end)
 
     return true
   end, function(chat)
