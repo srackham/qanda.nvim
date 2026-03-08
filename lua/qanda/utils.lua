@@ -51,9 +51,9 @@ end
 
 -- Escape special characters in Lua regular expressions
 function M.escape_pattern(text)
-    -- Matches any of: ^ $ ( ) % . [ ] * + - ?
-    -- And prefixes them with a %
-    return (text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
+  -- Matches any of: ^ $ ( ) % . [ ] * + - ?
+  -- And prefixes them with a %
+  return (text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
 end
 
 --- Returns the number of elements in a table
@@ -277,17 +277,28 @@ function M.ui_select_sync(items, opts)
   return coroutine.yield()
 end
 
-function M.edit_file(filename, add_syntax_highlighting, pattern)
+function M.edit_file(filename, add_syntax_highlighting, pattern, postwrite)
   vim.cmd("edit " .. vim.fn.fnameescape(filename))
-  local edited_bufnr = vim.api.nvim_get_current_buf()
-  add_syntax_highlighting(edited_bufnr)
+  local bufnr = vim.api.nvim_get_current_buf()
+  add_syntax_highlighting(bufnr)
 
-  local lines = vim.api.nvim_buf_get_lines(edited_bufnr, 0, -1, false)
+  -- Run callback after the buffer is written
+  if postwrite then
+    vim.api.nvim_create_autocmd("BufWritePost", {
+      buffer = bufnr,
+      -- once = true,
+      callback = function()
+        postwrite(bufnr)
+      end,
+    })
+  end
+
+  local lines = vim.api.nvim_buf_get_lines(bufnr, 0, -1, false)
   if pattern then
-    -- Position cursor at the first line containing the pattern name
+    -- Position cursor at the first line containing the pattern
     for i, line in ipairs(lines) do
       if line:match(pattern) then
-        vim.api.nvim_win_set_cursor(0, { i, 0 }) -- i is 1-indexed line number
+        vim.api.nvim_win_set_cursor(0, { i, 0 })
         break
       end
     end

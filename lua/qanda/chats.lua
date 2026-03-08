@@ -32,6 +32,7 @@ function M.load_chats()
   local chat_files = vim.fn.glob(glob_pattern, false, true)
 
   -- Load the chats files
+  local chat_window_updated = false
   for _, file_path in ipairs(chat_files) do
     if vim.fn.filereadable(file_path) == 1 then
       local lines = vim.fn.readfile(file_path)
@@ -41,11 +42,20 @@ function M.load_chats()
           assert(#turns > 0)
           local chat = { dialog = turns, filename = file_path }
           table.insert(result, chat)
+          if State.chat_window.chat.filename == file_path then
+            State.chat_window.chat = chat
+            State.chat_window.turn_index = nil
+            chat_window_updated = true
+          end
         else
           utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
         end
       end
     end
+  end
+  if not chat_window_updated then -- invalidate chat window
+    State.chat_window.chat = { dialog = {} }
+    State.chat_window.turn_index = nil
   end
   return result
 end
@@ -63,8 +73,11 @@ function M.open_chat(chat, turn_index)
   win:open()
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_chat_syntax_highlighting(win.bufnr)
-  local lines = M.turn_to_lines(win.chat.dialog[win.turn_index])
-  win:set_lines(lines)
+  if win.turn_index and win.turn_index > 0 then
+    assert(win.turn_index <= #win.chat.dialog)
+    local lines = M.turn_to_lines(win.chat.dialog[win.turn_index])
+    win:set_lines(lines)
+  end
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
     win:close()
@@ -73,12 +86,12 @@ function M.open_chat(chat, turn_index)
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.prev_key, function()
-    if win.turn_index > 1 then
+    if win.turn_index and win.turn_index > 1 then
       M.open_chat(win.chat, win.turn_index - 1)
     end
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.next_key, function()
-    if win.turn_index < #win.chat.dialog then
+    if win.turn_index and win.turn_index < #win.chat.dialog then
       M.open_chat(win.chat, win.turn_index + 1)
     end
   end, { buffer = win.bufnr })
@@ -86,8 +99,14 @@ function M.open_chat(chat, turn_index)
     if win.chat.filename then
       win:close()
       local timestamp = win.chat.dialog[win.turn_index].timestamp
-      utils.debug('"timestamp":%s*"' .. timestamp .. '"')
-      utils.edit_file(win.chat.filename, M.add_chat_syntax_highlighting, '"timestamp":%s*"' .. utils.escape_pattern(timestamp) .. '"')
+      utils.edit_file(
+        win.chat.filename,
+        M.add_chat_syntax_highlighting,
+        '"timestamp":%s*"' .. utils.escape_pattern(timestamp) .. '"',
+        function()
+          M.load_chats() -- Reload chats after edited file is saved
+        end
+      )
     else
       utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.INFO)
     end
