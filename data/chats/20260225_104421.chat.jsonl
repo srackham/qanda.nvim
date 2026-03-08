@@ -1,2 +1,2 @@
-  { "request": "Why is the sky red?", "response": "Due to **Rayleigh scattering**.", "model": "minimax-m2.1:cloud", "model_options": { "temperature": 0.7 }, "timestamp": "2026-02-25 21:09:36" }
-  { "request": "What is Rayleigh scattering?", "response": "**Rayleigh scattering** is ...", "model": "minimax-m2.1:cloud", "model_options": { "temperature": 0.7 }, "timestamp": "2026-02-25 21:10:26" }
+  { "request": "Why is the sky red?", "response": "Due to **Rayleigh scattering**.", "provider": "ollama", "model": "minimax-m2.1:cloud", "model_options": { "temperature": 0.7 }, "timestamp": "2026-02-25 21:09:36" }
+  { "request": "What is Rayleigh scattering?", "response": "**Rayleigh scattering** is ...", "provider": "ollama", "model": "minimax-m2.1:cloud", "model_options": { "temperature": 0.7 }, "timestamp": "2026-02-25 21:10:26" }
