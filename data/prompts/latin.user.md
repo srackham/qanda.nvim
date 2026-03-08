@@ -14,7 +14,6 @@ $select
 
 ___
 name: Latin: Word analysis
-model: qwen3-coder:480b-cloud
 ___
 The Latin word "${input:Enter Latin word}" in terms of:
 

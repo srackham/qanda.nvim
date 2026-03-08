@@ -1,4 +1,4 @@
-local Config = require "qanda.config" -- User configuration options
+local Config = require "qanda.conf" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 
@@ -41,9 +41,8 @@ end
 --- Parses markdown-style prompt files into a Prompts array.
 ---Each prompt section starts and ends with either `---` or `___`.
 ---The header envelopes prompt fields formatted like `<name>: <value>`.
----Names not matching `name`, `model`, `extract` are added to the `model_options` table.
+---Names not matching `name`, `extract` are added to the `model_options` table.
 ---| - name (string, required): Unique identifier for the prompt.
----| - model (string): Model name to use for this prompt.
 ---| - extract (string): A regex pattern to extract content from input.
 ---
 ---@param text string The full content of the markdown prompt file as a string.
@@ -76,7 +75,7 @@ local function parse_prompts(text)
           end
 
           -- Process prompt header fields
-          if not utils.table_contains({ "name", "model", "extract", "paste" }, key) then
+          if not utils.table_contains({ "name", "extract", "paste" }, key) then
             prompt.model_options[key] = value
           else
             -- Validate paste option (paste is DEPRECATED)
@@ -190,9 +189,6 @@ local function prompt_to_lines(prompt)
 
   table.insert(lines, rule)
   table.insert(lines, "name: " .. prompt.name)
-  if prompt.model then
-    table.insert(lines, "model: " .. prompt.model)
-  end
   if prompt.extract then
     table.insert(lines, "extract: " .. utils.escape_string(prompt.extract))
   end
