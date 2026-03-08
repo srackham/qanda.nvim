@@ -75,7 +75,7 @@ function M.open_chat(chat, turn_index)
   M.add_chat_syntax_highlighting(win.bufnr)
   if win.turn_index and win.turn_index > 0 then
     assert(win.turn_index <= #win.chat.dialog)
-    local lines = M.turn_to_lines(win.chat.dialog[win.turn_index])
+    local lines = M.turn_to_lines(win.chat, win.turn_index)
     win:set_lines(lines)
   end
   -- Attach key commands.
@@ -117,9 +117,11 @@ function M.new_chat()
   State.system_chat = nil ---@todo  should init to default system chat if defined.
 end
 
----@param turn ChatTurn
+---@param chat Chat
+---@param turn_index number
 ---@return string[]
-function M.turn_to_lines(turn)
+function M.turn_to_lines(chat, turn_index)
+  local turn = chat.dialog[turn_index]
   local lines = {}
   local rule = string.rep("─", 40)
 
@@ -138,6 +140,7 @@ function M.turn_to_lines(turn)
       table.insert(lines, k .. ": " .. v)
     end
   end
+  table.insert(lines, string.format("turn: %d of %d", turn_index, #chat.dialog))
   if turn.system then
     table.insert(lines, "system:")
     table.insert(lines, "")
@@ -160,7 +163,7 @@ function M.turn_to_lines(turn)
 end
 
 local chat_syntax_rules = {
-  QandaChatProperty = [[\v^(timestamp|prompt|system|model|provider|extract|prompt|temperature|top_p|max_tokens|stream):]],
+  QandaChatProperty = [[\v^(timestamp|prompt|system|model|provider|extract|turn|temperature|top_p|max_tokens|stream):]],
 }
 
 -- Define highlight groups once (link to existing groups)
@@ -201,8 +204,7 @@ local function chat_picker(chats, mappings, display_entry)
 
       assert(chat)
 
-      local turn = chat.dialog[#chat.dialog]
-      local lines = M.turn_to_lines(turn)
+      local lines = M.turn_to_lines(chat, #chat.dialog)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
