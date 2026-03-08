@@ -286,7 +286,9 @@ function M.chat_picker()
         assert(chat)
         assert(chat.filename)
         actions.close(chat_bufnr)
-        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting)
+        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting, nil, function()
+          M.load_chats() -- Reload chats after edited file is saved
+        end)
       end
     end)
 

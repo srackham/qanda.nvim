@@ -310,7 +310,7 @@ function M.open_prompt(prompt)
 end
 
 local prompt_syntax_rules = {
-  QandaPromptProperty = [[\v^(name|model|extract|prompt|temperature|top_p|max_tokens|stream):]],
+  QandaPromptProperty = [[\v^(name|extract|prompt|temperature|top_p|max_tokens|stream):]],
   QandaPromptPlaceholder = [[\v\$(text|input|select|clipboard|yanked|filetype|register_.|register)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
 }
 
@@ -420,7 +420,7 @@ function M.user_prompt_picker(callback)
         assert(prompt)
         actions.close(bufnr)
         if prompt.filename then
-          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
@@ -456,7 +456,7 @@ function M.system_prompt_picker(callback)
         assert(prompt)
         actions.close(bufnr)
         if prompt.filename then
-          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. prompt.name)
+          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
         else
           utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
         end
