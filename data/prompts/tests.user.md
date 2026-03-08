@@ -57,7 +57,6 @@ $register_0
 ___
 name: Test: Change code
 <!-- example comment -->
-paste: replace
 extract: ```$filetype\n(.-)```
 ___
 <!-- Regarding the following code, ${input:Describe the desired changes}, only output the result as a Markdown fenced code block: -->

@@ -7,7 +7,6 @@ $text
 
 ___
 name: Writing: Improve text selection
-paste: after
 ___
 Improve the following text. Do not change the meaning.
 

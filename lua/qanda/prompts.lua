@@ -1,4 +1,4 @@
-local Config = require "qanda.conf" -- User configuration options
+local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 
@@ -75,15 +75,9 @@ local function parse_prompts(text)
           end
 
           -- Process prompt header fields
-          if not utils.table_contains({ "name", "extract", "paste" }, key) then
+          if not utils.table_contains({ "name", "extract" }, key) then
             prompt.model_options[key] = value
           else
-            -- Validate paste option (paste is DEPRECATED)
-            if key == "paste" and not utils.table_contains({ "after", "before", "replace" }, value) then
-              utils.notify("Invalid paste value '" .. value .. "' at line " .. i, vim.log.levels.ERROR)
-              return nil
-            end
-
             if key == "extract" then
               value = utils.unescape_string(value) -- Translate escaped characters
               local success, _ = pcall(string.match, "", value) -- Validate regex by attempting to compile it
