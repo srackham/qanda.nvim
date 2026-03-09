@@ -320,8 +320,7 @@ function M.add_prompt_syntax_highlighting(bufnr)
 end
 
 ---Displays a telescope picker for selecting, editing and executing prompts.
----@param mappings function Telescope attach_mappings callback
-local function prompt_picker(prompts, mappings, display_entry)
+local function prompt_picker(prompts, display_entry, opts)
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
@@ -353,22 +352,24 @@ local function prompt_picker(prompts, mappings, display_entry)
 
   -- Create and run the telescope picker
   pickers
-    .new({}, {
-      finder = finders.new_table {
-        results = picker_entries,
-        entry_maker = function(prompt)
-          return {
-            value = prompt,
-            display = display_entry and display_entry(prompt) or prompt.name,
-            ordinal = prompt.name,
-          }
-        end,
-      },
-      sorter = conf.generic_sorter {},
-      previewer = prompt_previewer,
-      attach_mappings = mappings,
-      layout_config = Config.prompt_picker_layout,
-    })
+    .new(
+      {},
+      vim.tbl_deep_extend("force", {
+        finder = finders.new_table {
+          results = picker_entries,
+          entry_maker = function(prompt)
+            return {
+              value = prompt,
+              display = display_entry and display_entry(prompt) or prompt.name,
+              ordinal = prompt.name,
+            }
+          end,
+        },
+        sorter = conf.generic_sorter {},
+        previewer = prompt_previewer,
+        layout_config = Config.prompt_picker_layout,
+      }, opts)
+    )
     :find()
 end
 
@@ -376,91 +377,96 @@ function M.user_prompt_picker(callback)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  prompt_picker(M.user_prompts, function(bufnr, map)
+  prompt_picker(M.user_prompts, nil, {
+    results_title = "User Prompts",
+    prompt_title = "[<Enter> open, " .. Config.exec_key .. " execute, " .. Config.edit_key .. " edit]",
+    attach_mappings = function(bufnr, map)
 
-    -- <Enter> - Close the picker and open the prompt in the prompt window
-    actions.select_default:replace(function()
-      local selection = action_state.get_selected_entry()
-      actions.close(bufnr)
-      if selection then
-        local prompt = selection.value
-        assert(prompt)
-        M.open_prompt(prompt)
-      else
-        utils.notify("User cancelled", vim.log.levels.INFO)
-      end
-    end)
-
-    -- Close the picker and execute the selected prompt template
-    map({ "n", "i" }, Config.exec_key, function()
-      local selection = action_state.get_selected_entry()
-      actions.close(bufnr)
-      if selection then
-        callback(selection.value)
-      else
-        utils.notify("User cancelled", vim.log.levels.INFO)
-      end
-    end)
-
-    -- Close the picker and edit prompts file containing the selected prompt
-    map({ "n", "i" }, Config.edit_key, function()
-      local selection = action_state.get_selected_entry()
-      if selection then
-        local prompt = selection.value
-        assert(prompt)
+      -- <Enter>
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
         actions.close(bufnr)
-        if prompt.filename then
-          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
+        if selection then
+          local prompt = selection.value
+          assert(prompt)
+          M.open_prompt(prompt)
         else
-          utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
+          utils.notify("User cancelled", vim.log.levels.INFO)
         end
-      end
-    end)
+      end, { desc = "Close the picker and open the prompt in the prompt window" })
 
-    return true
-  end)
+      map({ "n", "i" }, Config.exec_key, function()
+        local selection = action_state.get_selected_entry()
+        actions.close(bufnr)
+        if selection then
+          callback(selection.value)
+        else
+          utils.notify("User cancelled", vim.log.levels.INFO)
+        end
+      end, { desc = "Close the picker and execute the selected prompt template" })
+
+      map({ "n", "i" }, Config.edit_key, function()
+        local selection = action_state.get_selected_entry()
+        if selection then
+          local prompt = selection.value
+          assert(prompt)
+          actions.close(bufnr)
+          if prompt.filename then
+            utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
+          else
+            utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
+          end
+        end
+      end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
+
+      return true
+    end,
+  })
 end
 
 function M.system_prompt_picker(callback)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  prompt_picker(M.system_prompts, function(bufnr, map)
-
-    -- <Enter> - Close the picker window; execute callback
-    actions.select_default:replace(function()
-      local selection = action_state.get_selected_entry()
-      actions.close(bufnr)
-      if selection then
-        callback(selection.value)
-      else
-        utils.notify("User cancelled", vim.log.levels.INFO)
-      end
-    end)
-
-    -- Close the picker and edit prompts file containing the selected prompt
-    map({ "n", "i" }, Config.edit_key, function()
-      local selection = action_state.get_selected_entry()
-      if selection then
-        local prompt = selection.value
-        assert(prompt)
-        actions.close(bufnr)
-        if prompt.filename then
-          utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
-        else
-          utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
-        end
-      end
-    end)
-
-    return true
-  end, function(prompt)
+  prompt_picker(M.system_prompts, function(prompt)
     if prompt == State.system_prompt then
       return "* " .. prompt.name
     else
       return "  " .. prompt.name
     end
-  end)
+  end, {
+    results_title = "System Prompts",
+    prompt_title = "[<Enter> set, " .. Config.edit_key .. " edit]",
+    attach_mappings = function(bufnr, map)
+
+      -- <Enter>
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(bufnr)
+        if selection then
+          callback(selection.value)
+        else
+          utils.notify("User cancelled", vim.log.levels.INFO)
+        end
+      end, { desc = "Close the picker window; execute callback" })
+
+      map({ "n", "i" }, Config.edit_key, function()
+        local selection = action_state.get_selected_entry()
+        if selection then
+          local prompt = selection.value
+          assert(prompt)
+          actions.close(bufnr)
+          if prompt.filename then
+            utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
+          else
+            utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
+          end
+        end
+      end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
+
+      return true
+    end,
+  })
 end
 
 --- Converts a file path to an absolute path based on specific rules.

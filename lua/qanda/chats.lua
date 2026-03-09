@@ -218,6 +218,8 @@ local function chat_picker(chats, mappings, display_entry)
   -- Create and run the telescope picker
   pickers
     .new({}, {
+      results_title = "Chats",
+      prompt_title = "[<Enter> open, " .. Config.edit_key .. " edit, " .. Config.delete_key .. " delete]",
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(chat)
@@ -242,7 +244,7 @@ function M.chat_picker()
 
   chat_picker(State.chats, function(chat_bufnr, map)
 
-    -- <Enter> - Close the picker and open the chat in the chat window
+    -- <Enter>
     actions.select_default:replace(function()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
@@ -253,9 +255,8 @@ function M.chat_picker()
       else
         utils.notify("User cancelled", vim.log.levels.INFO)
       end
-    end)
+    end, { desc = "Close the picker and open the chat in the chat window" })
 
-    -- Close the picker and delete the selected chat file
     map({ "n", "i" }, Config.delete_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
@@ -276,9 +277,8 @@ function M.chat_picker()
           end
         end)
       end
-    end)
+    end, { desc = "Close the picker and delete the selected chat file" })
 
-    -- Close the picker and edit chats file containing the selected chat
     map({ "n", "i" }, Config.edit_key, function()
       local selection = action_state.get_selected_entry()
       if selection then
@@ -290,7 +290,7 @@ function M.chat_picker()
           M.load_chats() -- Reload chats after edited file is saved
         end)
       end
-    end)
+    end, { desc = "Close the picker and edit chats file containing the selected chat" })
 
     return true
   end, function(chat)

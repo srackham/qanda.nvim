@@ -18,6 +18,7 @@ local default = {
   delete_key = "<C-d>",
   edit_key = "<C-e>",
   exec_key = "<C-Space>",
+  help_key = "<C-h>",
   next_key = "<Down>",
   prev_key = "<Up>",
   quit_key = "q",
