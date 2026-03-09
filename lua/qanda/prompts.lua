@@ -161,19 +161,6 @@ end
 --   return name:match "^[a-zA-Z0-9%+%-% ._]+$" ~= nil
 -- end
 --
--- ---Helper to create a new prompts file with a basic template
--- local function create_new_prompts_file_template(filepath, name)
---   local f, err = io.open(filepath, "w")
---   if not f then
---     utils.notify("Error creating file '" .. filepath .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
---     return false
---   end
---   local display_name = name:gsub("_", " ")
---   local template_content = string.format("---\nname: %s\n---\n\nPrompt text for %s: $text", display_name, display_name)
---   f:write(template_content)
---   f:close()
---   return true
--- end
 
 ---@param prompt Prompt
 ---@return string[]
@@ -301,7 +288,7 @@ end
 
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|extract|prompt|temperature|top_p|max_tokens|stream):]],
-  QandaPromptPlaceholder = [[\v\$(text|input|select|clipboard|yanked|filetype|register_.|register)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
+  QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|filetype|register_.|register)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
 }
 
 -- Define highlight groups once (link to existing groups)

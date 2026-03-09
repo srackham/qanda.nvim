@@ -31,11 +31,6 @@ Improve expression, grammar and spelling in the following text:
 $clipboard
 
 ___
-name: Test: Submit $text
-___
-$text
-
-___
 name: Test: Submit clipboard
 ___
 $register_+

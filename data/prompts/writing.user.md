@@ -3,14 +3,14 @@ name: Writing: Check spelling and grammar
 replace: before
 ___
 Correct spelling and grammar mistakes in the following text. **Do not change the meaning, style or formatting**.
-$text
+$select
 
 ___
 name: Writing: Improve text selection
 ___
 Improve the following text. Do not change the meaning.
 
-$text
+$select
 
 ___
 name: Writing: Summarize
