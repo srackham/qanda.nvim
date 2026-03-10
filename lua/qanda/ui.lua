@@ -1,4 +1,5 @@
 local utils = require "qanda.utils"
+local Config = require "qanda.config"
 
 local M = {} -- This module
 
@@ -100,6 +101,43 @@ function M.get_winid_of_buffer(bufnr)
     end
   end
   return winid
+end
+
+function M.open_foreground_float(lines)
+  local api = vim.api
+  local bufnr = api.nvim_create_buf(false, true)
+
+  api.nvim_set_option_value("filetype", "markdown", { buf = bufnr })
+  api.nvim_set_option_value("buftype", "nofile", { buf = bufnr })
+  api.nvim_set_option_value("bufhidden", "wipe", { buf = bufnr })
+
+  api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
+
+  local win = api.nvim_open_win(bufnr, true, {
+    relative = "editor",
+    row = 5,
+    col = 10,
+    width = 60,
+    height = 15,
+    style = "minimal",
+    border = "rounded",
+    zindex = 100,
+  })
+
+  vim.keymap.set("n", Config.quit_key, function()
+    api.nvim_win_close(win, true)
+  end, { noremap = true, silent = true, buffer = bufnr })
+
+  -- Auto-close on focus lost
+  api.nvim_create_autocmd("WinLeave", {
+    buffer = bufnr,
+    once = true, -- Only need to fire this once per window life
+    callback = function()
+      if api.nvim_win_is_valid(win) then
+        api.nvim_win_close(win, true)
+      end
+    end,
+  })
 end
 
 --- Open a window according to the requested window options.

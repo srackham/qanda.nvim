@@ -1,6 +1,7 @@
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
+local ui = require "qanda.ui"
 
 local M = {
   user_prompts = {}, ---@type Prompts
@@ -284,6 +285,19 @@ function M.open_prompt(prompt)
     win:close()
     require("qanda").execute_prompt(prompt)
   end, { buffer = win.bufnr })
+
+  vim.keymap.set("n", Config.help_key, function()
+    local content = [[## Prompt Window
+
+- `q` - Close Prompt window.
+- `<Tab>` - Switch to Chat window
+- `<C-Space>` - Submit the prompt to the LLM for execution
+- `<C-c>` - Cancel the current request.
+- `<C-s>` - Save the prompt to prompts templates; you are prompted for a unique name
+- `<C-k>`/`<C-j>` Scroll up/down for previous/next prompt (from the current chat message).]]
+
+    ui.open_foreground_float(vim.split(content, "\n"))
+  end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end
 
 local prompt_syntax_rules = {
@@ -423,7 +437,7 @@ function M.system_prompt_picker(callback)
     end
   end, {
     results_title = "System Prompts",
-    prompt_title = "[<Enter> set, " .. Config.edit_key .. " edit]",
+    prompt_title = "[<Enter> select, " .. Config.edit_key .. " edit]",
     attach_mappings = function(bufnr, map)
 
       -- <Enter>
