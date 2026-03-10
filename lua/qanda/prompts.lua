@@ -291,15 +291,22 @@ function M.open_prompt(prompt)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
-    local content = [[## Prompt Window
+    local content = ([[## Prompt Window Cheatsheet
 
-- `q` - Close Prompt window.
-- `<Tab>` - Switch to Chat window
-- `<C-Space>` - Submit the prompt to the LLM for execution
-- `<C-c>` - Cancel the current request.
-- `<C-s>` - Save the prompt to prompts templates; you are prompted for a unique name
-- `<C-k>`/`<C-j>` Scroll up/down for previous/next prompt (from the current chat message).]]
-
+- `%s` - Close Prompt window.
+- `%s` - Switch to Chat window
+- `%s` - Submit the prompt to the LLM for execution
+- `%s` - Cancel the current request.
+- `%s` - Save the prompt to prompts templates; you are prompted for a unique name
+- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message).]]):format(
+      Config.quit_key,
+      Config.switch_key,
+      Config.exec_key,
+      Config.cancel_key,
+      Config.save_key,
+      Config.prev_key,
+      Config.next_key
+    )
     ui.open_foreground_float(vim.split(content, "\n"))
   end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end
