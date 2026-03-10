@@ -269,6 +269,10 @@ end
 function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
+  local win_config = vim.api.nvim_win_get_config(win.winid)
+  win_config.title = "Prompt Window [" .. Config.help_key .. " help]"
+  win_config.title_pos = "center"
+  vim.api.nvim_win_set_config(win.winid, win_config)
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting(win.bufnr)
   local lines = vim.split(prompt.prompt, "\n")
