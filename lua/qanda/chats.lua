@@ -71,6 +71,17 @@ function M.open_chat(chat, turn_index)
   assert(win.chat)
   win.turn_index = turn_index or win.turn_index or #win.chat.dialog
   win:open()
+
+  -- Set window title
+  local title = "Chat [" .. Config.help_key .. " help]"
+  if win.mode == "float" then
+    local win_config = vim.api.nvim_win_get_config(win.winid)
+    win_config.title_pos = "center"
+  else
+    local styled_title = "%#TabLine#%= " .. title.. " %=%*"
+    vim.api.nvim_set_option_value("winbar", styled_title, { win = win.winid })
+  end
+
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_chat_syntax_highlighting(win.bufnr)
   if win.turn_index and win.turn_index > 0 then
