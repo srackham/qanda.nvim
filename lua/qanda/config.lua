@@ -22,7 +22,7 @@ local default = {
   next_key = "<Down>",
   prev_key = "<Up>",
   quit_key = "q",
-  rewind_key = "<C-r>",
+  redo_key = "<C-r>",
   save_key = "<C-s>",
   switch_key = "<Tab>",
 

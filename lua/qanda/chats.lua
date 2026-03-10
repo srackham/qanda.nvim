@@ -1,6 +1,7 @@
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
+local ui = require "qanda.ui"
 
 local M = {
   chats = {}, ---@type Chats
@@ -78,7 +79,7 @@ function M.open_chat(chat, turn_index)
     local win_config = vim.api.nvim_win_get_config(win.winid)
     win_config.title_pos = "center"
   else
-    local styled_title = "%#TabLine#%= " .. title.. " %=%*"
+    local styled_title = "%#TabLine#%= " .. title .. " %=%*"
     vim.api.nvim_set_option_value("winbar", styled_title, { win = win.winid })
   end
 
@@ -122,6 +123,29 @@ function M.open_chat(chat, turn_index)
       utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.INFO)
     end
   end, { buffer = win.bufnr })
+
+  vim.keymap.set("n", Config.help_key, function()
+    local content = ([[## Chat Window Cheatsheet
+
+- `%s` - Close Chat window.
+- `%s` - Switch to Prompt window
+- `%s` - Create a new prompt from the current Chat window prompt
+- `%s` - Cancel the current request
+- `%s` - Resubmit the latest turn. The same as `%s` but without creating a new turn
+- `%s` - Open the chat file for editing at the selected turn (by searching for the timestamp)
+- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)]]):format(
+      Config.quit_key,
+      Config.switch_key,
+      Config.exec_key,
+      Config.cancel_key,
+      Config.redo_key,
+      Config.exec_key,
+      Config.edit_key,
+      Config.prev_key,
+      Config.next_key
+    )
+    ui.open_foreground_float(vim.split(content, "\n"))
+  end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end
 
 function M.new_chat()

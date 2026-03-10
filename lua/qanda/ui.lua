@@ -117,7 +117,7 @@ function M.open_foreground_float(lines)
     relative = "editor",
     row = 5,
     col = 10,
-    width = 60,
+    width = 80,
     height = 15,
     style = "minimal",
     border = "rounded",

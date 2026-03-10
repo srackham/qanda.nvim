@@ -296,9 +296,9 @@ function M.open_prompt(prompt)
 - `%s` - Close Prompt window.
 - `%s` - Switch to Chat window
 - `%s` - Submit the prompt to the LLM for execution
-- `%s` - Cancel the current request.
+- `%s` - Cancel the current request
 - `%s` - Save the prompt to prompts templates; you are prompted for a unique name
-- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message).]]):format(
+- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)]]):format(
       Config.quit_key,
       Config.switch_key,
       Config.exec_key,
