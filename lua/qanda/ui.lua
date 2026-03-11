@@ -230,6 +230,19 @@ function M.UIWindow:close()
   end
 end
 
+--- Set window title
+function M.UIWindow:set_title(title)
+  local win_config = vim.api.nvim_win_get_config(self.winid)
+  if self.mode == "float" then
+    win_config.title = title
+    win_config.title_pos = "center"
+    vim.api.nvim_win_set_config(self.winid, win_config)
+  else
+    local styled_title = "%#TabLine#%= " .. title .. " %=%*"
+    vim.api.nvim_set_option_value("winbar", styled_title, { win = self.winid })
+  end
+end
+
 --- Activate and show cursor position
 --- If cursor_position is nil, go to end of buffer
 ---@param cursor_position? {row: number, col: number}
