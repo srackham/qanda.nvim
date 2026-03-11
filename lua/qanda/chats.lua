@@ -74,10 +74,12 @@ function M.open_chat(chat, turn_index)
   win:open()
 
   -- Set window title
+  local win_config = vim.api.nvim_win_get_config(win.winid)
   local title = "Chat [" .. Config.help_key .. " help]"
   if win.mode == "float" then
-    local win_config = vim.api.nvim_win_get_config(win.winid)
+    win_config.title = title
     win_config.title_pos = "center"
+    vim.api.nvim_win_set_config(win.winid, win_config)
   else
     local styled_title = "%#TabLine#%= " .. title .. " %=%*"
     vim.api.nvim_set_option_value("winbar", styled_title, { win = win.winid })
@@ -131,7 +133,7 @@ function M.open_chat(chat, turn_index)
 - `%s` - Switch to Prompt window
 - `%s` - Create a new prompt from the current Chat window prompt
 - `%s` - Cancel the current request
-- `%s` - Resubmit the latest turn. The same as `%s` but without creating a new turn
+- `%s` - Re-execute and replace the latest turn.
 - `%s` - Open the chat file for editing at the selected turn (by searching for the timestamp)
 - `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)]]):format(
       Config.quit_key,
@@ -139,7 +141,6 @@ function M.open_chat(chat, turn_index)
       Config.exec_key,
       Config.cancel_key,
       Config.redo_key,
-      Config.exec_key,
       Config.edit_key,
       Config.prev_key,
       Config.next_key
