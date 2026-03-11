@@ -71,7 +71,7 @@ function M.create_user_command()
       Chats.new_chat()
       return
     elseif args == "/prompt" then
-      Prompts.open_prompt { prompt = "" }
+      Prompts.open_prompt(nil)
       return
     elseif args == "/chats" then
       State.chats = Chats.load_chats()

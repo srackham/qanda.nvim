@@ -257,15 +257,17 @@ end
 
 ---Open prompt window, load the prompt.
 ---If the prompt window does not exist, create it and attach key-mapped commands.
----@param prompt Prompt
+---@param prompt Prompt?
 function M.open_prompt(prompt)
   local win = State.prompt_window
   win:open()
   win:set_title("Prompt [" .. Config.help_key .. " help]")
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting(win.bufnr)
-  local lines = prompt_to_lines(prompt)
-  win:set_lines(lines)
+  if prompt then
+    local lines = prompt_to_lines(prompt)
+    win:set_lines(lines)
+  end
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
     win:close()
@@ -274,9 +276,14 @@ function M.open_prompt(prompt)
     vim.cmd "Qanda /chat"
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.exec_key, function()
-    prompt.prompt = table.concat(win:get_lines(), "\n")
+    local lines = win:get_lines()
     win:close()
-    require("qanda").execute_prompt(prompt)
+
+    -- TODO: require("qanda").execute_prompt(M.lines_to_prompt(lines))
+    require("qanda").execute_prompt {
+      prompt = table.concat(lines, "\n"),
+    }
+
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
@@ -285,12 +292,7 @@ function M.open_prompt(prompt)
 - `%s` - Close Prompt window.
 - `%s` - Switch to Chat window
 - `%s` - Submit the prompt to the LLM for execution
-- `%s` - Cancel the current request]]):format(
-      Config.quit_key,
-      Config.switch_key,
-      Config.exec_key,
-      Config.cancel_key
-    )
+- `%s` - Cancel the current request]]):format(Config.quit_key, Config.switch_key, Config.exec_key, Config.cancel_key)
     ui.open_foreground_float(vim.split(content, "\n"))
   end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end
