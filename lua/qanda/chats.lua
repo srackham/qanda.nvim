@@ -88,6 +88,14 @@ function M.open_chat(chat, turn_index)
   vim.keymap.set("n", Config.switch_key, function()
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.exec_key, function()
+    local turn = win.chat.dialog[win.turn_index or #win.chat.dialog]
+    require("qanda.prompts").open_prompt {
+      model_options = turn.model_options,
+      extract = turn.extract,
+      prompt = turn.request,
+    }
+  end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.prev_key, function()
     if win.turn_index and win.turn_index > 1 then
       M.open_chat(win.chat, win.turn_index - 1)

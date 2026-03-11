@@ -28,6 +28,7 @@ local M = {
       border = "rounded",
       height = 0.5,
     },
+    prompt_lines = { "" },
   },
 }
 

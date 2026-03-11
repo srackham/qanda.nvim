@@ -150,18 +150,6 @@ end
 --
 --   return prompt
 -- end
---
--- ---Helper to get full path for a prompt name
--- local function get_prompt_file_path(prompts_dir, name)
---   return prompts_dir .. "/" .. name .. ".user.md"
--- end
---
--- -- Helper to validate new prompts file name
--- local function is_valid_filename(name)
---   -- Allowed characters: alphanumeric, '+', '-', ' ', '.', '_'
---   return name:match "^[a-zA-Z0-9%+%-% ._]+$" ~= nil
--- end
---
 
 ---@param prompt Prompt
 ---@return string[]
@@ -169,8 +157,9 @@ local function prompt_to_lines(prompt)
   local lines = {}
   local rule = string.rep("─", 40)
 
-  table.insert(lines, rule)
-  table.insert(lines, "name: " .. prompt.name)
+  if prompt.extract then
+    table.insert(lines, "name: " .. prompt.name)
+  end
   if prompt.extract then
     table.insert(lines, "extract: " .. utils.escape_string(prompt.extract))
   end
@@ -179,7 +168,10 @@ local function prompt_to_lines(prompt)
       table.insert(lines, k .. ": " .. v)
     end
   end
-  table.insert(lines, rule)
+  if #lines > 0 then
+    table.insert(lines, 1, rule)
+    table.insert(lines, rule)
+  end
   for _, v in ipairs(vim.split(utils.trim_string(prompt.prompt or ""), "\n")) do
     table.insert(lines, v)
   end
@@ -272,7 +264,7 @@ function M.open_prompt(prompt)
   win:set_title("Prompt [" .. Config.help_key .. " help]")
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting(win.bufnr)
-  local lines = vim.split(prompt.prompt, "\n")
+  local lines = prompt_to_lines(prompt)
   win:set_lines(lines)
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
@@ -293,16 +285,11 @@ function M.open_prompt(prompt)
 - `%s` - Close Prompt window.
 - `%s` - Switch to Chat window
 - `%s` - Submit the prompt to the LLM for execution
-- `%s` - Cancel the current request
-- `%s` - Save the prompt to prompts templates; you are prompted for a unique name
-- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)]]):format(
+- `%s` - Cancel the current request]]):format(
       Config.quit_key,
       Config.switch_key,
       Config.exec_key,
-      Config.cancel_key,
-      Config.save_key,
-      Config.prev_key,
-      Config.next_key
+      Config.cancel_key
     )
     ui.open_foreground_float(vim.split(content, "\n"))
   end, { buffer = win.bufnr, desc = "Show prompt window help" })
