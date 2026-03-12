@@ -152,16 +152,16 @@ end
 
 function M.execute_prompt(prompt)
   coroutine.wrap(function()
-    local stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
+    -- local stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
     prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
     State.prompt_window:close()
     Chats.open_chat()
-    local lines = vim.split(prompt.expanded, "\n")
+    local lines = Prompts.prompt_to_lines(prompt)
     State.chat_window:set_lines(lines)
-    vim.defer_fn(function()
-      stop_spinner "Execution complete!"
-      -- stop_spinner("User aborted!", { hl_group = "WarningMsg" })
-    end, 3000)
+    -- vim.defer_fn(function()
+    --   stop_spinner "Execution complete!"
+    --   -- stop_spinner("User aborted!", { hl_group = "WarningMsg" })
+    -- end, 3000)
   end)()
 end
 

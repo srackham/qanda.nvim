@@ -132,18 +132,24 @@ end
 local function parse_one_prompt(lines)
   local prompts = parse_prompts(lines)
   if not prompts then
-    return nil
+    return nil -- Prompt parse errors
   end
-  if #prompts == 0 then
+  if #prompts > 0 then
+    return prompts[1]
+  end
+  -- No prompts with headers so assign all lines to the prompt
+  lines = utils.shallow_clone_table(lines)
+  utils.trim_table(lines)
+  if #lines == 0 then
     utils.notify("Missing prompt", vim.log.levels.ERROR)
     return nil
   end
-  return prompts[1]
+  return { prompt = table.concat(lines, "\n") }
 end
 
 ---@param prompt Prompt
 ---@return string[]
-local function prompt_to_lines(prompt)
+function M.prompt_to_lines(prompt)
   local lines = {}
   local rule = string.rep("_", 40)
 
@@ -158,7 +164,6 @@ local function prompt_to_lines(prompt)
       table.insert(lines, k .. ": " .. v)
     end
   end
-  -- TODO: Prompt needs to be split into separate lines?
   if #lines > 0 then
     table.insert(lines, 1, rule)
     table.insert(lines, rule)
@@ -255,7 +260,7 @@ function M.open_prompt(prompt)
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting(win.bufnr)
   if prompt then
-    local lines = prompt_to_lines(prompt)
+    local lines = M.prompt_to_lines(prompt)
     win:set_lines(lines)
   end
   -- Attach key commands.
@@ -328,7 +333,7 @@ local function prompt_picker(prompts, display_entry, opts)
 
       assert(prompt)
 
-      local lines = prompt_to_lines(prompt)
+      local lines = M.prompt_to_lines(prompt)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })

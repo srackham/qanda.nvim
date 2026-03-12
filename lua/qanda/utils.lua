@@ -236,6 +236,15 @@ function M.trim_table(tbl)
   return tbl
 end
 
+function M.shallow_clone_table(t)
+  assert(type(t) == "table")
+  local copy = {}
+  for k, v in pairs(t) do
+    copy[k] = v
+  end
+  return copy
+end
+
 --- Checks if the current Vim mode is Visual ('v' or 'V').
 --- @return boolean true if in visual mode, false otherwise.
 function M.is_visual_mode()
