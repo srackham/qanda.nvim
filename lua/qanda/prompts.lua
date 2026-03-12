@@ -255,7 +255,11 @@ end
 ---@param prompt Prompt?
 function M.open_prompt(prompt)
   local win = State.prompt_window
+  local already_open = win.winid ~= nil
   win:open()
+  if not already_open then
+    ui.move_float_by(win.winid, 5, 5)
+  end
   win:set_title("Prompt [" .. Config.help_key .. " help]")
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting(win.bufnr)

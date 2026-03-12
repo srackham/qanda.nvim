@@ -127,6 +127,9 @@ function M.open_foreground_float(lines)
   vim.keymap.set("n", Config.quit_key, function()
     api.nvim_win_close(win, true)
   end, { noremap = true, silent = true, buffer = bufnr })
+  vim.keymap.set("n", "<Esc>", function()
+    api.nvim_win_close(win, true)
+  end, { noremap = true, silent = true, buffer = bufnr })
 
   -- Auto-close on focus lost
   api.nvim_create_autocmd("WinLeave", {
@@ -138,6 +141,24 @@ function M.open_foreground_float(lines)
       end
     end,
   })
+end
+
+function M.move_float_by(winid, x, y)
+  -- 1. Fetch current window configuration
+  local config = vim.api.nvim_win_get_config(winid)
+
+  -- 2. Verify it's a floating window
+  if config.relative ~= "" then
+    -- 3. Adjust coordinates based on parameters
+    -- config.row handles vertical (y), config.col handles horizontal (x)
+    config.row = config.row + y
+    config.col = config.col + x
+
+    -- 4. Re-apply the configuration to shift the window
+    vim.api.nvim_win_set_config(winid, config)
+  else
+    vim.notify("Window ID " .. winid .. " is not a floating window.", vim.log.levels.WARN)
+  end
 end
 
 --- Open a window according to the requested window options.
