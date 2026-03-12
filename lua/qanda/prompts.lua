@@ -46,22 +46,25 @@ end
 ---| - name (string, required): Unique identifier for the prompt.
 ---| - extract (string): A regex pattern to extract content from input.
 ---
----@param text string The full content of the markdown prompt file as a string.
+---@param lines string[] The full content of the markdown prompt file as an array of strings.
 ---@return Prompts|nil Returns a Prompts array or nil if parsing fails due to formatting errors.
-local function parse_prompts(text)
+local function parse_prompts(lines)
   local result = {}
-  local lines = vim.split(text, "\n")
   local i = 1
+
+  local match_ruler = function(line)
+    return line:match "^%-%-%-+%s*$" or line:match "^___+%s*$"
+  end
 
   while i <= #lines do
     -- Look for start of header (three hyphens or underscores)
-    if lines[i]:match "^%-%-%-$" or lines[i]:match "^___$" then
+    if match_ruler(lines[i]) then
       i = i + 1
       local prompt = { model_options = {} }
 
       -- Parse header options until ending delimiter
       local header_start_line = i - 1
-      while i <= #lines and not (lines[i]:match "^%-%-%-$" or lines[i]:match "^___$") do
+      while i <= #lines and not match_ruler(lines[i]) do
         -- Trim whitespace
         lines[i] = lines[i]:match "^%s*(.-)%s*$"
 
@@ -97,7 +100,7 @@ local function parse_prompts(text)
       end
 
       -- Check for missing closing header line
-      if i > #lines or (not lines[i]:match "^%-%-%-$" and not lines[i]:match "^___$") then
+      if i > #lines or not match_ruler(lines[i]) then
         utils.notify("Missing closing header line after header starting at line " .. header_start_line, vim.log.levels.ERROR)
         return nil
       end
@@ -107,7 +110,7 @@ local function parse_prompts(text)
 
       -- Collect the prompt text until next header or EOF
       local prompt_lines = {}
-      while i <= #lines and not (lines[i]:match "^%-%-%-$" or lines[i]:match "^___$") do
+      while i <= #lines and not match_ruler(lines[i]) do
         -- Skip HTML comment lines
         if not lines[i]:match "^<!--.-?-->$" then
           table.insert(prompt_lines, lines[i])
@@ -126,38 +129,25 @@ local function parse_prompts(text)
   return result
 end
 
--- local function string_to_prompt(str)
---   if utils.trim_string(str) == "" then
---     return {}
---   end
---
---   local first_line = string.match(str, "^[^\n]*")
---   local with_header
---
---   if first_line ~= "___" and first_line ~= "---" then
---     local header = "___\nname: .\n___\n"
---     with_header = header .. str
---   else
---     with_header = str
---   end
---
---   local prompt = parse_prompts(with_header)
---
---   if prompt == nil or utils.table_size(prompt) ~= 1 or prompt["."] == nil then
---     utils.notify("Invalid prompt:\n" .. str, vim.log.levels.ERROR)
---     return nil
---   end
---
---   return prompt
--- end
+local function parse_one_prompt(lines)
+  local prompts = parse_prompts(lines)
+  if not prompts then
+    return nil
+  end
+  if #prompts == 0 then
+    utils.notify("Missing prompt", vim.log.levels.ERROR)
+    return nil
+  end
+  return prompts[1]
+end
 
 ---@param prompt Prompt
 ---@return string[]
 local function prompt_to_lines(prompt)
   local lines = {}
-  local rule = string.rep("─", 40)
+  local rule = string.rep("_", 40)
 
-  if prompt.extract then
+  if prompt.name then
     table.insert(lines, "name: " .. prompt.name)
   end
   if prompt.extract then
@@ -168,6 +158,7 @@ local function prompt_to_lines(prompt)
       table.insert(lines, k .. ": " .. v)
     end
   end
+  -- TODO: Prompt needs to be split into separate lines?
   if #lines > 0 then
     table.insert(lines, 1, rule)
     table.insert(lines, rule)
@@ -219,11 +210,10 @@ ${input:Enter request:}
   -- Load the prompts files
   for _, file_path in ipairs(prompt_files) do
     if vim.fn.filereadable(file_path) == 1 then
-      local file_content = vim.fn.readfile(file_path)
-      if file_content then
-        file_content = table.concat(file_content, "\n")
+      local lines = vim.fn.readfile(file_path)
+      if lines then
         local prompts
-        prompts = parse_prompts(file_content)
+        prompts = parse_prompts(lines)
         if prompts then
           for _, v in ipairs(prompts) do
             v.filename = file_path
@@ -278,12 +268,10 @@ function M.open_prompt(prompt)
   vim.keymap.set("n", Config.exec_key, function()
     local lines = win:get_lines()
     win:close()
-
-    -- TODO: require("qanda").execute_prompt(M.lines_to_prompt(lines))
-    require("qanda").execute_prompt {
-      prompt = table.concat(lines, "\n"),
-    }
-
+    local p = parse_one_prompt(lines)
+    if p then
+      require("qanda").execute_prompt(p)
+    end
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
@@ -588,7 +576,6 @@ function M.substitute_placeholders(prompt_string)
   -- Handle the ${file:<filename>} syntax
   prompt_string = prompt_string:gsub("%${file:(.-)}", function(file_name)
     file_name = M.resolve_prompt_path(file_name)
-    utils.debug("Reading file: " .. vim.inspect(file_name))
     local file_content, err = utils.read_file_to_string(file_name)
     if not file_content then
       utils.notify("Error: " .. err, vim.log.levels.ERROR)

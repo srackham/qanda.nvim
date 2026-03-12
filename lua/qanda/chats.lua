@@ -156,7 +156,7 @@ end
 function M.turn_to_lines(chat, turn_index)
   local turn = chat.dialog[turn_index]
   local lines = {}
-  local rule = string.rep("─", 40)
+  local rule = string.rep("_", 40)
 
   table.insert(lines, rule)
   if turn.model then
