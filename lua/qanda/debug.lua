@@ -16,4 +16,10 @@ function M.printif(b, v)
   end
 end
 
+function M.exec(fn)
+  if Config.debug then
+    fn()
+  end
+end
+
 return M

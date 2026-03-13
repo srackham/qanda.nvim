@@ -4,6 +4,7 @@ local Chats = require "qanda.chats"
 local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
+local debug = require "qanda.debug"
 
 local M = {} -- This module
 
@@ -90,7 +91,7 @@ function M.create_user_command()
           prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
           prompt.consumed = false
           State.system_prompt = prompt
-          db.print(State.system_prompt)
+          debug.print(State.system_prompt)
         end)
       end)()
     elseif args == "/models" then
@@ -152,12 +153,98 @@ end
 
 function M.execute_prompt(prompt)
   coroutine.wrap(function()
+
     -- local stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
+
     prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
+    if prompt.expanded == nil then
+      return
+    end
     State.prompt_window:close()
-    Chats.open_chat()
-    local lines = Prompts.prompt_to_lines(prompt)
-    State.chat_window:set_lines(lines)
+
+    local turn = {
+      request = prompt.expanded,
+      provider = prompt.provider or State.provider.name,
+      model = prompt.model or State.provider.model,
+      model_options = utils.shallow_clone_table(prompt.model_options),
+    }
+
+    -- Delete the most recent chat dialog turn if did not complete.
+    local dialog = State.chat_window.chat.dialog
+    if #dialog > 0 and not dialog[#dialog].response then
+      table.remove(dialog)
+    end
+
+    -- Append the new turn to current chat dialog.
+    table.insert(dialog, turn)
+
+    -- Create RequestData object from the current Chat object (model, provider and model_options are from the current turn e.g.
+    --[[
+    ```json
+{
+  "model": "minimax-m2.1:cloud",
+  "provider": "ollama",
+  "temperature": 0.7,
+  "messages": [
+    { "role": "user", "content": "Why is the sky blue?" },
+    { "role": "assistant", "content": "Due to Rayleigh scattering." },
+    { "role": "user", "content": "What is Rayleigh scattering?" },
+    { "role": "assistant", "content": "Rayleigh scattering is ..." },
+    { "role": "user", "content": "What's the history of Rayleigh scattering?" }
+  ]
+}
+``` ]]
+    -- Create the model Request object
+    local request_data = {
+      provider = turn.provider,
+      model = turn.model,
+      model_options = turn.model_option,
+    }
+    -- Add configuration model options
+    local model_options = Config.model_options[turn.provider]
+    if model_options then
+      for k, v in pairs(model_options) do
+        request_data[k] = v
+      end
+    end
+    -- Add prompt model options
+    if turn.model_options then
+      for k, v in pairs(turn.model_options) do
+        request_data[k] = v
+      end
+    end
+    -- Add model messages
+    local messages = {}
+    for _, t in ipairs(dialog) do
+      table.insert(messages, { role = "user", content = t.request })
+      if t.response then
+        table.insert(messages, { role = "assistant", content = t.response })
+      end
+    end
+    request_data.messages = messages
+
+    debug.print(request_data)
+
+    -- TODO: Set the provider and the model
+
+    -- Use the State.provider.module.command(request) function to generate the curl command from the Request object.
+    -- Test this by just printing the command to the Chat window then copy and paste it into the shell command line.
+    local request = {
+      host = Config.host,
+      port = Config.port,
+      data = request_data,
+    }
+    local curl_args = State.provider.module.command(request)
+
+    -- local escaped_json_payload = string.gsub(json_payload, "\n", "\\n")
+
+    debug.print(curl_args)
+    debug.exec(function()
+      vim.fn.setreg("+", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
+    end)
+
+    -- Execute curl command streaming output to the Chat window.
+
     -- vim.defer_fn(function()
     --   stop_spinner "Execution complete!"
     --   -- stop_spinner("User aborted!", { hl_group = "WarningMsg" })

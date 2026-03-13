@@ -39,7 +39,7 @@ local default = {
   separate_prompt_window_layout = { width = 0.8, height = 0.5, border = "single" },
   linked_window_layout = { width = 0.8, height = 0.7, prompt_height = 0.3, border = "single" },
   prompt_picker_layout = { width = 0.8, height = 0.5 },
-  model_options = { ollama = { think = false } },
+  model_options = { ollama = { think = false, stream = true } },
 }
 
 function M.setup(opts)

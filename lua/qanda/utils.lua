@@ -327,4 +327,24 @@ function M.truncate_string(s, max_len)
   end
 end
 
+--- Converts an array of shell arguments into an executable, correctly escaped, shell command string.
+---
+--- This function takes a table of strings, where each string is an argument for a shell command.
+--- It escapes each argument to handle special characters and spaces, then joins them into a single string
+--- suitable for execution in a shell.
+---
+--- @param args_table string[] An array of strings, where each string is a shell argument.
+--- @return string The escaped and concatenated shell command string.
+function M.args_to_shell_command(args_table)
+  -- ...existing code...
+  local escaped_args = {}
+  for _, arg in ipairs(args_table) do
+    -- Escape single quotes within the argument and wrap the whole argument in single quotes.
+    -- This ensures that the shell interprets the string literally, handling spaces and special characters.
+    local escaped_arg = "'" .. string.gsub(arg, "'", "'\\''") .. "'"
+    table.insert(escaped_args, escaped_arg)
+  end
+  return table.concat(escaped_args, " ")
+end
+
 return M

@@ -17,7 +17,7 @@ local M = {
   chat_window = ui.UIWindow.new {
     buf_name = Config.CHAT_BUFFER_NAME,
     modifiable = false,
-    mode = "float",
+    mode = "right",
     chat = { dialog = {} },
     turn_index = nil, -- 1-based index of the turn in the chat window
   },

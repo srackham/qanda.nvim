@@ -80,7 +80,11 @@ local function parse_prompts(lines)
 
           -- Process prompt header fields
           if not utils.table_contains({ "name", "extract" }, key) then
-            prompt.model_options[key] = value
+            if key == "stream" then
+              prompt.model_options[key] = value ~= "false"
+            else
+              prompt.model_options[key] = value
+            end
           else
             if key == "extract" then
               value = utils.unescape_string(value) -- Translate escaped characters

@@ -34,7 +34,7 @@
 ---| - `bufhidden=hide` : Buffer persists when not shown
 ---| - `bufhidden=wipe` : Buffer erased entirely
 ---@field float_layout FloatLayout
----@field [string] any Additional options forwarded to the underlying window creation function.
+---@field [string] any Additional options forwarded to the underlying window creation function TODO: is this comment correct?
 
 -- Model definitions --
 
@@ -53,11 +53,13 @@
 
 ---@class RequestData
 ---@field model string
+---@field provider string
+---@field model_options table? Additional model request fields
 ---@field messages Message[]
 
 ---@class Request
----@field host? string
----@field port? string
+---@field host? string From Config
+---@field port? string From Config
 ---@field data RequestData
 
 ---@readonly
@@ -67,6 +69,8 @@
 ---@field expanded? string The prompt string after placeholder expansion
 ---@field extract string? A regex pattern to extract content from the model's response
 ---@field system string? Name of system prompt template
+---@field provider? string The provider name
+---@field model? string The model name
 ---@field model_options table? Additional model request fields
 ---@field filename string? The prompt definition's source file
 ---@field consumed boolean? Flag the prompt as having been appended to the model messages array
@@ -77,7 +81,7 @@
 ---@field request string Model prompt (expanded)
 ---@field response string Model response (extracted)
 ---@field system string? System prompt (expanded)
----@field provider string? The provider name
+---@field provider string The provider name
 ---@field model string The model name
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
 ---@field extract string? A regex pattern to extract content from the model's response.
