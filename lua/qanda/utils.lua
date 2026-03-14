@@ -151,7 +151,9 @@ function M.message(msg, opts)
   local echo_opts = vim.tbl_deep_extend("force", {}, opts)
   echo_opts.hl_group = nil
   echo_opts.history = nil
-  vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, opts.history or false, echo_opts)
+  vim.schedule(function() -- Defer because of Neovim's "fast event" context
+    vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, opts.history or false, echo_opts)
+  end)
 end
 
 vim.cmd [[

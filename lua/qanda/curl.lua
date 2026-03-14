@@ -4,6 +4,7 @@ local M = {}
 
 -- Module-scoped variable to track the active process
 local active_job = nil
+local stop_spinner = function(_, _) end
 
 --- Helper: Appends text to the end of a specific window's buffer
 --- Uses vim.schedule to ensure UI calls happen on the main thread.
@@ -34,13 +35,17 @@ local function append_to_win(winid, text)
   end)
 end
 
---- Aborts the current process execution if one is running
-function M.kill_command()
+local function stop_job()
   if active_job then
     active_job:kill(15) -- Send SIGTERM
     active_job = nil
-    vim.notify("Process aborted.", vim.log.levels.WARN)
   end
+end
+
+--- Aborts the current process execution if one is running
+function M.kill_command()
+  stop_job()
+  stop_spinner("User aborted!", { hl_group = "WarningMsg" })
 end
 
 --- Executes the command and streams Ollama JSON 'content' to the window
@@ -52,8 +57,8 @@ function M.execute_command(cmd, winid)
     return
   end
 
-  -- Kill any existing instance to avoid overlapping streams
-  M.kill_command()
+  stop_job() -- Kill existing instance
+  stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
 
   local line_buffer = ""
 
@@ -102,6 +107,7 @@ function M.execute_command(cmd, winid)
     end,
   }, function(_)
     -- Cleanup the reference when the process exits
+    stop_spinner "Execution complete!"
     active_job = nil
   end)
 end

@@ -155,8 +155,6 @@ end
 function M.execute_prompt(prompt)
   coroutine.wrap(function()
 
-    -- local stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
-
     prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
     if prompt.expanded == nil then
       return
@@ -167,8 +165,10 @@ function M.execute_prompt(prompt)
       request = prompt.expanded,
       provider = prompt.provider or State.provider.name,
       model = prompt.model or State.provider.model,
-      model_options = utils.shallow_clone_table(prompt.model_options),
     }
+    if prompt.model_options then
+      turn.model_options = utils.shallow_clone_table(prompt.model_options)
+    end
 
     -- Delete the most recent chat dialog turn if did not complete.
     local dialog = State.chat_window.chat.dialog
@@ -233,7 +233,7 @@ function M.execute_prompt(prompt)
     }
     local curl_args = State.provider.module.command(request)
 
-    debug.print(curl_args)
+    -- debug.print(curl_args)
     debug.exec(function()
       vim.fn.setreg("+", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
     end)
@@ -245,10 +245,6 @@ function M.execute_prompt(prompt)
     -- local response_lines = {}
     curl.execute_command(curl_args, State.chat_window.winid)
 
-    -- vim.defer_fn(function()
-    --   stop_spinner "Execution complete!"
-    --   -- stop_spinner("User aborted!", { hl_group = "WarningMsg" })
-    -- end, 3000)
   end)()
 end
 
