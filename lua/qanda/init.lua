@@ -5,6 +5,7 @@ local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
 local debug = require "qanda.debug"
+local curl = require "qanda.curl"
 
 local M = {} -- This module
 
@@ -178,22 +179,6 @@ function M.execute_prompt(prompt)
     -- Append the new turn to current chat dialog.
     table.insert(dialog, turn)
 
-    -- Create RequestData object from the current Chat object (model, provider and model_options are from the current turn e.g.
-    --[[
-    ```json
-{
-  "model": "minimax-m2.1:cloud",
-  "provider": "ollama",
-  "temperature": 0.7,
-  "messages": [
-    { "role": "user", "content": "Why is the sky blue?" },
-    { "role": "assistant", "content": "Due to Rayleigh scattering." },
-    { "role": "user", "content": "What is Rayleigh scattering?" },
-    { "role": "assistant", "content": "Rayleigh scattering is ..." },
-    { "role": "user", "content": "What's the history of Rayleigh scattering?" }
-  ]
-}
-``` ]]
     -- Create the model Request object
     local request_data = {
       provider = turn.provider,
@@ -223,12 +208,24 @@ function M.execute_prompt(prompt)
     end
     request_data.messages = messages
 
-    debug.print(request_data)
+    -- If the provider and/or the model is not the current default they need to be validated
+    if request_data.provider ~= State.provider.name then
+      local provider = Providers.get_provider(request_data.provider)
+      if not provider then
+        return
+      end
+      -- Validate the model name
+      if not Providers.is_valid_model_name(provider, request_data.model) then
+        return
+      end
+    elseif request_data.model ~= State.provider.model then
+      -- The model name, but not the provider, has changed
+      if not Providers.is_valid_model_name(State.provider, request_data.model) then
+        return
+      end
+    end
 
-    -- TODO: Set the provider and the model
-
-    -- Use the State.provider.module.command(request) function to generate the curl command from the Request object.
-    -- Test this by just printing the command to the Chat window then copy and paste it into the shell command line.
+    -- Build the curl command
     local request = {
       host = Config.host,
       port = Config.port,
@@ -236,14 +233,17 @@ function M.execute_prompt(prompt)
     }
     local curl_args = State.provider.module.command(request)
 
-    -- local escaped_json_payload = string.gsub(json_payload, "\n", "\\n")
-
     debug.print(curl_args)
     debug.exec(function()
       vim.fn.setreg("+", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
     end)
 
-    -- Execute curl command streaming output to the Chat window.
+    -- TODO: Clear the Chat window and write the header.
+    Chats.open_chat()
+
+    -- Execute the curl command streaming the output to the Chat window.
+    -- local response_lines = {}
+    curl.execute_command(curl_args, State.chat_window.winid)
 
     -- vim.defer_fn(function()
     --   stop_spinner "Execution complete!"

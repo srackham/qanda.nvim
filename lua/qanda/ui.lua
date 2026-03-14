@@ -198,7 +198,7 @@ function M.open_window(buf_name, opts)
     utils.notify("Invalid window mode '" .. opts.mode .. "'", vim.log.levels.WARN)
   end
 
-  vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide"))
+  vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide nobuflisted"))
   vim.cmd("file " .. buf_name)
 end
 

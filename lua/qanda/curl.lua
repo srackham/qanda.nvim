@@ -1,3 +1,5 @@
+local utils = require "qanda.utils"
+
 local M = {}
 
 -- Module-scoped variable to track the active process
@@ -7,10 +9,8 @@ local active_job = nil
 --- Uses vim.schedule to ensure UI calls happen on the main thread.
 local function append_to_win(winid, text)
   vim.schedule(function()
-    if not vim.api.nvim_win_is_valid(winid) then
-      return
-    end
     local bufnr = vim.api.nvim_win_get_buf(winid)
+    vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
 
     local line_count = vim.api.nvim_buf_line_count(bufnr)
     local last_line_idx = math.max(0, line_count - 1)
@@ -23,13 +23,14 @@ local function append_to_win(winid, text)
 
     -- If the text contained newlines, append the remaining lines as new buffer lines
     if #lines > 1 then
-      local rest = { table.unpack(lines, 2) }
+      local rest = { unpack(lines, 2) }
       vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, rest)
     end
 
     -- Auto-scroll the window to follow the streaming output
     local new_last_line = vim.api.nvim_buf_line_count(bufnr)
     vim.api.nvim_win_set_cursor(winid, { new_last_line, 0 })
+    vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
   end)
 end
 
@@ -46,6 +47,11 @@ end
 --- @param cmd table The command array (e.g., {'curl', ...})
 --- @param winid number The Neovim window ID to target
 function M.execute_command(cmd, winid)
+  if not vim.api.nvim_win_is_valid(winid) then
+    utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
+    return
+  end
+
   -- Kill any existing instance to avoid overlapping streams
   M.kill_command()
 

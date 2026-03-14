@@ -1,3 +1,4 @@
+local Config = require "qanda.config"
 local utils = require "qanda.utils"
 
 local M = {
@@ -77,6 +78,15 @@ function M.select_provider(current_provider, callback)
       callback(item)
     end
   end)
+end
+
+function M.is_valid_model_name(provider, model_name)
+  local models = provider.module.models(Config)
+  if not utils.table_contains(models, model_name) then
+    utils.notify("Unable to  find model '" .. model_name .. "' for provider '" .. provider.name .. "'.", vim.log.levels.ERROR)
+    return false
+  end
+  return true
 end
 
 return M
