@@ -1,4 +1,9 @@
 ___
+name: Ping
+___
+Ping
+
+___
 name: Ask a question
 ___
 $select
