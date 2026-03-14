@@ -2,6 +2,7 @@ local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
+local curl = require "qanda.curl"
 
 local M = {
   chats = {}, ---@type Chats
@@ -84,6 +85,9 @@ function M.open_chat(chat, turn_index)
   -- Attach key commands.
   vim.keymap.set("n", Config.quit_key, function()
     win:close()
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.cancel_key, function()
+    curl.kill_command()
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.switch_key, function()
     vim.cmd "Qanda /prompt"

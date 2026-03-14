@@ -4,6 +4,7 @@ local M = {}
 
 -- Module-scoped variable to track the active process
 local active_job = nil
+local was_killed = false
 local stop_spinner = function(_, _) end
 
 --- Helper: Appends text to the end of a specific window's buffer
@@ -44,8 +45,10 @@ end
 
 --- Aborts the current process execution if one is running
 function M.kill_command()
-  stop_job()
-  stop_spinner("User aborted!", { hl_group = "WarningMsg" })
+  if active_job then
+    stop_job()
+    was_killed = true
+  end
 end
 
 --- Executes the command and streams Ollama JSON 'content' to the window
@@ -58,6 +61,7 @@ function M.execute_command(cmd, winid)
   end
 
   stop_job() -- Kill existing instance
+  was_killed = false
   stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
 
   local line_buffer = ""
@@ -107,7 +111,11 @@ function M.execute_command(cmd, winid)
     end,
   }, function(_)
     -- Cleanup the reference when the process exits
-    stop_spinner "Execution complete!"
+    if was_killed then
+      stop_spinner("User aborted!", { hl_group = "WarningMsg" })
+    else
+      stop_spinner "Execution complete!"
+    end
     active_job = nil
   end)
 end
