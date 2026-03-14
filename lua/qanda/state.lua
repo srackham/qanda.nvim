@@ -1,5 +1,4 @@
 local Config = require "qanda.config" -- User configuration options
-local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
 
@@ -37,7 +36,7 @@ local M = {
 function M.setup()
 
   -- Set model provider
-  local provider = Providers.get_provider(Config.provider)
+  local provider = require("qanda.providers").get_provider(Config.provider)
   if provider then
     local models = provider.module.models(Config)
     if utils.table_contains(models, Config.model) then

@@ -209,21 +209,8 @@ function M.execute_prompt(prompt)
     request_data.messages = messages
 
     -- If the provider and/or the model is not the current default they need to be validated
-    -- TODO: refactor to Provider.set_provider_and_model(provider_name, model_name), returns boolean
-    if request_data.provider ~= State.provider.name then
-      local provider = Providers.get_provider(request_data.provider)
-      if not provider then
-        return
-      end
-      -- Validate the model name
-      if not Providers.is_valid_model_name(provider, request_data.model) then
-        return
-      end
-    elseif request_data.model ~= State.provider.model then
-      -- The model name, but not the provider, has changed
-      if not Providers.is_valid_model_name(State.provider, request_data.model) then
-        return
-      end
+    if not Providers.set_provider_and_model(request_data.provider, request_data.model) then
+      return
     end
 
     -- Build the curl command

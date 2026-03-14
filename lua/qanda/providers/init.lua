@@ -1,4 +1,5 @@
 local Config = require "qanda.config"
+local State = require "qanda.state"
 local utils = require "qanda.utils"
 
 local M = {
@@ -57,6 +58,25 @@ function M.get_provider(name)
   end
   utils.notify("No provider named '" .. name .. "'", vim.log.levels.ERROR)
   return nil
+end
+
+function M.set_provider_and_model(provider_name, model_name)
+  if provider_name ~= State.provider.name then
+    local provider = M.get_provider(provider_name)
+    if not provider then
+      return false
+    end
+    -- Validate the model name
+    if not M.is_valid_model_name(provider, model_name) then
+      return false
+    end
+  elseif model_name ~= State.provider.model then
+    -- The model name, but not the provider, has changed
+    if not M.is_valid_model_name(State.provider, model_name) then
+      return false
+    end
+  end
+  return true
 end
 
 function M.select_provider(current_provider, callback)
