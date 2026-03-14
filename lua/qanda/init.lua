@@ -209,6 +209,7 @@ function M.execute_prompt(prompt)
     request_data.messages = messages
 
     -- If the provider and/or the model is not the current default they need to be validated
+    -- TODO: refactor to Provider.set_provider_and_model(provider_name, model_name), returns boolean
     if request_data.provider ~= State.provider.name then
       local provider = Providers.get_provider(request_data.provider)
       if not provider then
@@ -242,8 +243,13 @@ function M.execute_prompt(prompt)
     Chats.open_chat()
 
     -- Execute the curl command streaming the output to the Chat window.
-    -- local response_lines = {}
-    curl.execute_command(curl_args, State.chat_window.winid)
+    curl.execute_command(curl_args, State.chat_window.winid, function(model_response)
+      if curl.job_status() ~= "stopped" then
+        debug.print(curl.job_status())
+      else
+        debug.print(model_response)
+      end
+    end)
 
   end)()
 end

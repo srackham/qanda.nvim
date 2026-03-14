@@ -6,10 +6,11 @@ local active_job = nil
 local job_status = "stopped" ---@type JobStatus
 local error_message = ""
 local stop_spinner = function(_, _) end
+local model_response = {} -- New: Stores the full model response as a table of lines
 
 --- Helper: Appends text to the end of a specific window's buffer
 --- Uses vim.schedule to ensure UI calls happen on the main thread.
-local function append_to_win(winid, text)
+local function append_to_win(winid, text, window_only)
   vim.schedule(function()
     local bufnr = vim.api.nvim_win_get_buf(winid)
     vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
@@ -18,14 +19,32 @@ local function append_to_win(winid, text)
     local last_line_idx = math.max(0, line_count - 1)
     local last_line_content = vim.api.nvim_buf_get_lines(bufnr, last_line_idx, -1, false)[1] or ""
 
-    local lines = vim.split(text, "\n")
+    local lines_from_text = vim.split(text, "\n")
+
+    -- Update model_response to correctly reflect the accumulated lines
+    if not window_only then
+      if #model_response == 0 then
+        -- If model_response is empty, populate it with the initial lines
+        for _, line_part in ipairs(lines_from_text) do
+          table.insert(model_response, line_part)
+        end
+      else
+        -- Append the first part of the text to the last line in model_response
+        model_response[#model_response] = (model_response[#model_response] or "") .. (lines_from_text[1] or "")
+
+        -- If there are additional parts (due to newlines in 'text'), add them as new lines
+        for i = 2, #lines_from_text do
+          table.insert(model_response, lines_from_text[i])
+        end
+      end
+    end
 
     -- Insert the first chunk of text into the current last line
-    vim.api.nvim_buf_set_text(bufnr, last_line_idx, #last_line_content, last_line_idx, #last_line_content, { lines[1] })
+    vim.api.nvim_buf_set_text(bufnr, last_line_idx, #last_line_content, last_line_idx, #last_line_content, { lines_from_text[1] })
 
     -- If the text contained newlines, append the remaining lines as new buffer lines
-    if #lines > 1 then
-      local rest = { unpack(lines, 2) }
+    if #lines_from_text > 1 then
+      local rest = { unpack(lines_from_text, 2) }
       vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, rest)
     end
 
@@ -64,10 +83,15 @@ end
 --- Executes the command and streams Ollama JSON 'content' to the window
 --- @param cmd table The command array (e.g., {'curl', ...})
 --- @param winid number The Neovim window ID to target
-function M.execute_command(cmd, winid)
+function M.execute_command(cmd, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
     return
+  end
+
+  -- Clear the model response
+  for i = #model_response, 1, -1 do
+    model_response[i] = nil
   end
 
   stop_job()
@@ -105,7 +129,7 @@ function M.execute_command(cmd, winid)
               if decoded.done then
                 local duration_sec = (decoded.total_duration or 0) / 1e9
                 local done_message = string.format("\n\n___\n**Time taken**: %.2fs", duration_sec)
-                append_to_win(winid, done_message)
+                append_to_win(winid, done_message, true)
               end
             end
           end
@@ -115,7 +139,7 @@ function M.execute_command(cmd, winid)
     stderr = function(_, data)
       -- Catch standard curl/shell errors and append them to the buffer
       if data and data:len() > 0 then
-        append_to_win(winid, "\n\n**Error: " .. data .. "**")
+        append_to_win(winid, "\n\n**Error: " .. data .. "**", true)
         error_message = data
         job_status = "error"
       end
@@ -130,6 +154,9 @@ function M.execute_command(cmd, winid)
       stop_spinner "Execution complete!"
     end
     active_job = nil
+    if on_exit_callback then
+      on_exit_callback(model_response)
+    end
   end)
 end
 
