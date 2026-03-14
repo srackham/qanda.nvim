@@ -2,9 +2,9 @@ local utils = require "qanda.utils"
 
 local M = {}
 
--- Module-scoped variable to track the active process
 local active_job = nil
-local was_killed = false
+local job_status = "stopped" ---@type JobStatus
+local error_message = ""
 local stop_spinner = function(_, _) end
 
 --- Helper: Appends text to the end of a specific window's buffer
@@ -36,10 +36,12 @@ local function append_to_win(winid, text)
   end)
 end
 
+---Kill existing job instance and reset job status to "stopped"
 local function stop_job()
   if active_job then
     active_job:kill(15) -- Send SIGTERM
     active_job = nil
+    job_status = "stopped"
   end
 end
 
@@ -47,8 +49,16 @@ end
 function M.kill_command()
   if active_job then
     stop_job()
-    was_killed = true
+    job_status = "aborted"
   end
+end
+
+function M.job_status()
+  return job_status
+end
+
+function M.is_active_job()
+  return active_job ~= nil
 end
 
 --- Executes the command and streams Ollama JSON 'content' to the window
@@ -60,8 +70,7 @@ function M.execute_command(cmd, winid)
     return
   end
 
-  stop_job() -- Kill existing instance
-  was_killed = false
+  stop_job()
   stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
 
   local line_buffer = ""
@@ -95,8 +104,8 @@ function M.execute_command(cmd, winid)
               -- 2. Handle the final "done" signal and metadata
               if decoded.done then
                 local duration_sec = (decoded.total_duration or 0) / 1e9
-                local stats = string.format("\n\n[Done] Reason: %s | Duration: %.2fs", decoded.done_reason or "stop", duration_sec)
-                append_to_win(winid, stats)
+                local done_message = string.format("\n\n___\n**Time taken**: %.2fs", duration_sec)
+                append_to_win(winid, done_message)
               end
             end
           end
@@ -106,13 +115,17 @@ function M.execute_command(cmd, winid)
     stderr = function(_, data)
       -- Catch standard curl/shell errors and append them to the buffer
       if data and data:len() > 0 then
-        append_to_win(winid, "\n[Error]: " .. data)
+        append_to_win(winid, "\n\n**Error: " .. data .. "**")
+        error_message = data
+        job_status = "error"
       end
     end,
   }, function(_)
     -- Cleanup the reference when the process exits
-    if was_killed then
+    if job_status == "aborted" then
       stop_spinner("User aborted!", { hl_group = "WarningMsg" })
+    elseif job_status == "error" then
+      stop_spinner("Error: " .. error_message, { hl_group = "ErrorMsg" })
     else
       stop_spinner "Execution complete!"
     end

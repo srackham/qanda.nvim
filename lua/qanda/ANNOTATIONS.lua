@@ -93,3 +93,11 @@
 
 ---@alias Chats Chat[]
 
+-- Model command execution --
+
+---@alias JobStatus
+---| "running"
+---| "stopped"
+---| "error"
+---| "aborted"
+
