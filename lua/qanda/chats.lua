@@ -42,7 +42,7 @@ function M.load_chats()
         local turns = parse_turns(lines)
         if turns then
           assert(#turns > 0)
-          local chat = { dialog = turns, filename = file_path }
+          local chat = { turns = turns, filename = file_path }
           table.insert(result, chat)
           if State.chat_window.chat.filename == file_path then
             State.chat_window.chat = chat
@@ -56,7 +56,7 @@ function M.load_chats()
     end
   end
   if not chat_window_updated then -- invalidate chat window
-    State.chat_window.chat = { dialog = {} }
+    State.chat_window.chat = { turns = {} }
     State.chat_window.turn_index = nil
   end
   return result
@@ -71,14 +71,14 @@ function M.open_chat(chat, turn_index)
     win.chat = chat
   end
   assert(win.chat)
-  win.turn_index = turn_index or win.turn_index or #win.chat.dialog
+  win.turn_index = turn_index or win.turn_index or #win.chat.turns
   win:open()
   win:set_title("Chat [" .. Config.help_key .. " help]")
 
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_chat_syntax_highlighting(win.bufnr)
   if win.turn_index and win.turn_index > 0 then
-    assert(win.turn_index <= #win.chat.dialog)
+    assert(win.turn_index <= #win.chat.turns)
     local lines = M.turn_to_lines(win.chat, win.turn_index)
     win:set_lines(lines)
   end
@@ -93,7 +93,7 @@ function M.open_chat(chat, turn_index)
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.exec_key, function()
-    local turn = win.chat.dialog[win.turn_index or #win.chat.dialog]
+    local turn = win.chat.turns[win.turn_index or #win.chat.turns]
     require("qanda.prompts").open_prompt {
       model_options = turn.model_options,
       extract = turn.extract,
@@ -106,14 +106,14 @@ function M.open_chat(chat, turn_index)
     end
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.next_key, function()
-    if win.turn_index and win.turn_index < #win.chat.dialog then
+    if win.turn_index and win.turn_index < #win.chat.turns then
       M.open_chat(win.chat, win.turn_index + 1)
     end
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.edit_key, function()
     if win.chat.filename then
       win:close()
-      local timestamp = win.chat.dialog[win.turn_index].timestamp
+      local timestamp = win.chat.turns[win.turn_index].timestamp
       utils.edit_file(
         win.chat.filename,
         M.add_chat_syntax_highlighting,
@@ -158,7 +158,7 @@ end
 ---@param turn_index number
 ---@return string[]
 function M.turn_to_lines(chat, turn_index)
-  local turn = chat.dialog[turn_index]
+  local turn = chat.turns[turn_index]
   local lines = {}
   local rule = string.rep("_", 40)
 
@@ -180,7 +180,7 @@ function M.turn_to_lines(chat, turn_index)
       table.insert(lines, k .. ": " .. v)
     end
   end
-  table.insert(lines, string.format("turn: %d of %d", turn_index, #chat.dialog))
+  table.insert(lines, string.format("turn: %d of %d", turn_index, #chat.turns))
   if turn.system then
     table.insert(lines, "system:")
     table.insert(lines, "")
@@ -244,7 +244,7 @@ local function chat_picker(chats, mappings, display_entry)
 
       assert(chat)
 
-      local lines = M.turn_to_lines(chat, #chat.dialog)
+      local lines = M.turn_to_lines(chat, #chat.turns)
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
@@ -331,7 +331,7 @@ function M.chat_picker()
 
     return true
   end, function(chat)
-    local display_entry = utils.truncate_string(chat.dialog[1].request, 20)
+    local display_entry = utils.truncate_string(chat.turns[1].request, 20)
     if chat.filename == State.chat_window.chat.filename then
       return "* " .. display_entry
     else

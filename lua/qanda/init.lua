@@ -170,14 +170,14 @@ function M.execute_prompt(prompt)
       turn.model_options = utils.shallow_clone_table(prompt.model_options)
     end
 
-    -- Delete the most recent chat dialog turn if did not complete.
-    local dialog = State.chat_window.chat.dialog
-    if #dialog > 0 and not dialog[#dialog].response then
-      table.remove(dialog)
+    -- Delete the most recent chat turn if did not complete.
+    local turns = State.chat_window.chat.turns
+    if #turns > 0 and not turns[#turns].response then
+      table.remove(turns)
     end
 
-    -- Append the new turn to current chat dialog.
-    table.insert(dialog, turn)
+    -- Append the new turn to current chat.
+    table.insert(turns, turn)
 
     -- Create the model Request object
     local request_data = {
@@ -200,7 +200,7 @@ function M.execute_prompt(prompt)
     end
     -- Add model messages
     local messages = {}
-    for _, t in ipairs(dialog) do
+    for _, t in ipairs(turns) do
       table.insert(messages, { role = "user", content = t.request })
       if t.response then
         table.insert(messages, { role = "assistant", content = t.response })
