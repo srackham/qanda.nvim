@@ -3,6 +3,7 @@ local M = {} -- This module
 -- Constants
 M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
+M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 
 local default = {
 

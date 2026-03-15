@@ -155,6 +155,9 @@ end
 function M.execute_prompt(prompt)
   coroutine.wrap(function()
 
+    local chat = State.chat_window.chat
+    local turns = chat.turns
+
     prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
     if prompt.expanded == nil then
       return
@@ -171,7 +174,6 @@ function M.execute_prompt(prompt)
     end
 
     -- Delete the most recent chat turn if did not complete.
-    local turns = State.chat_window.chat.turns
     if #turns > 0 and not turns[#turns].response then
       table.remove(turns)
     end
@@ -227,14 +229,15 @@ function M.execute_prompt(prompt)
     end)
 
     -- TODO: Clear the Chat window and write the header.
-    Chats.open_chat()
+    Chats.open_chat(chat, #turns)
 
     -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(curl_args, State.chat_window.winid, function(model_response)
       if curl.job_status() ~= "stopped" then
         debug.print(curl.job_status())
       else
-        debug.print(model_response)
+        turns[#turns].response = table.concat(model_response, "\n")
+        turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
       end
     end)
 
