@@ -83,16 +83,16 @@ function M.open_chat(chat, turn_index)
     win:set_lines(lines)
   end
   -- Attach key commands.
-  vim.keymap.set("n", Config.quit_key, function()
+  vim.keymap.set("n", Config.chat_close_key, function()
     win:close()
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.cancel_key, function()
+  vim.keymap.set("n", Config.chat_abort_key, function()
     curl.kill_command()
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.switch_key, function()
+  vim.keymap.set("n", Config.chat_switch_key, function()
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.exec_key, function()
+  vim.keymap.set("n", Config.chat_exec_key, function()
     local turn = win.chat.turns[win.turn_index or #win.chat.turns]
     require("qanda.prompts").open_prompt {
       model_options = turn.model_options,
@@ -100,17 +100,17 @@ function M.open_chat(chat, turn_index)
       prompt = turn.request,
     }
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.prev_key, function()
+  vim.keymap.set("n", Config.chat_prev_key, function()
     if win.turn_index and win.turn_index > 1 then
       M.open_chat(win.chat, win.turn_index - 1)
     end
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.next_key, function()
+  vim.keymap.set("n", Config.chat_next_key, function()
     if win.turn_index and win.turn_index < #win.chat.turns then
       M.open_chat(win.chat, win.turn_index + 1)
     end
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.edit_key, function()
+  vim.keymap.set("n", Config.chat_edit_key, function()
     if win.chat.filename then
       win:close()
       local timestamp = win.chat.turns[win.turn_index].timestamp
@@ -126,37 +126,43 @@ function M.open_chat(chat, turn_index)
       utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.INFO)
     end
   end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.chat_redo_key, function()
+    ---@todo TODO: Do we need redo ???
+  end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
     local content = ([[## Chat Window Cheatsheet
 
-- `%s` - Close Chat window.
-- `%s` - Switch to Prompt window
+Normal mode commands:
+
 - `%s` - Create a new prompt from the current Chat window prompt
-- `%s` - Cancel the current request
-- `%s` - Re-execute and replace the latest turn.
+- `%s` - Switch to Prompt window
+- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)
 - `%s` - Open the chat file for editing at the selected turn (by searching for the timestamp)
-- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)]]):format(
-      Config.quit_key,
-      Config.switch_key,
-      Config.exec_key,
-      Config.cancel_key,
-      Config.redo_key,
-      Config.edit_key,
-      Config.prev_key,
-      Config.next_key
+- `%s` - Re-execute and replace the latest turn.
+- `%s` - Abort the current request
+- `%s` - Close Chat window.
+]]):format(
+      Config.chat_exec_key,
+      Config.chat_switch_key,
+      Config.chat_prev_key,
+      Config.chat_next_key,
+      Config.chat_edit_key,
+      Config.chat_redo_key,
+      Config.chat_abort_key,
+      Config.chat_close_key
     )
-    ui.open_foreground_float(vim.split(content, "\n"))
+    ui.open_foreground_float(vim.split(content, "\n"), { width = 100 })
   end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end
 
 function M.new_chat()
-    local turn = {
-      request = "",
-      provider = State.provider.name,
-      model = State.provider.model,
-    }
-  local new_chat = { turns = {turn} }
+  local turn = {
+    request = "",
+    provider = State.provider.name,
+    model = State.provider.model,
+  }
+  local new_chat = { turns = { turn } }
 
   -- Bind the chat to the Chat window
   M.open_chat(new_chat, 1)
@@ -264,7 +270,7 @@ local function chat_picker(chats, mappings, display_entry)
   pickers
     .new({}, {
       results_title = "Chats",
-      prompt_title = "[<Enter> open, " .. Config.edit_key .. " edit, " .. Config.delete_key .. " delete]",
+      prompt_title = "[<Enter> open, " .. Config.chat_picker_edit_key .. " edit, " .. Config.chat_picker_delete_key .. " delete]",
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(chat)
@@ -289,8 +295,7 @@ function M.chat_picker()
 
   chat_picker(State.chats, function(chat_bufnr, map)
 
-    -- <Enter>
-    actions.select_default:replace(function()
+    map({ "n", "i" }, Config.chat_picker_open_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
       if selection then
@@ -302,7 +307,7 @@ function M.chat_picker()
       end
     end, { desc = "Close the picker and open the chat in the chat window" })
 
-    map({ "n", "i" }, Config.delete_key, function()
+    map({ "n", "i" }, Config.chat_picker_delete_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(chat_bufnr)
       if selection then
@@ -324,7 +329,7 @@ function M.chat_picker()
       end
     end, { desc = "Close the picker and delete the selected chat file" })
 
-    map({ "n", "i" }, Config.edit_key, function()
+    map({ "n", "i" }, Config.chat_picker_edit_key, function()
       local selection = action_state.get_selected_entry()
       if selection then
         local chat = selection.value

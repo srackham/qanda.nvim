@@ -15,17 +15,40 @@ local default = {
   host = "localhost",
   port = "11434",
 
-  cancel_key = "<C-c>",
-  delete_key = "<C-d>",
-  edit_key = "<C-e>", -- Chat picker, Prompt picker TODO: finish these comments
-  exec_key = "<C-Space>",
   help_key = "<C-h>",
-  next_key = "<Down>",
-  prev_key = "<Up>",
-  quit_key = "q",
-  redo_key = "<C-r>",
-  save_key = "<C-s>",
-  switch_key = "<Tab>",
+
+  -- Chat window key commands
+  chat_abort_key = "<Esc>",
+  chat_close_key = "q",
+  chat_edit_key = "<C-e>",
+  chat_exec_key = "<Enter>",
+  chat_next_key = "<Down>",
+  chat_prev_key = "<Up>",
+  chat_redo_key = "<C-r>",
+  chat_switch_key = "<Tab>",
+
+  -- Chat picker key commands
+  chat_picker_delete_key = "<C-d>",
+  chat_picker_edit_key = "<C-e>",
+  chat_picker_exec_key = "<C-Space>",
+  chat_picker_open_key = "<Enter>",
+
+  -- Prompt window key commands
+  prompt_abort_key = "<Esc>",
+  prompt_clear_key = "<C-Space>",
+  prompt_close_key = "q",
+  prompt_exec_key = "<Enter>",
+  prompt_switch_key = "<Tab>",
+
+  -- Prompt picker key commands
+  user_picker_delete_key = "<C-d>",
+  user_picker_edit_key = "<C-e>",
+  user_picker_exec_key = "<Enter>",
+  user_picker_open_key = "<C-Space>",
+
+  -- System prompt picker key commands
+  system_picker_edit_key = "<C-e>",
+  system_picker_select_key = "<Enter>",
 
   ---@type UIMode
   ui_mode = "separate",

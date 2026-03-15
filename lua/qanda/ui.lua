@@ -1,5 +1,4 @@
 local utils = require "qanda.utils"
-local Config = require "qanda.config"
 
 local M = {} -- This module
 
@@ -103,7 +102,7 @@ function M.get_winid_of_buffer(bufnr)
   return winid
 end
 
-function M.open_foreground_float(lines)
+function M.open_foreground_float(lines, opts)
   local api = vim.api
   local bufnr = api.nvim_create_buf(false, true)
 
@@ -113,7 +112,8 @@ function M.open_foreground_float(lines)
 
   api.nvim_buf_set_lines(bufnr, 0, -1, false, lines)
 
-  local win = api.nvim_open_win(bufnr, true, {
+  opts = opts or {}
+  opts = vim.tbl_deep_extend("force", {
     relative = "editor",
     row = 5,
     col = 10,
@@ -122,9 +122,10 @@ function M.open_foreground_float(lines)
     style = "minimal",
     border = "rounded",
     zindex = 100,
-  })
+  }, opts)
+  local win = api.nvim_open_win(bufnr, true, opts)
 
-  vim.keymap.set("n", Config.quit_key, function()
+  vim.keymap.set("n", "q", function()
     api.nvim_win_close(win, true)
   end, { noremap = true, silent = true, buffer = bufnr })
   vim.keymap.set("n", "<Esc>", function()

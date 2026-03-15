@@ -272,13 +272,13 @@ function M.open_prompt(prompt)
     win:set_lines(lines)
   end
   -- Attach key commands.
-  vim.keymap.set("n", Config.quit_key, function()
+  vim.keymap.set("n", Config.prompt_close_key, function()
     win:close()
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.switch_key, function()
+  vim.keymap.set("n", Config.prompt_switch_key, function()
     vim.cmd "Qanda /chat"
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.exec_key, function()
+  vim.keymap.set("n", Config.prompt_exec_key, function()
     local lines = win:get_lines()
     win:close()
     local p = parse_one_prompt(lines)
@@ -286,14 +286,27 @@ function M.open_prompt(prompt)
       require("qanda").execute_prompt(p)
     end
   end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.prompt_clear_key, function()
+    -- Clear the current buffer in the window
+    vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
+    -- Go to insert mode
+    vim.cmd "startinsert"
+  end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.prompt_abort_key, function()
+    ---@todo TODO:
+  end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
     local content = ([[## Prompt Window Cheatsheet
 
-- `%s` - Close Prompt window.
-- `%s` - Switch to Chat window
+Normal mode commands:
+
 - `%s` - Submit the prompt to the LLM for execution
-- `%s` - Cancel the current request]]):format(Config.quit_key, Config.switch_key, Config.exec_key, Config.cancel_key)
+- `%s` - Clear the prompt window and enter insert mode
+- `%s` - Switch to Chat window
+- `%s` - Abort the current request
+- `%s` - Close Prompt window.
+]]):format(Config.prompt_exec_key, Config.prompt_clear_key, Config.prompt_switch_key, Config.prompt_abort_key, Config.prompt_close_key)
     ui.open_foreground_float(vim.split(content, "\n"))
   end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end
@@ -378,11 +391,16 @@ function M.user_prompt_picker(callback)
 
   prompt_picker(M.user_prompts, nil, {
     results_title = "User Prompts",
-    prompt_title = "[<Enter> open, " .. Config.exec_key .. " execute, " .. Config.edit_key .. " edit]",
+    prompt_title = "["
+      .. Config.user_picker_exec_key
+      .. " execute, "
+      .. Config.user_picker_open_key
+      .. " open, "
+      .. Config.user_picker_edit_key
+      .. " edit]",
     attach_mappings = function(bufnr, map)
 
-      -- <Enter>
-      actions.select_default:replace(function()
+      map({ "n", "i" }, Config.user_picker_open_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
@@ -394,7 +412,7 @@ function M.user_prompt_picker(callback)
         end
       end, { desc = "Close the picker and open the prompt in the prompt window" })
 
-      map({ "n", "i" }, Config.exec_key, function()
+      map({ "n", "i" }, Config.user_picker_exec_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
@@ -404,7 +422,7 @@ function M.user_prompt_picker(callback)
         end
       end, { desc = "Close the picker and execute the selected prompt template" })
 
-      map({ "n", "i" }, Config.edit_key, function()
+      map({ "n", "i" }, Config.user_picker_edit_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           local prompt = selection.value
@@ -435,11 +453,10 @@ function M.system_prompt_picker(callback)
     end
   end, {
     results_title = "System Prompts",
-    prompt_title = "[<Enter> select, " .. Config.edit_key .. " edit]",
+    prompt_title = "[" .. Config.system_picker_select_key .. " select, " .. Config.system_picker_edit_key .. " edit]",
     attach_mappings = function(bufnr, map)
 
-      -- <Enter>
-      actions.select_default:replace(function()
+      map({ "n", "i" }, Config.system_picker_select_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
@@ -449,7 +466,7 @@ function M.system_prompt_picker(callback)
         end
       end, { desc = "Close the picker window; execute callback" })
 
-      map({ "n", "i" }, Config.edit_key, function()
+      map({ "n", "i" }, Config.system_picker_edit_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           local prompt = selection.value
