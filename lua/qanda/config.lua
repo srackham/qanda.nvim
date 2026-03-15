@@ -17,7 +17,7 @@ local default = {
 
   cancel_key = "<C-c>",
   delete_key = "<C-d>",
-  edit_key = "<C-e>",
+  edit_key = "<C-e>", -- Chat picker, Prompt picker TODO: finish these comments
   exec_key = "<C-Space>",
   help_key = "<C-h>",
   next_key = "<Down>",

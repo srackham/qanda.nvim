@@ -151,7 +151,15 @@ function M.open_chat(chat, turn_index)
 end
 
 function M.new_chat()
-  State.system_chat = nil ---@todo  should init to default system chat if defined.
+    local turn = {
+      request = "",
+      provider = State.provider.name,
+      model = State.provider.model,
+    }
+  local new_chat = { turns = {turn} }
+
+  -- Bind the chat to the Chat window
+  M.open_chat(new_chat, 1)
 end
 
 ---@param chat Chat

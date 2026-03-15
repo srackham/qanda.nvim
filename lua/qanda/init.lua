@@ -67,7 +67,11 @@ function M.create_user_command()
 
     if args == "/chat" then
       State.prompt_window:close()
-      Chats.open_chat()
+      if #State.chats == 0 then
+        Chats.new_chat()
+      else
+        Chats.open_chat()
+      end
       return
     elseif args == "/new" then
       Chats.new_chat()
@@ -234,11 +238,19 @@ function M.execute_prompt(prompt)
     -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(curl_args, State.chat_window.winid, function(model_response)
       if curl.job_status() ~= "stopped" then
+        -- Turn did not complete
         debug.print(curl.job_status())
-      else
-        turns[#turns].response = table.concat(model_response, "\n")
-        turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
+        return
       end
+
+      -- Update completed turn
+      turns[#turns].response = table.concat(model_response, "\n")
+      turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
+
+      -- Save chat file
+
+      -- Clear Prompt window
+
     end)
 
   end)()

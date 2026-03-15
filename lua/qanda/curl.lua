@@ -6,7 +6,7 @@ local active_job = nil
 local job_status = "stopped" ---@type JobStatus
 local error_message = ""
 local stop_spinner = function(_, _) end
-local model_response = {} -- New: Stores the full model response as a table of lines
+local model_response = {} -- Stores the full model response as a table of lines
 
 --- Helper: Appends text to the end of a specific window's buffer
 --- Uses vim.schedule to ensure UI calls happen on the main thread.
@@ -60,8 +60,8 @@ local function stop_job()
   if active_job then
     active_job:kill(15) -- Send SIGTERM
     active_job = nil
-    job_status = "stopped"
   end
+  job_status = "stopped"
 end
 
 --- Aborts the current process execution if one is running
@@ -89,10 +89,7 @@ function M.execute_command(cmd, winid, on_exit_callback)
     return
   end
 
-  -- Clear the model response
-  for i = #model_response, 1, -1 do
-    model_response[i] = nil
-  end
+  utils.clear_sequence(model_response)
 
   stop_job()
   stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })

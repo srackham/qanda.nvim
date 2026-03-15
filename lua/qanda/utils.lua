@@ -48,6 +48,13 @@ function M.escape_pattern(text)
   return (text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
 end
 
+-- Clear a Lua array table (sequence)
+function M.clear_sequence(s)
+  for i = #s, 1, -1 do
+    s[i] = nil
+  end
+end
+
 --- Returns the number of elements in a table
 -- @param tbl table: The table to count elements in
 -- @return number: The count of elements in the table
