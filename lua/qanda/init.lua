@@ -203,6 +203,9 @@ function M.execute_prompt(prompt)
     -- Add model messages
     local messages = {}
     for _, t in ipairs(turns) do
+      if t.system then
+        table.insert(messages, { role = "system", content = t.system })
+      end
       table.insert(messages, { role = "user", content = t.request })
       if t.response then
         table.insert(messages, { role = "assistant", content = t.response })
