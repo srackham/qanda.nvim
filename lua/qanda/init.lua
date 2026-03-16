@@ -18,9 +18,9 @@ M.Providers = Providers
 function M.setup(opts)
   Config.setup(opts)
   Providers.setup()
+  State.setup()
   Chats.setup()
   Prompts.setup()
-  State.setup()
   M.create_user_command()
 end
 
@@ -92,12 +92,7 @@ function M.create_user_command()
     elseif args == "/system" then
       coroutine.wrap(function()
         Prompts.load_system_prompts()
-        Prompts.system_prompt_picker(function(prompt)
-          prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
-          prompt.consumed = false
-          State.system_prompt = prompt
-          debug.print(State.system_prompt)
-        end)
+        Prompts.system_prompt_picker()
       end)()
     elseif args == "/models" then
       select_model()

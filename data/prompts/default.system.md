@@ -1,5 +1,5 @@
 ___
-name: default
+name: Generic
 ___
 ${file:RULES.md}
 

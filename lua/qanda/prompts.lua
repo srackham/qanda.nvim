@@ -2,6 +2,7 @@ local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
+local debug = require "qanda.debug"
 
 local M = {
   user_prompts = {}, ---@type Prompts
@@ -9,8 +10,18 @@ local M = {
 }
 
 function M.setup()
+  State.system_prompt = nil
+
   M.load_user_prompts()
   M.load_system_prompts()
+  if Config.system_prompt_name then
+    -- Set default system prompt
+    local prompt = M.get_prompt(M.system_prompts, Config.system_prompt_name)
+    debug.print(prompt)
+    if prompt then
+      M.set_system_prompt(prompt)
+    end
+  end
 end
 
 ---Retrieve a prompt by its name.
@@ -24,6 +35,12 @@ function M.get_prompt(prompts, name)
     end
   end
   return nil
+end
+
+function M.set_system_prompt(prompt)
+  prompt.expanded = M.substitute_placeholders(prompt.prompt)
+  prompt.consumed = false
+  State.system_prompt = prompt
 end
 
 -- ---Make a copy of `prompt`, set its name to `name` and add/replace to `M.prompts`.
@@ -441,10 +458,12 @@ function M.user_prompt_picker(callback)
   })
 end
 
-function M.system_prompt_picker(callback)
+function M.system_prompt_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
+  debug.print(M.system_prompts)
+  debug.print(State.system_prompt) -- Why nil?
   prompt_picker(M.system_prompts, function(prompt)
     if prompt == State.system_prompt then
       return "* " .. prompt.name
@@ -460,7 +479,7 @@ function M.system_prompt_picker(callback)
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
-          callback(selection.value)
+          M.set_system_prompt(selection.value)
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end

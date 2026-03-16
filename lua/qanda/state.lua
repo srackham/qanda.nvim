@@ -35,6 +35,7 @@ local M = {
 ---Initialise state from configuration.
 function M.setup()
 
+  -- TODO: should this be set in Providers?
   -- Set model provider
   local provider = require("qanda.providers").get_provider(Config.provider)
   if provider then
@@ -46,8 +47,6 @@ function M.setup()
       utils.notify("Unable to  find model '" .. Config.model .. "' for provider '" .. Config.provider.name .. "'.", vim.log.levels.ERROR)
     end
   end
-
-  M.system_prompt = nil
 
 end
 
