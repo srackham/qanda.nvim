@@ -1,5 +1,4 @@
 local Config = require "qanda.config" -- User configuration options
-local utils = require "qanda.utils"
 local ui = require "qanda.ui"
 
 ---@class State
@@ -31,23 +30,5 @@ local M = {
     },
   },
 }
-
----Initialise state from configuration.
-function M.setup()
-
-  -- TODO: should this be set in Providers?
-  -- Set model provider
-  local provider = require("qanda.providers").get_provider(Config.provider)
-  if provider then
-    local models = provider.module.models(Config)
-    if utils.table_contains(models, Config.model) then
-      provider.model = Config.model
-      M.provider = provider
-    else
-      utils.notify("Unable to  find model '" .. Config.model .. "' for provider '" .. Config.provider.name .. "'.", vim.log.levels.ERROR)
-    end
-  end
-
-end
 
 return M

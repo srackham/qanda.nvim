@@ -18,7 +18,6 @@ M.Providers = Providers
 function M.setup(opts)
   Config.setup(opts)
   Providers.setup()
-  State.setup()
   Chats.setup()
   Prompts.setup()
   M.create_user_command()
