@@ -15,6 +15,8 @@ local default = {
   host = "localhost",
   port = "11434",
 
+  chat_reload = true,
+
   help_key = "<C-h>",
 
   -- Chat window key commands

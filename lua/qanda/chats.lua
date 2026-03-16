@@ -4,12 +4,20 @@ local utils = require "qanda.utils"
 local ui = require "qanda.ui"
 local curl = require "qanda.curl"
 
-local M = {
-  chats = {}, ---@type Chats
-}
+local M = {}
 
 function M.setup()
-  -- Currently no setup required
+  -- Load the most recent chat
+  if Config.chat_reload then
+    local chat_file = M.recent_chat_file(Config.chats_dir)
+    if chat_file then
+      local chats = M.load_chats(chat_file)
+      if #chats == 1 then
+        State.chats = chats
+        State.chat_window.chat = chats[1]
+      end
+    end
+  end
 end
 
 local function parse_turns(lines)
@@ -25,26 +33,36 @@ local function parse_turns(lines)
   return result
 end
 
-function M.load_chats()
-  local result = {} ---@type Chats
+--- Loads chats. If chat_file is provided, loads only that file.
+--- Otherwise, scans Config.chats_dir for all .chat.jsonl files.
+---@param chat_file string? Optional specific file to load
+---@return Chat[] result A list of Chat objects
+function M.load_chats(chat_file)
+  local result = {} ---@type Chat[]
+  local chat_files = {}
 
-  -- Read and merge chats from all .chat.jsonl files
-  local chats_dir = Config.chats_dir
-  local glob_pattern = chats_dir .. "/*.chat.jsonl"
-  local chat_files = vim.fn.glob(glob_pattern, false, true)
+  -- 1. Determine which files to load
+  if chat_file then
+    table.insert(chat_files, vim.fn.expand(chat_file))
+  else
+    local chats_dir = vim.fn.expand(Config.chats_dir)
+    local glob_pattern = chats_dir .. "/*.chat.jsonl"
+    chat_files = vim.fn.glob(glob_pattern, false, true)
+  end
 
-  -- Load the chats files
+  -- 2. Process the files
   local chat_window_updated = false
   for _, file_path in ipairs(chat_files) do
     if vim.fn.filereadable(file_path) == 1 then
       local lines = vim.fn.readfile(file_path)
-      if lines then
+      if lines and #lines > 0 then
         local turns = parse_turns(lines)
-        if turns then
-          assert(#turns > 0)
+        if turns and #turns > 0 then
           local chat = { turns = turns, filename = file_path }
           table.insert(result, chat)
-          if State.chat_window.chat.filename == file_path then
+
+          -- Update active state if this file matches the current window's chat
+          if State.chat_window.chat and State.chat_window.chat.filename == file_path then
             State.chat_window.chat = chat
             State.chat_window.turn_index = nil
             chat_window_updated = true
@@ -55,10 +73,14 @@ function M.load_chats()
       end
     end
   end
-  if not chat_window_updated then -- invalidate chat window
+
+  -- 3. Invalidate chat window if no match was found during a full load
+  -- (We usually only want to invalidate if we're doing a fresh directory scan)
+  if not chat_file and not chat_window_updated then
     State.chat_window.chat = { turns = {} }
     State.chat_window.turn_index = nil
   end
+
   return result
 end
 
@@ -114,6 +136,41 @@ function M.save_chat(chat, dir)
     recent_file:close()
   end
 
+end
+
+--- Returns the full path of the most recent chat file recorded in MOST_RECENT_CHAT.
+---@param dir string The directory to look in.
+---@return string? path The absolute path to the chat file, or nil if not found/invalid.
+function M.recent_chat_file(dir)
+  -- 1. Expand the directory to ensure we have a valid system path
+  local expanded_dir = vim.fn.expand(dir)
+  local recent_chat_pointer = expanded_dir .. "/MOST_RECENT_CHAT"
+
+  -- 2. Attempt to open and read the pointer file
+  local file = io.open(recent_chat_pointer, "r")
+  if not file then
+    return nil
+  end
+
+  -- Read the first line and trim whitespace/newlines
+  local filename = file:read "*l"
+  file:close()
+
+  if not filename or filename == "" then
+    return nil
+  end
+
+  filename = vim.trim(filename)
+
+  -- 3. Synthesize the full path
+  local full_path = expanded_dir .. "/" .. filename
+
+  -- 4. Verify the recorded chat file actually exists on disk
+  if vim.fn.filereadable(full_path) == 0 then
+    return nil
+  end
+
+  return full_path
 end
 
 ---Open chat window, load the chat turn at chat index `idx`.
@@ -173,7 +230,7 @@ function M.open_chat(chat, turn_index)
         M.add_chat_syntax_highlighting,
         '"timestamp":%s*"' .. utils.escape_pattern(timestamp) .. '"',
         function()
-          M.load_chats() -- Reload chats after edited file is saved
+          State.chats = M.load_chats() -- Reload chats after edited file is saved
         end
       )
     else
@@ -397,7 +454,7 @@ function M.chat_picker()
         assert(chat.filename)
         actions.close(chat_bufnr)
         utils.edit_file(chat.filename, M.add_chat_syntax_highlighting, nil, function()
-          M.load_chats() -- Reload chats after edited file is saved
+          State.chats = M.load_chats() -- Reload chats after edited file is saved
         end)
       end
     end, { desc = "Close the picker and edit chats file containing the selected chat" })
