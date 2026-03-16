@@ -402,7 +402,7 @@ local function prompt_picker(prompts, display_entry, opts)
     :find()
 end
 
-function M.user_prompt_picker(callback)
+function M.user_prompt_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
@@ -433,7 +433,7 @@ function M.user_prompt_picker(callback)
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
-          callback(selection.value)
+          require("qanda").execute_prompt(selection.value)
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end

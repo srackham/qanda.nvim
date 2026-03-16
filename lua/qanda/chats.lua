@@ -166,6 +166,12 @@ function M.new_chat()
 
   -- Bind the chat to the Chat window
   M.open_chat(new_chat, 1)
+
+  -- Include the system prompt in the first turn
+  if State.system_prompt then
+    State.system_prompt.consumed=false
+  end
+
 end
 
 ---@param chat Chat

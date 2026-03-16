@@ -84,15 +84,14 @@ function M.create_user_command()
       return
     elseif args == "/prompts" then
       Prompts.load_user_prompts()
-      Prompts.user_prompt_picker(function(prompt)
-        M.execute_prompt(prompt)
-      end)
+      Prompts.user_prompt_picker()
       return
     elseif args == "/system" then
-      coroutine.wrap(function()
+      coroutine.wrap(function() -- TODO: Why wrap in coroutine (cf. /prompts does not)?
         Prompts.load_system_prompts()
         Prompts.system_prompt_picker()
       end)()
+      return
     elseif args == "/models" then
       select_model()
       return
@@ -170,6 +169,9 @@ function M.execute_prompt(prompt)
     if prompt.model_options then
       turn.model_options = utils.shallow_clone_table(prompt.model_options)
     end
+    if State.system_prompt and not State.system_prompt.consumed then
+      turn.system = State.system_prompt.expanded
+    end
 
     -- Delete the most recent chat turn if did not complete.
     if #turns > 0 and not turns[#turns].response then
@@ -207,6 +209,7 @@ function M.execute_prompt(prompt)
       end
     end
     request_data.messages = messages
+    debug.print(request_data.messages)
 
     -- If the provider and/or the model is not the current default they need to be validated
     if not Providers.set_provider_and_model(request_data.provider, request_data.model) then
@@ -221,7 +224,6 @@ function M.execute_prompt(prompt)
     }
     local curl_args = State.provider.module.command(request)
 
-    -- debug.print(curl_args)
     debug.exec(function()
       vim.fn.setreg("+", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
     end)
@@ -240,6 +242,9 @@ function M.execute_prompt(prompt)
       -- Update completed turn
       turns[#turns].response = table.concat(model_response, "\n")
       turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
+
+      -- Consume the system prompt
+      State.system_prompt.consumed = true
 
       -- Save chat file
 
