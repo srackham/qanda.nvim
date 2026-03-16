@@ -114,7 +114,8 @@ end
 --- @return string|nil content The file contents if successful, or nil if an error occurred.
 --- @return string|nil error_message An error message if the file could not be opened, otherwise nil.
 function M.read_file_to_string(filepath)
-  local file = io.open(filepath, "r") -- TODO: expand file paths
+  filepath = vim.fn.expand(filepath)
+  local file = io.open(filepath, "r")
   if not file then
     return nil, "Could not open file: '" .. filepath .. "'"
   end
@@ -125,7 +126,8 @@ end
 
 function M.write_string_to_file(str, fname, mode)
   mode = mode or "w" -- Replace file contents by default
-  local f, err = io.open(fname, mode) -- TODO: expand file paths
+  fname = vim.fn.expand(fname)
+  local f, err = io.open(fname, mode)
   if f then
     f:write(str)
     f:close()

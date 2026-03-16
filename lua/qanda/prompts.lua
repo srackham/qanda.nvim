@@ -223,7 +223,8 @@ local function load_prompts(role)
         vim.fn.mkdir(dir, "p")
       end
 
-      local f, err = io.open(path, "w") -- TODO: expand file paths
+      path = vim.fn.expand(path)
+      local f, err = io.open(path, "w")
       if not f then
         utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
         return false
