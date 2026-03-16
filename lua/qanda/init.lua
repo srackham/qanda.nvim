@@ -250,6 +250,9 @@ function M.execute_prompt(prompt)
       State.system_prompt.consumed = true
 
       -- Save chat file
+      vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
+        Chats.save_chat(chat, Config.chats_dir)
+      end)
 
       -- Clear Prompt window
 

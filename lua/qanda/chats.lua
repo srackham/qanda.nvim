@@ -62,6 +62,60 @@ function M.load_chats()
   return result
 end
 
+--- Saves the chat table to a JSONL file.
+---@param chat Chat
+---@param dir string
+function M.save_chat(chat, dir)
+  -- Expand the directory path (handles ~, $HOME, etc.)
+  local expanded_dir = vim.fn.expand(dir)
+
+  -- 1. Determine the filename
+  if not chat.filename then
+    local timestamp = os.date "%Y%m%d_%H%M%S"
+    -- Store the full expanded path in the chat object
+    chat.filename = expanded_dir .. "/" .. timestamp .. ".chat.jsonl"
+  else
+    -- Ensure an existing filename is also expanded if it contains ~
+    chat.filename = vim.fn.expand(chat.filename)
+  end
+
+  -- 2. Ensure the directory exists
+  if vim.fn.isdirectory(expanded_dir) == 0 then
+    vim.fn.mkdir(expanded_dir, "p")
+  end
+
+  -- 3. Prepare the JSONL content
+  local lines = {}
+  for _, turn in ipairs(chat.turns) do
+    local ok, json = pcall(vim.json.encode, turn)
+    if ok then
+      table.insert(lines, json)
+    end
+  end
+
+  -- 4. Write to the chat file
+  local file = io.open(chat.filename, "w")
+  if not file then
+    -- This will now trigger if the path expansion failed or permissions are off
+    vim.notify("FileSystem Error: Could not open " .. chat.filename, vim.log.levels.ERROR)
+    return
+  end
+
+  file:write(table.concat(lines, "\n") .. "\n")
+  file:close()
+
+  -- 5. Update the MOST_RECENT_CHAT file
+  local recent_file_path = expanded_dir .. "/MOST_RECENT_CHAT"
+  local recent_file = io.open(recent_file_path, "w")
+  if recent_file then
+    -- We only want the base name (e.g., '20260316_170707.chat.jsonl') in this file
+    local base_name = vim.fn.fnamemodify(chat.filename, ":t")
+    recent_file:write(base_name .. "\n")
+    recent_file:close()
+  end
+
+end
+
 ---Open chat window, load the chat turn at chat index `idx`.
 ---If the chat window does not exist, create it and attach key-mapped commands.
 ---@param chat Chat?
@@ -169,7 +223,7 @@ function M.new_chat()
 
   -- Include the system prompt in the first turn
   if State.system_prompt then
-    State.system_prompt.consumed=false
+    State.system_prompt.consumed = false
   end
 
 end
