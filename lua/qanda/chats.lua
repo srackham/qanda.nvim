@@ -7,6 +7,13 @@ local curl = require "qanda.curl"
 local M = {}
 
 function M.setup()
+  -- Close existing Chat window
+  vim.api.nvim_create_autocmd("SessionLoadPost", {
+    callback = function()
+      utils.close_ephemeral_window(Config.CHAT_BUFFER_NAME)
+    end,
+  })
+
   -- Load the most recent chat
   if Config.chat_reload then
     local chat_file = M.recent_chat_file(Config.chats_dir)
@@ -15,9 +22,26 @@ function M.setup()
       if #chats == 1 then
         State.chats = chats
         State.chat_window.chat = chats[1]
+        if M.chat_has_system_prompt(chats[1], State.system_prompt.expanded) then
+          State.system_prompt.consumed = true
+        end
       end
     end
   end
+end
+
+--- Checks if any turn in the chat has a system prompt matching the given string.
+---@param chat Chat The chat object to search.
+---@param prompt string The system prompt string to look for.
+---@return boolean found Returns true if a match is found, otherwise false.
+function M.chat_has_system_prompt(chat, prompt)
+  for _, turn in ipairs(chat.turns) do
+    -- Check if the system field exists and matches the target prompt
+    if turn.system == prompt then
+      return true
+    end
+  end
+  return false
 end
 
 local function parse_turns(lines)
@@ -243,8 +267,6 @@ function M.open_chat(chat, turn_index)
 
   vim.keymap.set("n", Config.help_key, function()
     local content = ([[## Chat Window Cheatsheet
-
-Normal mode commands:
 
 - `%s` - Create a new prompt from the current Chat window prompt
 - `%s` - Switch to Prompt window

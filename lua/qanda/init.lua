@@ -18,8 +18,8 @@ M.Providers = Providers
 function M.setup(opts)
   Config.setup(opts)
   Providers.setup()
-  Chats.setup()
   Prompts.setup()
+  Chats.setup()
   M.create_user_command()
 end
 
@@ -212,7 +212,6 @@ function M.execute_prompt(prompt)
       end
     end
     request_data.messages = messages
-    debug.print(request_data.messages)
 
     -- If the provider and/or the model is not the current default they need to be validated
     if not Providers.set_provider_and_model(request_data.provider, request_data.model) then
@@ -238,7 +237,6 @@ function M.execute_prompt(prompt)
     curl.execute_command(curl_args, State.chat_window.winid, function(model_response)
       if curl.job_status() ~= "stopped" then
         -- Turn did not complete
-        debug.print(curl.job_status())
         return
       end
 

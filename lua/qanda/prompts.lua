@@ -11,15 +11,25 @@ local M = {
 function M.setup()
   State.system_prompt = nil
 
+  -- Close existing Prompt window
+  vim.api.nvim_create_autocmd("SessionLoadPost", {
+    callback = function()
+      utils.close_ephemeral_window(Config.PROMPT_BUFFER_NAME)
+    end,
+  })
+
+  -- Load user and system prompt templates
   M.load_user_prompts()
   M.load_system_prompts()
+
+  -- Set default system prompt template
   if Config.system_prompt_name then
-    -- Set default system prompt
     local prompt = M.get_prompt(M.system_prompts, Config.system_prompt_name)
     if prompt then
       M.set_system_prompt(prompt)
     end
   end
+
 end
 
 ---Retrieve a prompt by its name.

@@ -356,4 +356,30 @@ function M.args_to_shell_command(args_table)
   return table.concat(escaped_args, " ")
 end
 
+function M.close_ephemeral_window(buffer_name)
+  -- 1. Get the buffer number by name
+  local bufnr = vim.fn.bufnr(buffer_name)
+
+  -- If bufnr is -1, the buffer doesn't exist
+  if bufnr == -1 then
+    return
+  end
+
+  -- 2. Find all windows displaying this buffer
+  -- Note: win_findbuf returns a list of window IDs
+  local windows = vim.fn.win_findbuf(bufnr)
+
+  for _, winid in ipairs(windows) do
+    -- Check if the window is valid before trying to close it
+    if vim.api.nvim_win_is_valid(winid) then
+      vim.api.nvim_win_close(winid, true)
+    end
+  end
+
+  -- 3. Delete the buffer if it still exists
+  if vim.api.nvim_buf_is_valid(bufnr) then
+    vim.api.nvim_buf_delete(bufnr, { force = true })
+  end
+end
+
 return M
