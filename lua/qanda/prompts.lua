@@ -2,7 +2,6 @@ local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
-local debug = require "qanda.debug"
 
 local M = {
   user_prompts = {}, ---@type Prompts
@@ -17,7 +16,6 @@ function M.setup()
   if Config.system_prompt_name then
     -- Set default system prompt
     local prompt = M.get_prompt(M.system_prompts, Config.system_prompt_name)
-    debug.print(prompt)
     if prompt then
       M.set_system_prompt(prompt)
     end
@@ -462,8 +460,6 @@ function M.system_prompt_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  debug.print(M.system_prompts)
-  debug.print(State.system_prompt) -- Why nil?
   prompt_picker(M.system_prompts, function(prompt)
     if prompt == State.system_prompt then
       return "* " .. prompt.name
@@ -472,7 +468,13 @@ function M.system_prompt_picker()
     end
   end, {
     results_title = "System Prompts",
-    prompt_title = "[" .. Config.system_picker_select_key .. " select, " .. Config.system_picker_edit_key .. " edit]",
+    prompt_title = "["
+      .. Config.system_picker_select_key
+      .. " select, "
+      .. Config.system_picker_deselect_key
+      .. " deselect, "
+      .. Config.system_picker_edit_key
+      .. " edit]",
     attach_mappings = function(bufnr, map)
 
       map({ "n", "i" }, Config.system_picker_select_key, function()
@@ -482,6 +484,14 @@ function M.system_prompt_picker()
           M.set_system_prompt(selection.value)
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
+        end
+      end, { desc = "Close the picker window; execute callback" })
+
+      map({ "n", "i" }, Config.system_picker_deselect_key, function()
+        local selection = action_state.get_selected_entry()
+        actions.close(bufnr)
+        if selection then
+          State.system_prompt = nil
         end
       end, { desc = "Close the picker window; execute callback" })
 

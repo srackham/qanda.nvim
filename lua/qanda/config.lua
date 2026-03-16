@@ -49,13 +49,15 @@ local default = {
   -- System prompt picker key commands
   system_picker_edit_key = "<C-e>",
   system_picker_select_key = "<Enter>",
+  system_picker_deselect_key = "<C-d>",
 
   ---@type UIMode
   ui_mode = "separate",
 
   prompts_dir = vim.fn.stdpath "data" .. "/qanda_nvim/prompts",
   chats_dir = vim.fn.stdpath "data" .. "/qanda_nvim/chats",
-  system_prompt_name = nil, -- Default system prompt name
+  -- system_prompt_name = nil, -- Default system prompt name
+  system_prompt_name = "Generic", -- Default system prompt name
 
   response_register = "r", -- Holds the most recent response (extracted)
   prompt_register = "p", -- Holds the most recent submitted prompt (mandatory, cannot be nil)
