@@ -180,7 +180,7 @@ end
 ---@return string[]
 function M.prompt_to_lines(prompt)
   local lines = {}
-  local rule = string.rep("_", 40)
+  local rule = string.rep("_", 3)
 
   if prompt.name then
     table.insert(lines, "name: " .. prompt.name)
