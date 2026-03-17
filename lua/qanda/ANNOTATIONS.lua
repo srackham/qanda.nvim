@@ -78,6 +78,7 @@
 ---@alias Prompts Prompt[]
 
 ---@class ChatTurn A model user request and response (called a turn or a turn-about)
+---@field chat string? The chat name (if a custom value is set it is stored in the first turn)
 ---@field request string Model prompt (expanded)
 ---@field response string Model response (extracted)
 ---@field system string? System prompt (expanded)

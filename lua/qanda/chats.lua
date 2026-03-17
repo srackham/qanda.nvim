@@ -440,7 +440,15 @@ local function chat_picker(chats, mappings, display_entry)
   pickers
     .new({}, {
       results_title = "Chats",
-      prompt_title = "[<Enter> open, " .. Config.chat_picker_edit_key .. " edit, " .. Config.chat_picker_delete_key .. " delete]",
+      prompt_title = "["
+        .. Config.chat_picker_open_key
+        .. " open, "
+        .. Config.chat_picker_rename_key
+        .. " rename, "
+        .. Config.chat_picker_edit_key
+        .. " edit, "
+        .. Config.chat_picker_delete_key
+        .. " delete]",
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(chat)
@@ -500,6 +508,20 @@ function M.chat_picker()
       end
     end, { desc = "Close the picker and delete the selected chat file" })
 
+    map({ "n", "i" }, Config.chat_picker_rename_key, function()
+      local selection = action_state.get_selected_entry()
+      if selection then
+        local chat = selection.value
+        actions.close(chat_bufnr)
+        local new_name = vim.fn.input("Enter chat name: ", M.chat_name(chat))
+        if new_name == "" then
+          return -- User cancelled
+        end
+        chat.turns[1].chat = new_name
+        M.save_chat(chat, Config.chats_dir)
+      end
+    end, { desc = "Rename the selected chat" })
+
     map({ "n", "i" }, Config.chat_picker_edit_key, function()
       local selection = action_state.get_selected_entry()
       if selection then
@@ -515,13 +537,17 @@ function M.chat_picker()
 
     return true
   end, function(chat)
-    local display_entry = utils.truncate_string(chat.turns[1].request, 20)
+    local display_entry = M.chat_name(chat)
     if chat.filename == State.chat_window.chat.filename then
       return "* " .. display_entry
     else
       return "  " .. display_entry
     end
   end)
+end
+
+function M.chat_name(chat)
+  return chat.turns[1].chat or utils.truncate_string(chat.turns[1].request, 20)
 end
 
 return M

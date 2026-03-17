@@ -26,13 +26,14 @@ local default = {
   chat_edit_key = "<C-e>",
   chat_exec_key = "<Enter>",
   chat_delete_key = "<C-d>",
-  chat_next_key = "<Down>",
-  chat_prev_key = "<Up>",
+  chat_next_key = "<PageDown>",
+  chat_prev_key = "<PageUp>",
   chat_redo_key = "<C-r>",
   chat_switch_key = "<Tab>",
 
   -- Chat picker key commands
   chat_picker_delete_key = "<C-d>",
+  chat_picker_rename_key = "<C-s>",
   chat_picker_edit_key = "<C-e>",
   chat_picker_exec_key = "<C-Space>",
   chat_picker_open_key = "<Enter>",

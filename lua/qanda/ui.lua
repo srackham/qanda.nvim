@@ -320,7 +320,8 @@ function M.UIWindow:set_lines(lines)
   vim.api.nvim_set_option_value("modifiable", true, { buf = self.bufnr })
   vim.api.nvim_buf_set_lines(self.bufnr, 0, -1, false, lines)
   vim.api.nvim_set_option_value("modifiable", self.modifiable, { buf = self.bufnr })
-  self:set_cursor(nil) -- Move cursor to end
+  vim.cmd "normal! ggj"
+  -- self:set_cursor(nil) -- Move cursor to end
 end
 
 return M
