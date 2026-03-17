@@ -550,4 +550,97 @@ function M.chat_name(chat)
   return chat.turns[1].chat or utils.truncate_string(chat.turns[1].request, 20)
 end
 
+--- TODO: unused
+function M.turn_index(turns, turn)
+  for i, t in ipairs(turns) do
+    if t == turn then
+      return i
+    end
+  end
+  assert(false)
+end
+
+function M.turns_picker()
+  local actions = require "telescope.actions"
+  local action_state = require "telescope.actions.state"
+  local finders = require "telescope.finders"
+  local pickers = require "telescope.pickers"
+  local previewers = require "telescope.previewers"
+  local conf = require("telescope.config").values
+
+  local current_chat = State.chat_window.chat
+  local current_turn = State.chat_window.chat.turns[State.chat_window.turn_index]
+
+  -- Key commands
+  local mappings = function(picker_bufnr, map)
+
+    map({ "n", "i" }, Config.turn_picker_open_key, function()
+      local selection = action_state.get_selected_entry()
+      actions.close(picker_bufnr)
+      if selection then
+        M.open_chat(current_chat, selection.value.index)
+      end
+    end, { desc = "Close the picker and open the selected turn in the chat window" })
+
+    return true
+  end
+
+  -- Display entry function
+  local display_entry = function(turn)
+    local display = turn.request
+    if current_turn and turn == current_turn then
+      return "* " .. display
+    else
+      return "  " .. display
+    end
+  end
+
+  -- Prepare data for telescope
+  local picker_entries = {}
+  for i, turn in ipairs(current_chat.turns) do
+    -- Wrap turn along with its index
+    table.insert(picker_entries, { index = i, turn = turn })
+  end
+  -- picker_entries = utils.reverse_table(picker_entries)
+
+  -- The original order is the chronological turn order which makes the most sense.
+  -- This sort puts the oldest turn at the top of the displayed list; the latest is at the bottom.
+  table.sort(picker_entries, function(a, b)
+    return a.index > b.index
+  end)
+
+  -- Create previewer that shows the chat value
+  local turn_previewer = previewers.new_buffer_previewer {
+    define_preview = function(self, entry)
+      local lines = M.turn_to_lines(current_chat, entry.value.index)
+
+      vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
+      vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
+      M.add_chat_syntax_highlighting(self.state.bufnr)
+    end,
+  }
+
+  -- Create and run the telescope picker
+  pickers
+    .new({}, {
+      results_title = "Turns",
+      prompt_title = "[" .. Config.turn_picker_open_key .. " open]",
+      finder = finders.new_table {
+        results = picker_entries,
+        entry_maker = function(entry)
+          return {
+            value = entry,
+            display = display_entry(entry.turn),
+            ordinal = display_entry(entry.turn),
+          }
+        end,
+      },
+      sorter = conf.generic_sorter {},
+      previewer = turn_previewer,
+      attach_mappings = mappings,
+      layout_config = Config.chat_picker_layout,
+    })
+    :find()
+end
+
 return M

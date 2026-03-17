@@ -248,6 +248,14 @@ function M.shallow_clone_table(t)
   return copy
 end
 
+function M.reverse_table(t)
+  local reversed = {}
+  for i = #t, 1, -1 do
+    table.insert(reversed, t[i])
+  end
+  return reversed
+end
+
 --- Checks if the current Vim mode is Visual ('v' or 'V').
 --- @return boolean true if in visual mode, false otherwise.
 function M.is_visual_mode()

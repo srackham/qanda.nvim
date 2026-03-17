@@ -38,6 +38,9 @@ local default = {
   chat_picker_exec_key = "<C-Space>",
   chat_picker_open_key = "<Enter>",
 
+  -- Turn picker key commands
+  turn_picker_open_key = "<Enter>",
+
   -- Prompt window key commands
   prompt_abort_key = "<Esc>",
   prompt_clear_key = "<C-Space>",

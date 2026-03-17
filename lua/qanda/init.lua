@@ -82,6 +82,9 @@ function M.create_user_command()
       State.chats = Chats.load_chats()
       Chats.chat_picker()
       return
+    elseif args == "/turns" then
+      Chats.turns_picker()
+      return
     elseif args == "/prompts" then
       Prompts.load_user_prompts()
       Prompts.user_prompt_picker()
@@ -129,6 +132,7 @@ function M.create_user_command()
       table.insert(args, "/new")
       table.insert(args, "/chat")
       table.insert(args, "/chats")
+      table.insert(args, "/turns")
       table.insert(args, "/prompt")
       table.insert(args, "/prompts")
       table.insert(args, "/models")
