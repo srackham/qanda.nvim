@@ -1,9 +1,0 @@
-{"provider":"ollama","timestamp":"2026-03-16 21:22:06","model":"minimax-m2.5:cloud","response":"Pong!","request":"Ping","system":"- Do not use introductory phrases like 'I understand' or 'Based on your request.' Get straight to the point.\n- Use bullet lists for multiple items.\n- Prefer italics markup (using the Markdown underscore syntax) to bold.\n\n\n"}
-{"provider":"ollama","timestamp":"2026-03-16 21:22:17","model":"minimax-m2.5:cloud","response":"Pong!","request":"Ping"}
-{"provider":"ollama","timestamp":"2026-03-16 21:29:10","model":"minimax-m2.5:cloud","response":"Pong","request":"Ping","system":"- Do not use introductory phrases like 'I understand' or 'Based on your request.' Get straight to the point.\n- Use bullet lists for multiple items.\n- Prefer italics markup (using the Markdown underscore syntax) to bold.\n\n\n"}
-{"provider":"ollama","timestamp":"2026-03-16 21:29:39","model":"minimax-m2.5:cloud","response":"Pong!","request":"Ping"}
-{"provider":"ollama","timestamp":"2026-03-16 21:29:47","model":"minimax-m2.5:cloud","response":"Pong!","request":"Ping"}
-{"provider":"ollama","timestamp":"2026-03-16 21:53:41","model":"minimax-m2.5:cloud","response":"Pong!","request":"Ping"}
-{"provider":"ollama","timestamp":"2026-03-17 06:36:57","model":"minimax-m2.5:cloud","response":"Pong!","request":"Ping"}
-{"provider":"ollama","timestamp":"2026-03-17 11:14:19","model":"minimax-m2.5:cloud","response":"- Draft\n- Pen\n- Compose\n- Scribble\n- Jot (down)\n- Inscribe\n- Record\n- Note\n- Put down\n- Set down\n- Mark down\n- Log\n- Enter","request":"List synonyms for \"write\""}
-{"provider":"ollama","timestamp":"2026-03-17 11:15:55","model":"minimax-m2.5:cloud","request":"List synonyms for \"collapse\"","response":"- Fall\n- Caving in\n- Crumble\n- Buckle\n- Topple\n- Implode\n- Founder\n- Give way\n- Plummet\n- Plunge\n- Sink\n- Tumble\n- Break down\n- Flatten"}
