@@ -1,19 +1,19 @@
 ___
-name: Latin: Latin to English
+name: Latin to English
 ___
 Translate the following Latin text to English:
 
 $select
 
 ___
-name: Latin: English to Latin
+name: English to Latin
 ___
 Translate the following English text to Latin:
 
 $select
 
 ___
-name: Latin: Word analysis
+name: Latin word analysis
 ___
 The Latin word "${input:Enter Latin word}" in terms of:
 
@@ -22,7 +22,7 @@ The Latin word "${input:Enter Latin word}" in terms of:
 - Applicable word properties (case, number, gender, declension, person, number, tense, mood, voice).
 
 ___
-name: Latin: Word morphology
+name: Latin word morphology
 ___
 The word class and the word morphologies across all accidents for the Latin word "${input:Enter Latin word}".
 List noun cases in the following order: nominative, genitive, dative, accusative, ablative vocative.

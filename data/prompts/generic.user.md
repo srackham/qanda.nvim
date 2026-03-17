@@ -6,7 +6,7 @@ Ping
 ___
 name: Ask a question
 ___
-$select
+${input:Enter your question}
 
 ___
 name: Ask about selected text
