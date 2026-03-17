@@ -99,15 +99,14 @@ function M.create_user_command()
       select_provider()
       return
     elseif args == "/info" then
-      utils.notify(
-        "provider: "
-          .. vim.inspect(State.provider.name)
-          .. ", model: "
-          .. vim.inspect(State.provider.model)
-          .. ", system: "
-          .. vim.inspect((State.system_prompt or {}).name),
-        vim.log.levels.INFO
-      )
+      local info = "provider: " .. vim.inspect(State.provider.name) .. ", model: " .. vim.inspect(State.provider.model) .. ", chat: "
+      local chat = State.chat_window.chat
+      if chat and #chat.turns > 0 then
+        info = info .. '"' .. Chats.chat_name(chat) .. '"'
+      else
+        info = info .. "nil"
+      end
+      utils.notify(info, vim.log.levels.INFO)
       return
     else
       local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
