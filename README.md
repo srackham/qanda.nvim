@@ -14,3 +14,7 @@ Qanda.nvim is for conversing with an AI, not for workflow execution. It is first
 - Reusable named prompt templates for customisable user and system prompts.
 - Template placeholders for prompt inputs.
 - Ollama and OpenRouter model providers.
+
+## Tips
+- Chat files are updated after each successful turn.
+- You can reinject the current system prompts into the model messages list by reselecting it with the System prompt picker.
