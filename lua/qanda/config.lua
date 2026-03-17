@@ -56,9 +56,6 @@ local default = {
   system_picker_select_key = "<Enter>",
   system_picker_deselect_key = "<C-d>",
 
-  ---@type UIMode
-  ui_mode = "separate",
-
   prompts_dir = vim.fn.stdpath "data" .. "/qanda_nvim/prompts",
   chats_dir = vim.fn.stdpath "data" .. "/qanda_nvim/chats",
   -- system_prompt_name = nil, -- Default system prompt name
