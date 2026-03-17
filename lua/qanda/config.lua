@@ -4,6 +4,7 @@ local M = {} -- This module
 M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
+M.MOST_RECENT_CHAT = "MOST_RECENT_CHAT" -- File name of file containing most recent chat file
 
 local default = {
 
@@ -24,6 +25,7 @@ local default = {
   chat_close_key = "q",
   chat_edit_key = "<C-e>",
   chat_exec_key = "<Enter>",
+  chat_delete_key = "<C-d>",
   chat_next_key = "<Down>",
   chat_prev_key = "<Up>",
   chat_redo_key = "<C-r>",

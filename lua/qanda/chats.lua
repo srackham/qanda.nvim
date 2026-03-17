@@ -3,6 +3,7 @@ local State = require "qanda.state"
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
 local curl = require "qanda.curl"
+-- local debug = require "qanda.debug"
 
 local M = {}
 
@@ -47,11 +48,14 @@ end
 local function parse_turns(lines)
   local result = {}
   for _, line in ipairs(lines) do
-    local ok, parsed_line = pcall(vim.fn.json_decode, line)
-    if ok and type(parsed_line) == "table" then
-      table.insert(result, parsed_line)
-    else
-      return nil
+    line = vim.trim(line)
+    if #line > 0 then -- Skip blank lines
+      local ok, parsed_line = pcall(vim.fn.json_decode, line)
+      if ok and type(parsed_line) == "table" then
+        table.insert(result, parsed_line)
+      else
+        return nil
+      end
     end
   end
   return result
@@ -79,22 +83,22 @@ function M.load_chats(chat_file)
   for _, file_path in ipairs(chat_files) do
     if vim.fn.filereadable(file_path) == 1 then
       local lines = vim.fn.readfile(file_path)
-      if lines and #lines > 0 then
-        local turns = parse_turns(lines)
-        if turns and #turns > 0 then
-          local chat = { turns = turns, filename = file_path }
-          table.insert(result, chat)
+      local turns = parse_turns(lines)
+      if turns then
+        local chat = { turns = turns, filename = file_path }
+        table.insert(result, chat)
 
-          -- Update active state if this file matches the current window's chat
-          if State.chat_window.chat and State.chat_window.chat.filename == file_path then
-            State.chat_window.chat = chat
-            State.chat_window.turn_index = nil
-            chat_window_updated = true
-          end
-        else
-          utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
+        -- Update active state if this file matches the current window's chat
+        if State.chat_window.chat and State.chat_window.chat.filename == file_path then
+          State.chat_window.chat = chat
+          State.chat_window.turn_index = nil
+          chat_window_updated = true
         end
+      else
+        utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
       end
+    else
+      utils.notify("File not readable or does not exist '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
     end
   end
 
@@ -151,15 +155,20 @@ function M.save_chat(chat, dir)
   file:close()
 
   -- 5. Update the MOST_RECENT_CHAT file
-  local recent_file_path = expanded_dir .. "/MOST_RECENT_CHAT"
+  M.set_recent_chat_file(chat.filename, dir)
+
+end
+
+function M.set_recent_chat_file(chat_file_path, dir)
+  dir = vim.fn.expand(dir)
+  local recent_file_path = dir .. "/" .. Config.MOST_RECENT_CHAT
   local recent_file = io.open(recent_file_path, "w")
   if recent_file then
     -- We only want the base name (e.g., '20260316_170707.chat.jsonl') in this file
-    local base_name = vim.fn.fnamemodify(chat.filename, ":t")
+    local base_name = vim.fn.fnamemodify(chat_file_path, ":t")
     recent_file:write(base_name .. "\n")
     recent_file:close()
   end
-
 end
 
 --- Returns the full path of the most recent chat file recorded in MOST_RECENT_CHAT.
@@ -168,7 +177,7 @@ end
 function M.recent_chat_file(dir)
   -- 1. Expand the directory to ensure we have a valid system path
   local expanded_dir = vim.fn.expand(dir)
-  local recent_chat_pointer = expanded_dir .. "/MOST_RECENT_CHAT"
+  local recent_chat_pointer = expanded_dir .. "/" .. Config.MOST_RECENT_CHAT
 
   -- 2. Attempt to open and read the pointer file
   local file = io.open(recent_chat_pointer, "r")
@@ -212,10 +221,12 @@ function M.open_chat(chat, turn_index)
 
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_chat_syntax_highlighting(win.bufnr)
-  if win.turn_index and win.turn_index > 0 then
+  if win.turn_index > 0 then
     assert(win.turn_index <= #win.chat.turns)
     local lines = M.turn_to_lines(win.chat, win.turn_index)
     win:set_lines(lines)
+  else
+    win:set_lines { "" }
   end
   -- Attach key commands.
   vim.keymap.set("n", Config.chat_close_key, function()
@@ -228,7 +239,7 @@ function M.open_chat(chat, turn_index)
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_exec_key, function()
-    local turn = win.chat.turns[win.turn_index or #win.chat.turns]
+    local turn = win.chat.turns[win.turn_index or #win.chat.turns] or {}
     require("qanda.prompts").open_prompt {
       model_options = turn.model_options,
       extract = turn.extract,
@@ -245,6 +256,29 @@ function M.open_chat(chat, turn_index)
       M.open_chat(win.chat, win.turn_index + 1)
     end
   end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.chat_delete_key, function()
+    if win.turn_index then
+      table.remove(win.chat.turns, win.turn_index)
+      if win.turn_index > #win.chat.turns then
+        win.turn_index = #win.chat.turns
+      end
+      M.open_chat(win.chat)
+      if #win.chat.turns == 0 then
+        -- Once the last turn has been deleted, delete the chat file
+        if win.chat.filename then
+          local ok, err = os.remove(win.chat.filename)
+          if ok then
+            utils.notify("Deleted '" .. win.chat.filename .. "'", vim.log.levels.INFO)
+          else
+            utils.notify("Failed to delete file '" .. win.chat.filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+          end
+          win.chat.filename = nil
+        end
+      else
+        M.save_chat(win.chat, Config.chats_dir)
+      end
+    end
+  end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_edit_key, function()
     if win.chat.filename then
       win:close()
@@ -258,7 +292,7 @@ function M.open_chat(chat, turn_index)
         end
       )
     else
-      utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.INFO)
+      utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.WARN)
     end
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_redo_key, function()
@@ -271,6 +305,7 @@ function M.open_chat(chat, turn_index)
 - `%s` - Create a new prompt from the current Chat window prompt
 - `%s` - Switch to Prompt window
 - `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)
+- `%s` - Delete current turn
 - `%s` - Open the chat file for editing at the selected turn (by searching for the timestamp)
 - `%s` - Re-execute and replace the latest turn.
 - `%s` - Abort the current request
@@ -280,6 +315,7 @@ function M.open_chat(chat, turn_index)
       Config.chat_switch_key,
       Config.chat_prev_key,
       Config.chat_next_key,
+      Config.chat_delete_key,
       Config.chat_edit_key,
       Config.chat_redo_key,
       Config.chat_abort_key,
@@ -290,15 +326,10 @@ function M.open_chat(chat, turn_index)
 end
 
 function M.new_chat()
-  local turn = {
-    request = "",
-    provider = State.provider.name,
-    model = State.provider.model,
-  }
-  local new_chat = { turns = { turn } }
+  local new_chat = { turns = {} }
 
   -- Bind the chat to the Chat window
-  M.open_chat(new_chat, 1)
+  M.open_chat(new_chat, 0)
 
   -- Include the system prompt in the first turn
   if State.system_prompt then
@@ -441,6 +472,7 @@ function M.chat_picker()
         local chat = selection.value
         assert(chat)
         M.open_chat(chat)
+        M.set_recent_chat_file(chat.filename, Config.chats_dir)
       else
         utils.notify("User cancelled", vim.log.levels.INFO)
       end

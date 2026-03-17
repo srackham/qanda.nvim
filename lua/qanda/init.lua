@@ -230,7 +230,7 @@ function M.execute_prompt(prompt)
       vim.fn.setreg("+", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
     end)
 
-    -- TODO: Clear the Chat window and write the header.
+    -- Clear the Chat window and write the header.
     Chats.open_chat(chat, #turns)
 
     -- Execute the curl command streaming the output to the Chat window.
