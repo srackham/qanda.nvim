@@ -67,20 +67,31 @@ local default = {
   response_register = "r", -- Holds the most recent response (extracted)
   prompt_register = "p", -- Holds the most recent submitted prompt (mandatory, cannot be nil)
 
-  separate_prompt_window_layout = { width = 0.8, height = 0.5, border = "single" },
-  linked_window_layout = { width = 0.8, height = 0.7, prompt_height = 0.3, border = "single" },
+  -- Window layouts
+  chat_window_mode = "float",
+  chat_picker_layout = { width = 0.8, height = 0.5 },
+  turn_picker_layout = { width = 0.9, height = 0.7 },
   prompt_picker_layout = { width = 0.8, height = 0.5 },
+  prompt_window_layout = { border = "rounded", height = 0.5 },
+
   model_options = { ollama = { think = false, stream = true } },
 }
 
 function M.setup(opts)
+
   opts = opts or {}
   for k, v in pairs(default) do
     M[k] = v
   end
+
   for k, v in pairs(opts) do
     M[k] = v
   end
+
+  local state = require "qanda.state"
+  state.prompt_window.float_layout = M.prompt_window_layout
+  state.chat_window.mode = M.chat_window_mode
+
 end
 
 return M

@@ -1,5 +1,5 @@
-local Config = require "qanda.config" -- User configuration options
-local State = require "qanda.state" -- Application state
+local Config = require "qanda.config"
+local State = require "qanda.state"
 local Chats = require "qanda.chats"
 local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers

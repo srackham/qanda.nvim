@@ -638,7 +638,7 @@ function M.turns_picker()
       sorter = conf.generic_sorter {},
       previewer = turn_previewer,
       attach_mappings = mappings,
-      layout_config = Config.chat_picker_layout,
+      layout_config = Config.turn_picker_layout,
     })
     :find()
 end
