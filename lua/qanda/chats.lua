@@ -404,15 +404,95 @@ function M.add_chat_syntax_highlighting(bufnr)
   end)
 end
 
----Displays a telescope picker for selecting chats
----@param mappings function Telescope attach_mappings callback
-local function chat_picker(chats, mappings, display_entry)
+function M.chat_picker()
+  local actions = require "telescope.actions"
+  local action_state = require "telescope.actions.state"
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
 
+  -- Key commands
+  local mappings = function(picker_bufnr, map)
+
+    map({ "n", "i" }, Config.chat_picker_open_key, function()
+      local selection = action_state.get_selected_entry()
+      actions.close(picker_bufnr)
+      if selection then
+        local chat = selection.value
+        assert(chat)
+        M.open_chat(chat)
+        M.set_recent_chat_file(chat.filename, Config.chats_dir)
+      else
+        utils.notify("User cancelled", vim.log.levels.INFO)
+      end
+    end, { desc = "Close the picker and open the chat in the chat window" })
+
+    map({ "n", "i" }, Config.chat_picker_delete_key, function()
+      local selection = action_state.get_selected_entry()
+      actions.close(picker_bufnr)
+      if selection then
+        vim.schedule(function()
+          local chat = selection.value
+          local confirm_result = vim.fn.confirm("Delete '" .. chat.filename .. "'?", "&Yes\n&No", 2)
+          if confirm_result == 1 then -- User selected 'Yes'
+            -- Synchronously delete selected chat file
+            local ok, err = os.remove(chat.filename)
+            if ok then
+              utils.notify("Deleted '" .. chat.filename .. "'", vim.log.levels.INFO)
+            else
+              utils.notify("Failed to delete file '" .. chat.filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+            end
+          else
+            utils.notify("User aborted", vim.log.levels.INFO)
+          end
+        end)
+      end
+    end, { desc = "Close the picker and delete the selected chat file" })
+
+    map({ "n", "i" }, Config.chat_picker_rename_key, function()
+      local selection = action_state.get_selected_entry()
+      if selection then
+        local chat = selection.value
+        actions.close(picker_bufnr)
+        local new_name = vim.fn.input("Enter chat name: ", M.chat_name(chat))
+        if new_name == "" then
+          return -- User cancelled
+        end
+        chat.turns[1].chat = new_name
+        M.save_chat(chat, Config.chats_dir)
+      end
+    end, { desc = "Rename the selected chat" })
+
+    map({ "n", "i" }, Config.chat_picker_edit_key, function()
+      local selection = action_state.get_selected_entry()
+      if selection then
+        local chat = selection.value
+        assert(chat)
+        assert(chat.filename)
+        actions.close(picker_bufnr)
+        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting, nil, function()
+          State.chats = M.load_chats() -- Reload chats after edited file is saved
+        end)
+      end
+    end, { desc = "Close the picker and edit chats file containing the selected chat" })
+
+    return true
+  end
+
+  -- Display entry function
+  local display_entry = function(chat)
+    local display_entry = M.chat_name(chat)
+    if chat.filename == State.chat_window.chat.filename then
+      return "* " .. display_entry
+    else
+      return "  " .. display_entry
+    end
+  end
+
   -- Prepare chat data for telescope
+  local chats = State.chats
+
   local picker_entries = {}
   for _, chat in ipairs(chats) do
     table.insert(picker_entries, chat)
@@ -465,99 +545,13 @@ local function chat_picker(chats, mappings, display_entry)
       layout_config = Config.chat_picker_layout,
     })
     :find()
-end
 
-function M.chat_picker()
-  local actions = require "telescope.actions"
-  local action_state = require "telescope.actions.state"
+  -- chat_picker(State.chats, function(chat_bufnr, map)
 
-  chat_picker(State.chats, function(chat_bufnr, map)
-
-    map({ "n", "i" }, Config.chat_picker_open_key, function()
-      local selection = action_state.get_selected_entry()
-      actions.close(chat_bufnr)
-      if selection then
-        local chat = selection.value
-        assert(chat)
-        M.open_chat(chat)
-        M.set_recent_chat_file(chat.filename, Config.chats_dir)
-      else
-        utils.notify("User cancelled", vim.log.levels.INFO)
-      end
-    end, { desc = "Close the picker and open the chat in the chat window" })
-
-    map({ "n", "i" }, Config.chat_picker_delete_key, function()
-      local selection = action_state.get_selected_entry()
-      actions.close(chat_bufnr)
-      if selection then
-        vim.schedule(function()
-          local chat = selection.value
-          local confirm_result = vim.fn.confirm("Delete '" .. chat.filename .. "'?", "&Yes\n&No", 2)
-          if confirm_result == 1 then -- User selected 'Yes'
-            -- Synchronously delete selected chat file
-            local ok, err = os.remove(chat.filename)
-            if ok then
-              utils.notify("Deleted '" .. chat.filename .. "'", vim.log.levels.INFO)
-            else
-              utils.notify("Failed to delete file '" .. chat.filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
-            end
-          else
-            utils.notify("User aborted", vim.log.levels.INFO)
-          end
-        end)
-      end
-    end, { desc = "Close the picker and delete the selected chat file" })
-
-    map({ "n", "i" }, Config.chat_picker_rename_key, function()
-      local selection = action_state.get_selected_entry()
-      if selection then
-        local chat = selection.value
-        actions.close(chat_bufnr)
-        local new_name = vim.fn.input("Enter chat name: ", M.chat_name(chat))
-        if new_name == "" then
-          return -- User cancelled
-        end
-        chat.turns[1].chat = new_name
-        M.save_chat(chat, Config.chats_dir)
-      end
-    end, { desc = "Rename the selected chat" })
-
-    map({ "n", "i" }, Config.chat_picker_edit_key, function()
-      local selection = action_state.get_selected_entry()
-      if selection then
-        local chat = selection.value
-        assert(chat)
-        assert(chat.filename)
-        actions.close(chat_bufnr)
-        utils.edit_file(chat.filename, M.add_chat_syntax_highlighting, nil, function()
-          State.chats = M.load_chats() -- Reload chats after edited file is saved
-        end)
-      end
-    end, { desc = "Close the picker and edit chats file containing the selected chat" })
-
-    return true
-  end, function(chat)
-    local display_entry = M.chat_name(chat)
-    if chat.filename == State.chat_window.chat.filename then
-      return "* " .. display_entry
-    else
-      return "  " .. display_entry
-    end
-  end)
 end
 
 function M.chat_name(chat)
   return chat.turns[1].chat or utils.truncate_string(chat.turns[1].request, 20)
-end
-
---- TODO: unused
-function M.turn_index(turns, turn)
-  for i, t in ipairs(turns) do
-    if t == turn then
-      return i
-    end
-  end
-  assert(false)
 end
 
 function M.turns_picker()
