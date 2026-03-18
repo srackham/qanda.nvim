@@ -318,9 +318,7 @@ function M.open_prompt(prompt)
     -- Go to insert mode
     vim.cmd "startinsert"
   end, { buffer = win.bufnr })
-  vim.keymap.set("n", Config.prompt_abort_key, function()
-    ---@todo TODO:
-  end, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.prompt_inject_key, utils.inject_file, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
     local content = ([[## Prompt Window Cheatsheet
@@ -330,9 +328,9 @@ Normal mode commands:
 - `%s` - Submit the prompt to the LLM for execution
 - `%s` - Clear the prompt window and enter insert mode
 - `%s` - Switch to Chat window
-- `%s` - Abort the current request
-- `%s` - Close Prompt window.
-]]):format(Config.prompt_exec_key, Config.prompt_clear_key, Config.prompt_switch_key, Config.prompt_abort_key, Config.prompt_close_key)
+- `%s` - Close Prompt window
+- `%s` - Inject file into the prompt
+]]):format(Config.prompt_exec_key, Config.prompt_clear_key, Config.prompt_switch_key, Config.prompt_close_key, Config.prompt_inject_key)
     ui.open_foreground_float(vim.split(content, "\n"))
   end, { buffer = win.bufnr, desc = "Show prompt window help" })
 end

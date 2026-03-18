@@ -230,7 +230,7 @@ function M.execute_prompt(prompt)
     local curl_args = State.provider.module.command(request)
 
     debug.exec(function()
-      vim.fn.setreg("+", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
+      vim.fn.setreg("q", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
     end)
 
     -- Clear the Chat window and write the header.

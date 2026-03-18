@@ -391,5 +391,80 @@ function M.close_ephemeral_window(buffer_name)
     vim.api.nvim_buf_delete(bufnr, { force = true })
   end
 end
+--- Helper to check if a file is binary by scanning the first kilobyte for null bytes.
+--- @param path string
+--- @return boolean
+function M.is_binary(path)
+  local f = io.open(path, "rb")
+  if not f then
+    return false
+  end
+  local bytes = f:read(1024)
+  f:close()
 
+  -- If file is empty (bytes is nil) or no null byte found, it's considered text
+  if not bytes then
+    return false
+  end
+  return bytes:find "\0" ~= nil
+end
+
+--- Prompts user via Telescope to select a text file and injects its
+--- content into the current buffer as a Markdown block.
+function M.inject_file()
+  local builtin = require "telescope.builtin"
+  local actions = require "telescope.actions"
+  local action_state = require "telescope.actions.state"
+
+  builtin.find_files {
+    prompt_title = "Inject Text File",
+    attach_mappings = function(prompt_bufnr, _)
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        if selection == nil then
+          return
+        end
+
+        local file_path = selection.value
+
+        -- Guard clause using the hoisted helper
+        if M.is_binary(file_path) then
+          actions.close(prompt_bufnr)
+          M.notify("Selection is a binary file; skipping injection.", vim.log.levels.WARN)
+          return
+        end
+
+        actions.close(prompt_bufnr)
+
+        local file_ext = vim.fn.fnamemodify(file_path, ":e")
+        local lines = vim.fn.readfile(file_path)
+
+        -- Build the Markdown injection block
+        local injection = {
+          "",
+          "`" .. file_path .. "`",
+          "",
+          "```" .. file_ext,
+        }
+
+        for _, line in ipairs(lines) do
+          table.insert(injection, line)
+        end
+
+        table.insert(injection, "```")
+        table.insert(injection, "") -- The blank line the cursor will land on
+
+        local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+
+        -- row is used as the starting point for insertion
+        vim.api.nvim_buf_set_lines(0, row, row, false, injection)
+
+        -- Move cursor to the final blank line
+        local new_row = row + #injection
+        vim.api.nvim_win_set_cursor(0, { new_row, 0 })
+      end)
+      return true
+    end,
+  }
+end
 return M

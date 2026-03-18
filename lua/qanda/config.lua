@@ -47,6 +47,7 @@ local default = {
   prompt_close_key = "q",
   prompt_exec_key = "<Enter>",
   prompt_switch_key = "<Tab>",
+  prompt_inject_key = "<Leader>fi",
 
   -- Prompt picker key commands
   user_picker_delete_key = "<C-d>",
