@@ -68,8 +68,8 @@ local default = {
   prompt_register = "p", -- Holds the most recent submitted prompt (mandatory, cannot be nil)
 
   -- Window layouts
-  chat_window_mode = "float",
-  chat_picker_layout = { width = 0.8, height = 0.5 },
+  chat_window_mode = "right",
+  chat_picker_layout = { width = 0.5, height = 0.6 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
   prompt_picker_layout = { width = 0.8, height = 0.5 },
   prompt_window_layout = { border = "rounded", height = 0.5 },

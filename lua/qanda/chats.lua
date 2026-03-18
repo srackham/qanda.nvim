@@ -409,7 +409,7 @@ function M.chat_picker()
   local action_state = require "telescope.actions.state"
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
-  local previewers = require "telescope.previewers"
+  -- local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
 
   -- Key commands
@@ -501,6 +501,7 @@ function M.chat_picker()
     return a.filename > b.filename
   end)
 
+  --[[ Preview not currently enabled
   -- Create previewer that shows the chat value
   local chat_previewer = previewers.new_buffer_previewer {
     define_preview = function(self, entry)
@@ -515,7 +516,7 @@ function M.chat_picker()
       M.add_chat_syntax_highlighting(self.state.bufnr)
     end,
   }
-
+]]
   -- Create and run the telescope picker
   pickers
     .new({}, {
@@ -532,15 +533,16 @@ function M.chat_picker()
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(chat)
+          local displayed_name = display_entry(chat)
           return {
             value = chat,
-            display = display_entry and display_entry(chat) or chat.filename,
-            ordinal = chat.filename, -- File name ensures chronological chat sorting
+            display = displayed_name,
+            ordinal = displayed_name,
           }
         end,
       },
       sorter = conf.generic_sorter {},
-      previewer = chat_previewer,
+      previewer = false,
       attach_mappings = mappings,
       layout_config = Config.chat_picker_layout,
     })
@@ -608,6 +610,10 @@ function M.turns_picker()
     define_preview = function(self, entry)
       local lines = M.turn_to_lines(current_chat, entry.value.index)
 
+      if #lines == 0 then
+        table.insert(lines, "**[No content available for this turn]**")
+      end
+
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, lines)
       vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
       M.add_chat_syntax_highlighting(self.state.bufnr)
@@ -622,10 +628,11 @@ function M.turns_picker()
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(entry)
+          local displayed_name = display_entry(entry.turn)
           return {
             value = entry,
-            display = display_entry(entry.turn),
-            ordinal = display_entry(entry.turn),
+            display = displayed_name,
+            ordinal = displayed_name,
           }
         end,
       },
