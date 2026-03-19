@@ -496,4 +496,75 @@ function M.sanitize_display_entry(str, max_len)
   return s
 end
 
+---Generic Telescope-based drop-in replacement for vim.ui.select
+---Supports Telescope specific keys like layout_config, layout_strategy, etc.
+---@param items table Arbitrary items to select from
+---@param opts table Options including `prompt`, `format_item`, and Telescope layout options
+---@param on_choice function Callback called with (item, index)
+function M.select(items, opts, on_choice)
+
+  local pickers = require "telescope.pickers"
+  local finders = require "telescope.finders"
+  local conf = require("telescope.config").values
+  local actions = require "telescope.actions"
+  local action_state = require "telescope.actions.state"
+
+  opts = opts or {}
+  local prompt = opts.prompt or "Select"
+  local format_item = opts.format_item or tostring
+
+  -- Prepare the picker configuration by merging opts
+  local picker_opts = vim.tbl_deep_extend("force", opts, {
+    prompt_title = prompt,
+    finder = finders.new_table {
+      results = items,
+      entry_maker = function(item)
+        local display = format_item(item)
+        return {
+          value = item,
+          display = display,
+          ordinal = display,
+        }
+      end,
+    },
+    sorter = conf.generic_sorter(opts),
+    attach_mappings = function(prompt_bufnr, map)
+      -- Handle selection
+      actions.select_default:replace(function()
+        local selection = action_state.get_selected_entry()
+        actions.close(prompt_bufnr)
+
+        if not selection then
+          on_choice(nil, nil)
+          return
+        end
+
+        -- Find original index to match vim.ui.select behavior
+        local index = nil
+        for i, item in ipairs(items) do
+          if item == selection.value then
+            index = i
+            break
+          end
+        end
+
+        on_choice(selection.value, index)
+      end)
+
+      -- Handle explicit cancellation
+      local cancel = function()
+        actions.close(prompt_bufnr)
+        on_choice(nil, nil)
+      end
+
+      map("i", "<C-c>", cancel)
+      map("n", "<Esc>", cancel)
+
+      return true
+    end,
+  })
+
+  pickers.new(opts, picker_opts):find()
+end
+
 return M

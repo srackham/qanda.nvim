@@ -32,7 +32,11 @@ local function select_model()
       items[i] = "  " .. v
     end
   end
-  vim.ui.select(items, { prompt = State.provider.name .. " models" }, function(item)
+  utils.select(items, {
+    results_title = State.provider.name .. " models",
+    prompt = "Select Model",
+    layout_config = Config.model_picker_layout,
+  }, function(item)
     if item then
       item = string.sub(item, 3)
       utils.notify("Model set to '" .. item .. "'", vim.log.levels.INFO)
