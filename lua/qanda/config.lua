@@ -1,6 +1,6 @@
 local M = {} -- This module
 
--- Constants
+-- Constants --
 M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
@@ -8,7 +8,7 @@ M.SAVED_STATE_FILE = "QANDA_SAVED_STATE.json"
 
 local default = {
 
-  -- User configuration
+  -- User configuration --
   debug = true,
 
   provider = "ollama",
@@ -20,7 +20,7 @@ local default = {
 
   help_key = "<C-h>",
 
-  -- Chat window key commands
+  -- Chat window key commands --
   chat_abort_key = "<Esc>",
   chat_close_key = "q",
   chat_edit_key = "<C-e>",
@@ -31,17 +31,17 @@ local default = {
   chat_redo_key = "<C-r>",
   chat_switch_key = "<Tab>",
 
-  -- Chat picker key commands
+  -- Chat picker key commands --
   chat_picker_delete_key = "<C-d>",
   chat_picker_rename_key = "<C-s>",
   chat_picker_edit_key = "<C-e>",
   chat_picker_exec_key = "<C-Space>",
   chat_picker_open_key = "<Enter>",
 
-  -- Turn picker key commands
+  -- Turn picker key commands --
   turn_picker_open_key = "<Enter>",
 
-  -- Prompt window key commands
+  -- Prompt window key commands --
   prompt_abort_key = "<Esc>",
   prompt_clear_key = "<C-Space>",
   prompt_close_key = "q",
@@ -49,25 +49,27 @@ local default = {
   prompt_switch_key = "<Tab>",
   prompt_inject_key = "<Leader>fi",
 
-  -- Prompt picker key commands
+  -- Prompt picker key commands --
   user_picker_delete_key = "<C-d>",
   user_picker_edit_key = "<C-e>",
   user_picker_exec_key = "<Enter>",
   user_picker_open_key = "<C-Space>",
 
-  -- System prompt picker key commands
+  -- System prompt picker key commands --
   system_picker_edit_key = "<C-e>",
   system_picker_select_key = "<Enter>",
   system_picker_deselect_key = "<C-d>",
 
+  -- Miscellaneous --
   data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
   -- system_prompt_name = nil, -- Default system prompt name
   system_prompt_name = "Generic", -- Default system prompt name
-
+  user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
+  system_prompt_lines = 10, -- The maximum number of system prompt lines to display in the Chat window
   response_register = "r", -- Holds the most recent response (extracted)
   prompt_register = "p", -- Holds the most recent submitted prompt (mandatory, cannot be nil)
 
-  -- Window layouts
+  -- Window layouts --
   chat_window_mode = "right",
   chat_picker_layout = { width = 0.5, height = 0.6 },
   turn_picker_layout = { width = 0.9, height = 0.7 },

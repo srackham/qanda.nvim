@@ -307,6 +307,39 @@ function M.turn_to_lines(chat, turn_index)
   local lines = {}
   local rule = string.rep("_", 3)
 
+  ---Helper to limit lines, handle Markdown integrity, and add truncation marker
+  ---@param content string|nil
+  ---@param max_lines number
+  ---@return string[]
+  local function get_limited_lines(content, max_lines)
+    local split_lines = vim.split(utils.trim_string(content or ""), "\n")
+    local processed = {}
+    local in_code_block = false
+    local truncated = false
+
+    for i, line in ipairs(split_lines) do
+      if i > max_lines then
+        truncated = true
+        break
+      end
+
+      if line:match "^```" then
+        in_code_block = not in_code_block
+      end
+      table.insert(processed, "> " .. line)
+    end
+
+    if truncated then
+      if in_code_block then
+        table.insert(processed, "> ```")
+      end
+      table.insert(processed, "")
+      table.insert(processed, "_...truncated..._")
+    end
+
+    return processed
+  end
+
   table.insert(lines, rule)
   if turn.model then
     table.insert(lines, "model: " .. turn.model)
@@ -326,20 +359,21 @@ function M.turn_to_lines(chat, turn_index)
     end
   end
   table.insert(lines, string.format("turn: %d of %d", turn_index, #chat.turns))
+
   if turn.system then
     table.insert(lines, "system:")
     table.insert(lines, "")
-    for _, v in ipairs(vim.split(utils.trim_string(turn.system or ""), "\n")) do
-      table.insert(lines, "> " .. v)
-    end
+    local system_lines = get_limited_lines(turn.system, Config.system_prompt_lines)
+    vim.list_extend(lines, system_lines)
     table.insert(lines, "")
   end
+
   table.insert(lines, "prompt:")
   table.insert(lines, "")
-  for _, v in ipairs(vim.split(utils.trim_string(turn.request or ""), "\n")) do
-    table.insert(lines, "> " .. v)
-  end
+  local request_lines = get_limited_lines(turn.request, Config.user_prompt_lines)
+  vim.list_extend(lines, request_lines)
   table.insert(lines, "")
+
   table.insert(lines, rule)
   for _, v in ipairs(vim.split(utils.trim_string(turn.response or ""), "\n")) do
     table.insert(lines, v)
