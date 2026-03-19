@@ -467,4 +467,33 @@ function M.inject_file()
     end,
   }
 end
+
+--- Sanitizes strings for Telescope picker display by removing newlines and truncating.
+---@param str string|nil The input text to sanitize.
+---@param max_len number? Optional maximum length (defaults to 80).
+---@return string
+function M.sanitize_display_entry(str, max_len)
+  if not str or type(str) ~= "string" then
+    return ""
+  end
+
+  local limit = max_len or 80
+
+  -- 1. Replace newlines, tabs, and carriage returns with a single space
+  local s = str:gsub("[\n\r\t]", " ")
+
+  -- 2. Collapse multiple consecutive spaces into one
+  s = s:gsub("%s+", " ")
+
+  -- 3. Remove leading and trailing whitespace
+  s = vim.trim(s)
+
+  -- 4. Truncate to the limit and add ellipsis if necessary
+  if #s > limit then
+    s = s:sub(1, limit - 3) .. "..."
+  end
+
+  return s
+end
+
 return M

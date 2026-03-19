@@ -108,7 +108,7 @@ function M.create_user_command()
       local info = "provider: " .. vim.inspect(State.provider.name) .. ", model: " .. vim.inspect(State.provider.model) .. ", chat: "
       local chat = State.chat_window.chat
       if chat and #chat.turns > 0 then
-        info = info .. '"' .. utils.truncate_string(Chats.chat_name(chat), 20) .. '"'
+        info = info .. '"' .. utils.sanitize_display_entry(Chats.chat_name(chat), 20) .. '"'
       else
         info = info .. "nil"
       end

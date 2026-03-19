@@ -311,12 +311,19 @@ function M.turn_to_lines(chat, turn_index)
   ---@param content string|nil
   ---@param max_lines number
   ---@return string[]
-  local function get_limited_lines(content, max_lines)
+  local function get_limited_prompt(label, content, max_lines)
+
+    if max_lines == 0 then
+      return {}
+    end
+
     local split_lines = vim.split(utils.trim_string(content or ""), "\n")
     local processed = {}
     local in_code_block = false
     local truncated = false
 
+    table.insert(processed, label .. ":")
+    table.insert(processed, "")
     for i, line in ipairs(split_lines) do
       if i > max_lines then
         truncated = true
@@ -361,16 +368,12 @@ function M.turn_to_lines(chat, turn_index)
   table.insert(lines, string.format("turn: %d of %d", turn_index, #chat.turns))
 
   if turn.system then
-    table.insert(lines, "system:")
-    table.insert(lines, "")
-    local system_lines = get_limited_lines(turn.system, Config.system_prompt_lines)
+    local system_lines = get_limited_prompt("system", turn.system, Config.system_prompt_lines)
     vim.list_extend(lines, system_lines)
     table.insert(lines, "")
   end
 
-  table.insert(lines, "prompt:")
-  table.insert(lines, "")
-  local request_lines = get_limited_lines(turn.request, Config.user_prompt_lines)
+  local request_lines = get_limited_prompt("prompt", turn.request, Config.user_prompt_lines)
   vim.list_extend(lines, request_lines)
   table.insert(lines, "")
 
@@ -548,7 +551,7 @@ function M.chat_picker()
 end
 
 function M.chat_name(chat)
-  return chat.turns[1].chat or utils.truncate_string(chat.turns[1].request, 60)
+  return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request, 60)
 end
 
 function M.turns_picker()
@@ -578,7 +581,7 @@ function M.turns_picker()
 
   -- Display entry function
   local display_entry = function(turn)
-    local display = turn.request
+    local display = utils.sanitize_display_entry(turn.request, 60)
     if current_turn and turn == current_turn then
       return "* " .. display
     else
