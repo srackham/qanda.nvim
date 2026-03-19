@@ -34,7 +34,7 @@ local function select_model()
   end
   utils.select(items, {
     results_title = State.provider.name .. " models",
-    prompt = "Select Model",
+    prompt = "",
     layout_config = Config.model_picker_layout,
   }, function(item)
     if item then
@@ -81,6 +81,7 @@ function M.create_user_command()
       return
     elseif args == "/new" then
       Chats.new_chat()
+      Prompts.open_prompt(nil)
       return
     elseif args == "/prompt" then
       Prompts.open_prompt(nil)
@@ -193,7 +194,6 @@ function M.execute_prompt(prompt)
 
     -- Create the model Request object
     local request_data = {
-      provider = turn.provider,
       model = turn.model,
       model_options = turn.model_option,
     }
@@ -224,7 +224,7 @@ function M.execute_prompt(prompt)
     request_data.messages = messages
 
     -- If the provider and/or the model is not the current default they need to be validated
-    if not Providers.set_provider_and_model(request_data.provider, request_data.model) then
+    if not Providers.set_provider_and_model(turn.provider, turn.model) then
       return
     end
 
@@ -244,7 +244,7 @@ function M.execute_prompt(prompt)
     Chats.open_chat(chat, #turns)
 
     -- Execute the curl command streaming the output to the Chat window.
-    curl.execute_command(curl_args, State.chat_window.winid, function(model_response)
+    curl.execute_command(curl_args, State.provider.module.normaliser, State.chat_window.winid, function(model_response)
       if curl.job_status() ~= "stopped" then
         -- Turn did not complete
         return

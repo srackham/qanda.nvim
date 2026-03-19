@@ -1,6 +1,4 @@
--- See https://github.com/wsdjeg/chat.nvim/tree/master?tab=readme-ov-file#custom-providers
--- Replace job.nvim with vim.fn.jobstart with Neovim's vim.system.
---  See: https://gemini.google.com/share/02fe3ad7f355, https://chatgpt.com/share/69800de8-72d0-8003-b893-e68905c55f51
+-- Ollama provider --
 
 local M = {} -- This module
 
@@ -38,6 +36,16 @@ function M.command(request)
     "-d",
     vim.json.encode(request.data),
   }
+end
+
+---@param raw_json string
+---@return table|nil
+function M.normaliser(raw_json)
+  local ok, decoded = pcall(vim.json.decode, raw_json)
+  if not ok or type(decoded) ~= "table" then
+    return nil
+  end
+  return decoded
 end
 
 return M

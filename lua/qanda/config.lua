@@ -15,7 +15,11 @@ local default = {
   model = "mistral",
   host = "localhost",
   port = "11434",
-  model_options = { ollama = { think = false, stream = true } },
+  model_options = {
+    ollama = { think = false, stream = true },
+    openrouter = { stream = true },
+  },
+  provider_options = { openrouter = { api_key = "$OPENROUTER_API_KEY" } }, -- TODO:
 
   chat_reload = true,
 

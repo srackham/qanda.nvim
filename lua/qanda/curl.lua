@@ -80,10 +80,13 @@ function M.is_active_job()
   return active_job ~= nil
 end
 
---- Executes the command and streams Ollama JSON 'content' to the window
+--- Executes the command and streams API 'content' to the window
+--- The data_normaliser should convert raw_json into Ollama‑shape (message/done fields).
 --- @param cmd table The command array (e.g., {'curl', ...})
+--- @param data_normaliser function (raw_json: string) -> table | nil
 --- @param winid number The Neovim window ID to target
-function M.execute_command(cmd, winid, on_exit_callback)
+--- @param on_exit_callback function Function to call when job finishes
+function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
     return
@@ -101,40 +104,57 @@ function M.execute_command(cmd, winid, on_exit_callback)
       if err then
         return
       end
-      if data then
-        line_buffer = line_buffer .. data
+      if not data then
+        return
+      end
 
-        -- Process complete JSON objects delimited by newlines
-        while true do
-          local newline_pos = line_buffer:find "\n"
-          if not newline_pos then
-            break
-          end
+      line_buffer = line_buffer .. data
 
-          local raw_json = line_buffer:sub(1, newline_pos - 1)
-          line_buffer = line_buffer:sub(newline_pos + 1)
-
-          if raw_json ~= "" then
-            local ok, decoded = pcall(vim.json.decode, raw_json)
-            if ok and decoded then
-              -- 1. Stream the actual message content
-              if decoded.message and decoded.message.content then
-                append_to_win(winid, decoded.message.content)
-              end
-
-              -- 2. Handle the final "done" signal and metadata
-              if decoded.done then
-                local duration_sec = (decoded.total_duration or 0) / 1e9
-                local done_message = string.format("\n\n___\n**Time taken**: %.2fs", duration_sec)
-                append_to_win(winid, done_message, true)
-              end
-            end
-          end
+      -- Process complete JSON objects delimited by newlines
+      while true do
+        local newline_pos = line_buffer:find "\n"
+        if not newline_pos then
+          break
         end
+
+        local raw_json = line_buffer:sub(1, newline_pos - 1)
+        line_buffer = line_buffer:sub(newline_pos + 1)
+
+        raw_json = vim.trim(raw_json)
+        if raw_json == "" then
+          goto continue
+        end
+
+        -- Let the data_normaliser convert raw_json to Ollama‑shape
+        local ok, decoded = pcall(data_normaliser, raw_json)
+        if not ok or type(decoded) ~= "table" then
+          goto continue
+        end
+
+        -- Now treat decoded_or_normalized as Ollama‑style
+        local chunk = nil
+        local duration_msg = nil
+
+        if decoded.message and decoded.message.content then
+          chunk = decoded.message.content
+        end
+
+        if decoded.done then
+          local duration_sec = (decoded.total_duration or 0) / 1e9
+          duration_msg = string.format("\n\n___\n**Time taken**: %.2fs", duration_sec)
+        end
+
+        if chunk then
+          append_to_win(winid, chunk)
+        end
+        if duration_msg then
+          append_to_win(winid, duration_msg, true)
+        end
+
+        ::continue::
       end
     end,
     stderr = function(_, data)
-      -- Catch standard curl/shell errors and append them to the buffer
       if data and data:len() > 0 then
         append_to_win(winid, "\n\n**Error: " .. data .. "**", true)
         error_message = data
@@ -142,7 +162,6 @@ function M.execute_command(cmd, winid, on_exit_callback)
       end
     end,
   }, function(_)
-    -- Cleanup the reference when the process exits
     if job_status == "aborted" then
       stop_spinner("User aborted!", { hl_group = "WarningMsg" })
     elseif job_status == "error" then
