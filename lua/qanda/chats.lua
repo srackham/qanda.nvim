@@ -514,7 +514,7 @@ function M.chat_picker()
 end
 
 function M.chat_name(chat)
-  return chat.turns[1].chat or utils.truncate_string(chat.turns[1].request, 20)
+  return chat.turns[1].chat or utils.truncate_string(chat.turns[1].request, 60)
 end
 
 function M.turns_picker()

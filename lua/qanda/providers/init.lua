@@ -46,15 +46,17 @@ function M.setup()
     end
   end
 
-  -- Set the default configured model provider
-  local provider = M.get_provider(Config.provider)
+  -- Set the saved (last used) provider or the default configured model provider
+  local provider_name = State.saved_state.provider or Config.provider
+  local model_name = State.saved_state.model or Config.model
+  local provider = M.get_provider(provider_name)
   if provider then
     local models = provider.module.models(Config)
-    if utils.table_contains(models, Config.model) then
-      provider.model = Config.model
+    if utils.table_contains(models, model_name) then
+      provider.model = model_name
       State.provider = provider
     else
-      utils.notify("Unable to  find model '" .. Config.model .. "' for provider '" .. Config.provider.name .. "'.", vim.log.levels.ERROR)
+      utils.notify("Unable to  find model '" .. model_name .. "' for provider '" .. provider_name .. "'.", vim.log.levels.ERROR)
     end
   end
 

@@ -35,8 +35,11 @@ local function select_model()
   vim.ui.select(items, { prompt = State.provider.name .. " models" }, function(item)
     if item then
       item = string.sub(item, 3)
-      utils.notify("Model set to '" .. item .. "'.", vim.log.levels.INFO)
+      utils.notify("Model set to '" .. item .. "'", vim.log.levels.INFO)
       State.provider.model = item
+      State.saved_state.model = item
+      State.saved_state.provider = State.provider.name
+      State.save_state()
     end
   end)
 end
@@ -105,7 +108,7 @@ function M.create_user_command()
       local info = "provider: " .. vim.inspect(State.provider.name) .. ", model: " .. vim.inspect(State.provider.model) .. ", chat: "
       local chat = State.chat_window.chat
       if chat and #chat.turns > 0 then
-        info = info .. '"' .. Chats.chat_name(chat) .. '"'
+        info = info .. '"' .. utils.truncate_string(Chats.chat_name(chat), 20) .. '"'
       else
         info = info .. "nil"
       end
