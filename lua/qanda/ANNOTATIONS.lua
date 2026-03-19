@@ -1,5 +1,18 @@
 ---@meta
 
+-- State --
+---@class State
+---@field provider Provider
+---@field chats Chats
+---@field chat_window UIWindow
+---@field prompt_window UIWindow
+---@field system_prompt Prompt The current system prompt object
+
+---@class SaveState -- Saved in STATE.json
+---@field provider string -- Most recently selected provider
+---@field model string -- Most recently selected model
+---@field chat_file string -- Most recently updated chat file
+
 -- UI definitions --
 
 ---@alias UIMode

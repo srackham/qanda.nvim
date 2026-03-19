@@ -17,7 +17,7 @@ function M.setup()
 
   -- Load the most recent chat
   if Config.chat_reload then
-    local chat_file = M.recent_chat_file(Config.chats_dir)
+    local chat_file = M.recent_chat_file()
     if chat_file then
       local chats = M.load_chats(chat_file)
       if #chats == 1 then
@@ -29,6 +29,10 @@ function M.setup()
       end
     end
   end
+end
+
+local function chats_dir()
+  return Config.data_dir .. "/chats"
 end
 
 --- Checks if any turn in the chat has a system prompt matching the given string.
@@ -62,7 +66,7 @@ local function parse_turns(lines)
 end
 
 --- Loads chats. If chat_file is provided, loads only that file.
---- Otherwise, scans Config.chats_dir for all .chat.jsonl files.
+--- Otherwise, scans chats_dir() for all .chat.jsonl files.
 ---@param chat_file string? Optional specific file to load
 ---@return Chat[] result A list of Chat objects
 function M.load_chats(chat_file)
@@ -71,10 +75,9 @@ function M.load_chats(chat_file)
 
   -- 1. Determine which files to load
   if chat_file then
-    table.insert(chat_files, vim.fn.expand(chat_file))
+    table.insert(chat_files, chat_file)
   else
-    local chats_dir = vim.fn.expand(Config.chats_dir)
-    local glob_pattern = chats_dir .. "/*.chat.jsonl"
+    local glob_pattern = chats_dir() .. "/*.chat.jsonl"
     chat_files = vim.fn.glob(glob_pattern, false, true)
   end
 
@@ -114,24 +117,19 @@ end
 
 --- Saves the chat table to a JSONL file.
 ---@param chat Chat
----@param dir string
-function M.save_chat(chat, dir)
-  -- Expand the directory path (handles ~, $HOME, etc.)
-  local expanded_dir = vim.fn.expand(dir)
+function M.save_chat(chat)
+  local dir = chats_dir()
 
   -- 1. Determine the filename
   if not chat.filename then
     local timestamp = os.date "%Y%m%d_%H%M%S"
     -- Store the full expanded path in the chat object
-    chat.filename = expanded_dir .. "/" .. timestamp .. ".chat.jsonl"
-  else
-    -- Ensure an existing filename is also expanded if it contains ~
-    chat.filename = vim.fn.expand(chat.filename)
+    chat.filename = dir .. "/" .. timestamp .. ".chat.jsonl"
   end
 
   -- 2. Ensure the directory exists
-  if vim.fn.isdirectory(expanded_dir) == 0 then
-    vim.fn.mkdir(expanded_dir, "p")
+  if vim.fn.isdirectory(dir) == 0 then
+    vim.fn.mkdir(dir, "p")
   end
 
   -- 3. Prepare the JSONL content
@@ -154,56 +152,19 @@ function M.save_chat(chat, dir)
   file:write(table.concat(lines, "\n") .. "\n")
   file:close()
 
-  -- 5. Update the MOST_RECENT_CHAT file
-  M.set_recent_chat_file(chat.filename, dir)
+  -- 5. Record the mostly recently updated chat file name
+  M.set_recent_chat_file(chat.filename)
 
 end
 
-function M.set_recent_chat_file(chat_file_path, dir)
-  dir = vim.fn.expand(dir)
-  local recent_file_path = dir .. "/" .. Config.MOST_RECENT_CHAT
-  local recent_file = io.open(recent_file_path, "w")
-  if recent_file then
-    -- We only want the base name (e.g., '20260316_170707.chat.jsonl') in this file
-    local base_name = vim.fn.fnamemodify(chat_file_path, ":t")
-    recent_file:write(base_name .. "\n")
-    recent_file:close()
-  end
+function M.set_recent_chat_file(chat_file)
+  State.saved_state.chat_file = chat_file
+  State.save_state()
 end
 
---- Returns the full path of the most recent chat file recorded in MOST_RECENT_CHAT.
----@param dir string The directory to look in.
----@return string? path The absolute path to the chat file, or nil if not found/invalid.
-function M.recent_chat_file(dir)
-  -- 1. Expand the directory to ensure we have a valid system path
-  local expanded_dir = vim.fn.expand(dir)
-  local recent_chat_pointer = expanded_dir .. "/" .. Config.MOST_RECENT_CHAT
-
-  -- 2. Attempt to open and read the pointer file
-  local file = io.open(recent_chat_pointer, "r")
-  if not file then
-    return nil
-  end
-
-  -- Read the first line and trim whitespace/newlines
-  local filename = file:read "*l"
-  file:close()
-
-  if not filename or filename == "" then
-    return nil
-  end
-
-  filename = vim.trim(filename)
-
-  -- 3. Synthesize the full path
-  local full_path = expanded_dir .. "/" .. filename
-
-  -- 4. Verify the recorded chat file actually exists on disk
-  if vim.fn.filereadable(full_path) == 0 then
-    return nil
-  end
-
-  return full_path
+--- Returns the full path of the most recently updated chat file
+function M.recent_chat_file()
+  return State.saved_state.chat_file
 end
 
 ---Open chat window, load the chat turn at chat index `idx`.
@@ -275,7 +236,7 @@ function M.open_chat(chat, turn_index)
           win.chat.filename = nil
         end
       else
-        M.save_chat(win.chat, Config.chats_dir)
+        M.save_chat(win.chat)
       end
     end
   end, { buffer = win.bufnr })
@@ -422,7 +383,7 @@ function M.chat_picker()
         local chat = selection.value
         assert(chat)
         M.open_chat(chat)
-        M.set_recent_chat_file(chat.filename, Config.chats_dir)
+        M.set_recent_chat_file(chat.filename)
       else
         utils.notify("User cancelled", vim.log.levels.INFO)
       end
@@ -460,7 +421,7 @@ function M.chat_picker()
           return -- User cancelled
         end
         chat.turns[1].chat = new_name
-        M.save_chat(chat, Config.chats_dir)
+        M.save_chat(chat)
       end
     end, { desc = "Rename the selected chat" })
 

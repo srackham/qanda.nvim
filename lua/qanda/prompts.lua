@@ -32,6 +32,10 @@ function M.setup()
 
 end
 
+local function prompts_dir()
+  return Config.data_dir .. "/prompts"
+end
+
 ---Retrieve a prompt by its name.
 ---@param prompts Prompts The prompts array to search
 ---@param name string The name of the prompt.
@@ -208,14 +212,13 @@ local function load_prompts(role)
   local result = {} ---@type Prompts
 
   -- Read and merge prompts from all .user.md files
-  local prompts_dir = Config.prompts_dir
-  local glob_pattern = prompts_dir .. "/*." .. role .. ".md"
+  local glob_pattern = prompts_dir() .. "/*." .. role .. ".md"
   local prompt_files = vim.fn.glob(glob_pattern, false, true)
 
   if role == "user" then
     -- If there are no prompts files then create one
     if #prompt_files == 0 then
-      local path = Config.prompts_dir .. "/default.user.md"
+      local path = prompts_dir() .. "/default.user.md"
 
       -- Create parent directory if it does not already exist
       local dir = vim.fn.fnamemodify(path, ":h")
@@ -223,7 +226,6 @@ local function load_prompts(role)
         vim.fn.mkdir(dir, "p")
       end
 
-      path = vim.fn.expand(path)
       local f, err = io.open(path, "w")
       if not f then
         utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
@@ -524,10 +526,11 @@ function M.system_prompt_picker()
   })
 end
 
+---TODO: what on earth is the purpose of this function?
 --- Converts a file path to an absolute path based on specific rules.
 ---
 --- Rules:
---- - If the file name has no directory component, it is assumed to reside in `Config.prompts_dir`.
+--- - If the file name has no directory component, it is assumed to reside in configuration `prompts` directory
 --- - If the file name is relative (e.g., "my/path/file.txt"), it is resolved relative
 ---   to the current Neovim working directory (`vim.fn.cwd()`).
 --- - If the file name is already absolute (e.g., "/home/user/file.txt"), it is returned as is.
@@ -539,8 +542,8 @@ function M.resolve_prompt_path(file_path)
   -- vim.fn.fnamemodify(file_path, ':t') extracts only the filename part.
   -- If it's equal to the original file_path, then there was no directory component.
   if vim.fn.fnamemodify(file_path, ":t") == file_path then
-    -- If it's just a filename, prepend Config.prompts_dir and then resolve to an absolute path.
-    local full_path = Config.prompts_dir .. "/" .. file_path
+    -- If it's just a filename, prepend prompts_dir and then resolve to an absolute path.
+    local full_path = prompts_dir() .. "/" .. file_path
     return vim.fn.fnamemodify(full_path, ":p")
   else
     -- Otherwise, the path either has directory components (relative to cwd) or is already absolute.

@@ -4,7 +4,7 @@ local M = {} -- This module
 M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-M.MOST_RECENT_CHAT = "MOST_RECENT_CHAT" -- File name of file containing most recent chat file
+M.SAVED_STATE_FILE = "QANDA_SAVED_STATE.json"
 
 local default = {
 
@@ -60,8 +60,7 @@ local default = {
   system_picker_select_key = "<Enter>",
   system_picker_deselect_key = "<C-d>",
 
-  prompts_dir = vim.fn.stdpath "data" .. "/qanda_nvim/prompts",
-  chats_dir = vim.fn.stdpath "data" .. "/qanda_nvim/chats",
+  data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
   -- system_prompt_name = nil, -- Default system prompt name
   system_prompt_name = "Generic", -- Default system prompt name
 
@@ -89,9 +88,17 @@ function M.setup(opts)
     M[k] = v
   end
 
+  -- Expand all configuration paths
+  for _, k in ipairs { "data_dir" } do
+    if M[k] then
+      M[k] = vim.fn.expand(M[k])
+    end
+  end
+
   local state = require "qanda.state"
   state.prompt_window.float_layout = M.prompt_window_layout
   state.chat_window.mode = M.chat_window_mode
+  state.restore_state()
 
 end
 
