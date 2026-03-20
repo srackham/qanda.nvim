@@ -98,9 +98,15 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
   stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
 
   local line_buffer = ""
+  local done = false
+
+  local start_ms = utils.get_time_ms()
 
   active_job = vim.system(cmd, {
     stdout = function(err, data)
+      if done then -- Discard second and subsequent "done" messages
+        return
+      end
       if err then
         return
       end
@@ -131,6 +137,11 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
           goto continue
         end
 
+        -- If we already emitted the done message, skip all further processing for that line
+        if done then
+          goto continue
+        end
+
         -- Now treat decoded_or_normalized as Ollama‑style
         local chunk = nil
         local duration_msg = nil
@@ -140,8 +151,12 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
         end
 
         if decoded.done then
-          local duration_sec = (decoded.total_duration or 0) / 1e9
+          -- Compute elapsed time in ms, convert to seconds for display
+          local now_ms = utils.get_time_ms()
+          local duration_sec = (now_ms - start_ms) / 1000.0
+
           duration_msg = string.format("\n\n___\n**Time taken**: %.2fs", duration_sec)
+          done = true
         end
 
         if chunk then

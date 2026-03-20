@@ -567,4 +567,9 @@ function M.select(items, opts, on_choice)
   pickers.new(opts, picker_opts):find()
 end
 
+function M.get_time_ms()
+  local seconds, microseconds = vim.uv.gettimeofday()
+  return (seconds * 1000) + math.floor(microseconds / 1000)
+end
+
 return M
