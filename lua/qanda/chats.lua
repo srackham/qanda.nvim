@@ -86,7 +86,7 @@ function M.load_chats(chat_file)
   -- 2. Process the files
   local chat_window_updated = false
   for _, file_path in ipairs(chat_files) do
-    if vim.fn.filereadable(file_path) == 1 then
+    if utils.file_exists(file_path) then
       local lines = vim.fn.readfile(file_path)
       local turns = parse_turns(lines)
       if turns then
@@ -229,12 +229,7 @@ function M.open_chat(chat, turn_index)
       if #win.chat.turns == 0 then
         -- Once the last turn has been deleted, delete the chat file
         if win.chat.filename then
-          local ok, err = os.remove(win.chat.filename)
-          if ok then
-            utils.notify("Deleted '" .. win.chat.filename .. "'", vim.log.levels.INFO)
-          else
-            utils.notify("Failed to delete file '" .. win.chat.filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
-          end
+          utils.delete_file(win.chat.filename)
           win.chat.filename = nil
         end
       else
@@ -434,18 +429,7 @@ function M.chat_picker()
       if selection then
         vim.schedule(function()
           local chat = selection.value
-          local confirm_result = vim.fn.confirm("Delete '" .. chat.filename .. "'?", "&Yes\n&No", 2)
-          if confirm_result == 1 then -- User selected 'Yes'
-            -- Synchronously delete selected chat file
-            local ok, err = os.remove(chat.filename)
-            if ok then
-              utils.notify("Deleted '" .. chat.filename .. "'", vim.log.levels.INFO)
-            else
-              utils.notify("Failed to delete file '" .. chat.filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
-            end
-          else
-            utils.notify("User aborted", vim.log.levels.INFO)
-          end
+          utils.delete_file(chat.filename, { confirm = true })
         end)
       end
     end, { desc = "Close the picker and delete the selected chat file" })

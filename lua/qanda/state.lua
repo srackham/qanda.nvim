@@ -51,7 +51,7 @@ function M.restore_state()
   local path = Config.data_dir .. "/" .. Config.SAVED_STATE_FILE
 
   -- If file doesn't exist, it's not an error; just return nil
-  if vim.fn.filereadable(path) == 0 then
+  if not utils.file_exists(path) then
     return nil
   end
 
@@ -69,6 +69,10 @@ function M.restore_state()
   if not ok then
     utils.notify("Failed to decode STATE.json: " .. tostring(decoded), vim.log.levels.ERROR)
     return nil
+  end
+
+  if decoded.chat_file and not utils.file_exists(decoded.chat_file) then
+    decoded.chat_file = nil
   end
 
   M.saved_state = decoded

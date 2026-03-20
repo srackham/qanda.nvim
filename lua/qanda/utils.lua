@@ -572,4 +572,28 @@ function M.get_time_ms()
   return (seconds * 1000) + math.floor(microseconds / 1000)
 end
 
+function M.delete_file(filename, opts)
+  opts = opts or {}
+  if opts.confirm then
+    local confirm_result = vim.fn.confirm("Delete '" .. filename .. "'?", "&Yes\n&No", 2)
+    if confirm_result ~= 1 then -- User did not select 'Yes'
+      return
+    end
+  end
+  -- Synchronously delete selected chat file
+  local ok, err = os.remove(filename)
+  if ok then
+    M.notify("Deleted '" .. filename .. "'", vim.log.levels.INFO)
+  else
+    M.notify("Failed to delete file '" .. filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+  end
+end
+
+--- Check if a file exists and is readable
+-- @param path string: File path to check
+-- @return boolean: true if readable file exists
+function M.file_exists(path)
+  return vim.fn.filereadable(path) == 1
+end
+
 return M

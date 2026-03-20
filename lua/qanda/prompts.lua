@@ -254,7 +254,7 @@ ${input:Enter request:}
 
   -- Load the prompts files
   for _, file_path in ipairs(prompt_files) do
-    if vim.fn.filereadable(file_path) == 1 then
+    if utils.file_exists(file_path) then
       local lines = vim.fn.readfile(file_path)
       if lines then
         local prompts
