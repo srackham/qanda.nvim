@@ -63,7 +63,7 @@ local default = {
   -- System prompt picker key commands --
   system_picker_edit_key = "<C-e>",
   system_picker_select_key = "<Enter>",
-  system_picker_deselect_key = "<C-d>",
+  system_picker_disable_key = "<C-d>",
 
   -- Miscellaneous --
   data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",

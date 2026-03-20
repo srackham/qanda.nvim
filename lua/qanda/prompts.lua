@@ -483,8 +483,8 @@ function M.system_prompt_picker()
     prompt_title = "["
       .. Config.system_picker_select_key
       .. " select, "
-      .. Config.system_picker_deselect_key
-      .. " deselect, "
+      .. Config.system_picker_disable_key
+      .. " disable, "
       .. Config.system_picker_edit_key
       .. " edit]",
     attach_mappings = function(bufnr, map)
@@ -499,7 +499,7 @@ function M.system_prompt_picker()
         end
       end, { desc = "Close the picker window; execute callback" })
 
-      map({ "n", "i" }, Config.system_picker_deselect_key, function()
+      map({ "n", "i" }, Config.system_picker_disable_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
