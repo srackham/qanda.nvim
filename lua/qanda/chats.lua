@@ -24,7 +24,9 @@ function M.setup()
         State.chats = chats
         State.chat_window.chat = chats[1]
         if M.chat_has_system_prompt(chats[1], State.system_prompt.expanded) then
-          State.system_prompt.consumed = true
+          if State.system_prompt then
+            State.system_prompt.consumed = true
+          end
         end
       end
     end

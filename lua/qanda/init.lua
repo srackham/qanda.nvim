@@ -255,7 +255,9 @@ function M.execute_prompt(prompt)
       turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
 
       -- Consume the system prompt
-      State.system_prompt.consumed = true
+      if State.system_prompt then
+        State.system_prompt.consumed = true
+      end
 
       -- Save chat file
       vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
