@@ -23,8 +23,9 @@ function M.setup()
   M.load_system_prompts()
 
   -- Set default system prompt template
-  if Config.system_prompt_name then
-    local prompt = M.get_prompt(M.system_prompts, Config.system_prompt_name)
+  local system_prompt_name = State.saved_state.system_prompt_name or Config.system_prompt_name
+  if system_prompt_name then
+    local prompt = M.get_prompt(M.system_prompts, system_prompt_name)
     if prompt then
       M.set_system_prompt(prompt)
     end
@@ -50,9 +51,16 @@ function M.get_prompt(prompts, name)
 end
 
 function M.set_system_prompt(prompt)
-  prompt.expanded = M.substitute_placeholders(prompt.prompt)
-  prompt.consumed = false
-  State.system_prompt = prompt
+  if prompt ~= nil then
+    prompt.expanded = M.substitute_placeholders(prompt.prompt)
+    State.system_prompt = prompt
+    State.saved_state.system_prompt_name = prompt.name
+    prompt.consumed = false
+  else
+    State.system_prompt = nil
+    State.saved_state.system_prompt_name = nil
+  end
+  State.save_state()
 end
 
 -- ---Make a copy of `prompt`, set its name to `name` and add/replace to `M.prompts`.
@@ -503,7 +511,7 @@ function M.system_prompt_picker()
         local selection = action_state.get_selected_entry()
         actions.close(bufnr)
         if selection then
-          State.system_prompt = nil
+          M.set_system_prompt(nil)
         end
       end, { desc = "Close the picker window; execute callback" })
 

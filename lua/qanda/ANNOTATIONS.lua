@@ -12,6 +12,7 @@
 ---@field provider string -- Most recently selected provider
 ---@field model string -- Most recently selected model
 ---@field chat_file string -- Most recently updated chat file
+---@field system_prompt_name string
 
 -- UI definitions --
 
