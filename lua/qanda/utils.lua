@@ -577,15 +577,18 @@ function M.delete_file(filename, opts)
   if opts.confirm then
     local confirm_result = vim.fn.confirm("Delete '" .. filename .. "'?", "&Yes\n&No", 2)
     if confirm_result ~= 1 then -- User did not select 'Yes'
-      return
+      M.notify("User aborted", vim.log.levels.INFO)
+      return false
     end
   end
   -- Synchronously delete selected chat file
   local ok, err = os.remove(filename)
   if ok then
     M.notify("Deleted '" .. filename .. "'", vim.log.levels.INFO)
+    return true
   else
     M.notify("Failed to delete file '" .. filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+    return false
   end
 end
 

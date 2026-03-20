@@ -229,8 +229,9 @@ function M.open_chat(chat, turn_index)
       if #win.chat.turns == 0 then
         -- Once the last turn has been deleted, delete the chat file
         if win.chat.filename then
-          utils.delete_file(win.chat.filename)
-          win.chat.filename = nil
+          if utils.delete_file(win.chat.filename) then
+            M.new_chat()
+          end
         end
       else
         M.save_chat(win.chat)
@@ -263,7 +264,7 @@ function M.open_chat(chat, turn_index)
 - `%s` - Create a new prompt from the current Chat window prompt
 - `%s` - Switch to Prompt window
 - `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)
-- `%s` - Delete current turn
+- `%s` - Delete current turn, if last turn delete the chat
 - `%s` - Open the chat file for editing at the selected turn (by searching for the timestamp)
 - `%s` - Re-execute and replace the latest turn.
 - `%s` - Abort the current request
@@ -429,7 +430,11 @@ function M.chat_picker()
       if selection then
         vim.schedule(function()
           local chat = selection.value
-          utils.delete_file(chat.filename, { confirm = true })
+          if utils.delete_file(chat.filename, { confirm = true }) then
+            if chat == State.chat_window.chat then
+              M.new_chat()
+            end
+          end
         end)
       end
     end, { desc = "Close the picker and delete the selected chat file" })
