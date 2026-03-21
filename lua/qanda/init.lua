@@ -98,10 +98,8 @@ function M.create_user_command()
       Prompts.user_prompt_picker()
       return
     elseif args == "/system" then
-      coroutine.wrap(function() -- TODO: Why wrap in coroutine (cf. /prompts does not)?
-        Prompts.load_system_prompts()
-        Prompts.system_prompt_picker()
-      end)()
+      Prompts.load_system_prompts()
+      Prompts.system_prompt_picker()
       return
     elseif args == "/models" then
       select_model()

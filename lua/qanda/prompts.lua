@@ -547,10 +547,8 @@ function M.system_prompt_picker()
   })
 end
 
----TODO: what on earth is the purpose of this function?
---- Converts a file path to an absolute path based on specific rules.
+--- Prompt template file name expansion. Used for `${file:<filename>}` placeholder expansion.
 ---
---- Rules:
 --- - If the file name has no directory component, it is assumed to reside in configuration `prompts` directory
 --- - If the file name is relative (e.g., "my/path/file.txt"), it is resolved relative
 ---   to the current Neovim working directory (`vim.fn.cwd()`).
@@ -599,17 +597,6 @@ function M.substitute_placeholders(prompt_string)
 
   -- Handle the $select placeholder first
   if string.find(prompt_string, "%$select") then
-    -- TODO: DEPRECATED: Switched to coroutine-based (async) `vim.ui.select` implementation.
-    -- local placeholders = { "$clipboard", "$yanked", "$input" }
-    -- local options = { "1. Clipboard", "2. Yanked text", "3. User input" }
-    --
-    -- local idx = utils.inputlist("Select input source:", options)
-    -- if not idx then
-    --   return nil
-    -- end
-    -- vim.cmd "redraw"
-    --
-    -- prompt_string = prompt_string:gsub("%$select", placeholders[idx])
 
     local items_map = {
       ["$clipboard"] = "Clipboard",

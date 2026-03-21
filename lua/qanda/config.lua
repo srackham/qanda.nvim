@@ -15,11 +15,17 @@ local default = {
   model = "mistral",
   host = "localhost",
   port = "11434",
+
+  -- Options included in every model request
   model_options = {
     ollama = { think = false, stream = true },
     openrouter = { stream = true },
   },
-  provider_options = { openrouter = { api_key = "$OPENROUTER_API_KEY" } }, -- TODO:
+
+  -- Provider specific options
+  provider_options = {
+    openrouter = { api_key = "$OPENROUTER_API_KEY" }, -- TODO:
+  },
 
   chat_reload = true,
 
@@ -40,7 +46,6 @@ local default = {
   chat_picker_delete_key = "<C-d>",
   chat_picker_rename_key = "<C-s>",
   chat_picker_edit_key = "<C-e>",
-  chat_picker_exec_key = "<C-Space>",
   chat_picker_open_key = "<Enter>",
 
   -- Turn picker key commands --

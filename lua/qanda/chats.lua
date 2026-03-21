@@ -254,7 +254,7 @@ function M.open_chat(chat, turn_index)
     end
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_redo_key, function()
-    ---@todo TODO: Do we need redo ???
+    ---@todo Not implemented
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
