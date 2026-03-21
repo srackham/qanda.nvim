@@ -425,6 +425,7 @@ function M.user_prompt_picker()
 
   prompt_picker(M.user_prompts, nil, {
     results_title = "User Prompts",
+    preview_title = "Prompt Template",
     prompt_title = "["
       .. Config.user_picker_exec_key
       .. " execute, "
@@ -488,6 +489,7 @@ function M.system_prompt_picker()
     end
   end, {
     results_title = "System Prompts",
+    preview_title = "Prompt Template",
     prompt_title = "["
       .. Config.system_picker_select_key
       .. " select, "

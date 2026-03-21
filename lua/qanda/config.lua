@@ -31,8 +31,8 @@ local default = {
   chat_edit_key = "<C-e>",
   chat_exec_key = "<Enter>",
   chat_delete_key = "<C-d>",
-  chat_next_key = "<PageDown>",
-  chat_prev_key = "<PageUp>",
+  chat_next_key = "<C-n>",
+  chat_prev_key = "<C-p>",
   chat_redo_key = "<C-r>",
   chat_switch_key = "<Tab>",
 
@@ -76,7 +76,7 @@ local default = {
 
   -- Window layouts --
   chat_window_mode = "right",
-  chat_picker_layout = { width = 0.5, height = 0.6 },
+  chat_picker_layout = { width = 0.9, height = 0.6, preview_width = 0.65 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
   prompt_picker_layout = { width = 0.8, height = 0.5 },
   prompt_window_layout = { border = "rounded", height = 0.5 },
