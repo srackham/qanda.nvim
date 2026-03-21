@@ -223,11 +223,6 @@ function M.execute_prompt(prompt)
     end
     request_data.messages = messages
 
-    -- If the provider and/or the model is not the current default they need to be validated
-    if not Providers.set_provider_and_model(turn.provider, turn.model) then
-      return
-    end
-
     -- Build the curl command
     local request = {
       host = Config.host,

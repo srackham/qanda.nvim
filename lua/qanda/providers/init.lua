@@ -46,19 +46,7 @@ function M.setup()
     end
   end
 
-  -- Set the saved (last used) provider or the default configured model provider
-  local provider_name = State.saved_state.provider or Config.provider
-  local model_name = State.saved_state.model or Config.model
-  local provider = M.get_provider(provider_name)
-  if provider then
-    local models = provider.module.models(Config)
-    if utils.table_contains(models, model_name) then
-      provider.model = model_name
-      State.provider = provider
-    else
-      utils.notify("Unable to  find model '" .. model_name .. "' for provider '" .. provider_name .. "'.", vim.log.levels.ERROR)
-    end
-  end
+  M.restore_provider()
 
 end
 
@@ -75,23 +63,26 @@ function M.get_provider(name)
   return nil
 end
 
-function M.set_provider_and_model(provider_name, model_name)
-  if provider_name ~= State.provider.name then
-    local provider = M.get_provider(provider_name)
-    if not provider then
-      return false
-    end
-    -- Validate the model name
-    if not M.is_valid_model_name(provider, model_name) then
-      return false
-    end
-  elseif model_name ~= State.provider.model then
-    -- The model name, but not the provider, has changed
-    if not M.is_valid_model_name(State.provider, model_name) then
-      return false
+-- Restore State.provider from saved provider and model names.
+function M.restore_provider()
+  local provider = nil
+  local provider_name = State.saved_state.provider or Config.provider
+  if provider_name then
+    provider = M.get_provider(provider_name)
+  end
+  if not provider then
+    vim.cmd "Qanda /providers"
+  else
+    State.provider = provider
+    local model_name = State.saved_state.model or Config.model
+    if not model_name or not M.is_valid_model_name(provider, model_name) then
+      vim.cmd "Qanda /models"
+    else
+      State.provider.model = model_name
+      State.saved_state.model = model_name
+      State.saved_state.provider = provider.name
     end
   end
-  return true
 end
 
 function M.select_provider(current_provider, callback)

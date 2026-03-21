@@ -3,6 +3,7 @@ local ui = require "qanda.ui"
 local utils = require "qanda.utils"
 
 local M = {
+  provider = nil, ---@type Provider
   system_prompt = nil, ---@type Prompt System prompt with placeholders expanded
   chats = {}, ---@type Chats
   saved_state = {},
@@ -23,7 +24,7 @@ local M = {
   },
 }
 
----Saves the state to STATE.json in the specified directory
+---Saves the saved state JSON file.
 function M.save_state()
   local dir = Config.data_dir
   vim.fn.mkdir(dir, "p") -- ensure directory exists
@@ -45,7 +46,7 @@ function M.save_state()
   f:close()
 end
 
----Restores the state from STATE.json in the specified directory
+---Restores the saved state JSON file.
 ---@return SaveState|nil
 function M.restore_state()
   local path = Config.data_dir .. "/" .. Config.SAVED_STATE_FILE
@@ -67,7 +68,7 @@ function M.restore_state()
 
   local ok, decoded = pcall(vim.fn.json_decode, content)
   if not ok then
-    utils.notify("Failed to decode STATE.json: " .. tostring(decoded), vim.log.levels.ERROR)
+    utils.notify("Failed to decode state file: " .. path, vim.log.levels.ERROR)
     return nil
   end
 
