@@ -1,6 +1,7 @@
 -- OpenRouter provider --
 
 local utils = require "qanda.utils"
+local Config = require "qanda.config"
 
 local M = {}
 
@@ -8,10 +9,22 @@ local api_key = nil
 
 ---Local model provider initialisation.
 function M.setup()
-  api_key = os.getenv "OPENROUTER_API_KEY"
-  if not api_key then
-    utils.notify("OPENROUTER_API_KEY not set", vim.log.levels.ERROR)
+
+  -- Use $OPENROUTER_API_KEY environment variable if `api_key` is not defined in the OpenRouter configuration options
+  api_key = Config.provider_options
+    and Config.provider_options.openrouter
+    and Config.provider_options.openrouter.api_key
+    and "$OPENROUTER_API_KEY"
+
+  -- Look up environment variable
+  if api_key:gmatch "$[%a_][%w_]*" then
+    local env_variable_name = api_key:sub(2)
+    api_key = os.getenv(env_variable_name)
+    if not api_key then
+      utils.notify(env_variable_name .. " environment variable not set", vim.log.levels.ERROR)
+    end
   end
+
 end
 
 ---Returns a list of the names of available models.
