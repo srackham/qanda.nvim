@@ -1,7 +1,6 @@
 local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
-local ui = require "qanda.ui"
 local curl = require "qanda.curl"
 -- local debug = require "qanda.debug"
 
@@ -259,16 +258,19 @@ function M.open_chat(chat, turn_index)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
-    local content = ([[## Chat Window Cheatsheet
+    local help_message = ([[-- Chat Window Commands --
 
-- `%s` - Create a new prompt from the current Chat window prompt
-- `%s` - Switch to Prompt window
-- `%s`/`%s` Scroll up/down for previous/next prompt (from the current chat message)
-- `%s` - Delete current turn, if last turn delete the chat
-- `%s` - Open the chat file for editing at the selected turn (by searching for the timestamp)
-- `%s` - Re-execute and replace the latest turn.
-- `%s` - Abort the current request
-- `%s` - Close Chat window.
+Normal mode commands:
+
+- %s - Create a new prompt from the current Chat window prompt
+- %s - Switch to Prompt window
+- %s/`%s` Scroll up/down for previous/next prompt (from the current chat message)
+- %s - Delete current turn, if last turn delete the chat
+- %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
+- %s - Re-execute and replace the latest turn.
+- %s - Abort the current request
+- %s - Close Chat window.
+
 ]]):format(
       Config.chat_exec_key,
       Config.chat_switch_key,
@@ -280,8 +282,8 @@ function M.open_chat(chat, turn_index)
       Config.chat_abort_key,
       Config.chat_close_key
     )
-    ui.open_foreground_float(vim.split(content, "\n"), { width = 100 })
-  end, { buffer = win.bufnr, desc = "Show prompt window help" })
+    vim.notify(help_message, vim.log.levels.INFO)
+  end, { buffer = win.bufnr, desc = "Show Chat window help" })
 end
 
 function M.new_chat()
@@ -466,6 +468,18 @@ function M.chat_picker()
       end
     end, { desc = "Close the picker and edit chats file containing the selected chat" })
 
+    map({ "n", "i" }, Config.help_key, function()
+      local help_message = ([[-- Chat Picker Commands --
+
+- %s - Open chat in Chat window
+- %s - Delete selected chat
+- %s - Rename selected chat
+- %s - Edit the chat file
+
+]]):format(Config.chat_picker_open_key, Config.chat_picker_delete_key, Config.chat_picker_rename_key, Config.chat_picker_edit_key)
+      vim.notify(help_message, vim.log.levels.INFO)
+    end, { buffer = picker_bufnr, desc = "Show Chat picker help" })
+
     return true
   end
 
@@ -512,15 +526,7 @@ function M.chat_picker()
     .new({}, {
       results_title = "Chats",
       preview_title = "Turns",
-      prompt_title = "["
-        .. Config.chat_picker_open_key
-        .. " open, "
-        .. Config.chat_picker_rename_key
-        .. " rename, "
-        .. Config.chat_picker_edit_key
-        .. " edit, "
-        .. Config.chat_picker_delete_key
-        .. " delete]",
+      prompt_title = "[" .. Config.help_key .. " help]",
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(chat)
@@ -569,6 +575,15 @@ function M.turns_picker()
       end
     end, { desc = "Close the picker and open the selected turn in the chat window" })
 
+    map({ "n", "i" }, Config.help_key, function()
+      local help_message = ([[-- Turn Picker Commands --
+
+- %s - Open turn in Chat window
+
+]]):format(Config.chat_picker_open_key)
+      vim.notify(help_message, vim.log.levels.INFO)
+    end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
+
     return true
   end
 
@@ -616,7 +631,7 @@ function M.turns_picker()
     .new({}, {
       results_title = "Turns",
       preview_title = "Turn",
-      prompt_title = "[" .. Config.turn_picker_open_key .. " open]",
+      prompt_title = "[" .. Config.help_key .. " help]",
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(entry)

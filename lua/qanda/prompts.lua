@@ -331,18 +331,19 @@ function M.open_prompt(prompt)
   vim.keymap.set("n", Config.prompt_inject_key, utils.inject_file, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
-    local content = ([[## Prompt Window Cheatsheet
+    local help_message = ([[-- Prompt Window Commands --
 
 Normal mode commands:
 
-- `%s` - Submit the prompt to the LLM for execution
-- `%s` - Clear the prompt window and enter insert mode
-- `%s` - Switch to Chat window
-- `%s` - Close Prompt window
-- `%s` - Inject file into the prompt
+- %s - Submit the prompt to the LLM for execution
+- %s - Clear the prompt window and enter insert mode
+- %s - Switch to Chat window
+- %s - Close Prompt window
+- %s - Inject file into the prompt
+
 ]]):format(Config.prompt_exec_key, Config.prompt_clear_key, Config.prompt_switch_key, Config.prompt_close_key, Config.prompt_inject_key)
-    ui.open_foreground_float(vim.split(content, "\n"))
-  end, { buffer = win.bufnr, desc = "Show prompt window help" })
+    vim.notify(help_message, vim.log.levels.INFO)
+  end, { buffer = win.bufnr, desc = "Show Prompt window help" })
 end
 
 local prompt_syntax_rules = {
@@ -426,18 +427,12 @@ function M.user_prompt_picker()
   prompt_picker(M.user_prompts, nil, {
     results_title = "User Prompts",
     preview_title = "Prompt Template",
-    prompt_title = "["
-      .. Config.user_picker_exec_key
-      .. " execute, "
-      .. Config.user_picker_open_key
-      .. " open, "
-      .. Config.user_picker_edit_key
-      .. " edit]",
-    attach_mappings = function(bufnr, map)
+    prompt_title = "[" .. Config.help_key .. " help]",
+    attach_mappings = function(picker_bufnr, map)
 
       map({ "n", "i" }, Config.user_picker_open_key, function()
         local selection = action_state.get_selected_entry()
-        actions.close(bufnr)
+        actions.close(picker_bufnr)
         if selection then
           local prompt = selection.value
           assert(prompt)
@@ -449,7 +444,7 @@ function M.user_prompt_picker()
 
       map({ "n", "i" }, Config.user_picker_exec_key, function()
         local selection = action_state.get_selected_entry()
-        actions.close(bufnr)
+        actions.close(picker_bufnr)
         if selection then
           -- State.prompt_window:close()
           require("qanda").execute_prompt(selection.value)
@@ -463,7 +458,7 @@ function M.user_prompt_picker()
         if selection then
           local prompt = selection.value
           assert(prompt)
-          actions.close(bufnr)
+          actions.close(picker_bufnr)
           if prompt.filename then
             utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
           else
@@ -471,6 +466,17 @@ function M.user_prompt_picker()
           end
         end
       end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
+
+      map({ "n", "i" }, Config.help_key, function()
+        local help_message = ([[-- User Prompt Picker Commands --
+
+- %s - Execute prompt
+- %s - Open prompt in Prompt window
+- %s - Edit prompt templates file
+
+]]):format(Config.user_picker_exec_key, Config.user_picker_open_key, Config.user_picker_edit_key)
+        vim.notify(help_message, vim.log.levels.INFO)
+      end, { buffer = picker_bufnr, desc = "Show User prompt picker help" })
 
       return true
     end,
@@ -490,18 +496,12 @@ function M.system_prompt_picker()
   end, {
     results_title = "System Prompts",
     preview_title = "Prompt Template",
-    prompt_title = "["
-      .. Config.system_picker_select_key
-      .. " select, "
-      .. Config.system_picker_disable_key
-      .. " disable, "
-      .. Config.system_picker_edit_key
-      .. " edit]",
-    attach_mappings = function(bufnr, map)
+    prompt_title = "[" .. Config.help_key .. " help]",
+    attach_mappings = function(picker_bufnr, map)
 
       map({ "n", "i" }, Config.system_picker_select_key, function()
         local selection = action_state.get_selected_entry()
-        actions.close(bufnr)
+        actions.close(picker_bufnr)
         if selection then
           M.set_system_prompt(selection.value)
         else
@@ -511,7 +511,7 @@ function M.system_prompt_picker()
 
       map({ "n", "i" }, Config.system_picker_disable_key, function()
         local selection = action_state.get_selected_entry()
-        actions.close(bufnr)
+        actions.close(picker_bufnr)
         if selection then
           M.set_system_prompt(nil)
         end
@@ -522,7 +522,7 @@ function M.system_prompt_picker()
         if selection then
           local prompt = selection.value
           assert(prompt)
-          actions.close(bufnr)
+          actions.close(picker_bufnr)
           if prompt.filename then
             utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
           else
@@ -530,6 +530,17 @@ function M.system_prompt_picker()
           end
         end
       end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
+
+      map({ "n", "i" }, Config.help_key, function()
+        local help_message = ([[-- System Prompt Picker Commands --
+
+- %s - Select prompt
+- %s - Disable system prompt
+- %s - Edit prompt templates file
+
+]]):format(Config.system_picker_select_key, Config.system_picker_disable_key, Config.system_picker_edit_key)
+        vim.notify(help_message, vim.log.levels.INFO)
+      end, { buffer = picker_bufnr, desc = "Show System prompt picker help" })
 
       return true
     end,
@@ -588,7 +599,7 @@ function M.substitute_placeholders(prompt_string)
 
   -- Handle the $select placeholder first
   if string.find(prompt_string, "%$select") then
-    -- DEPRECATED: Switched to coroutine-based (async) `vim.ui.select` implementation.
+    -- TODO: DEPRECATED: Switched to coroutine-based (async) `vim.ui.select` implementation.
     -- local placeholders = { "$clipboard", "$yanked", "$input" }
     -- local options = { "1. Clipboard", "2. Yanked text", "3. User input" }
     --
