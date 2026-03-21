@@ -82,6 +82,13 @@ function M.normaliser(raw_json)
     return nil
   end
 
+  -- Reshape error response
+  if decoded.error then
+    return {
+      error = decoded.error.message or decoded.error.code or "OpenRouter API error",
+    }
+  end
+
   local resp = {}
 
   -- Map delta content into Ollama‑style message.content

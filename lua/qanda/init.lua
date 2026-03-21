@@ -227,6 +227,7 @@ function M.execute_prompt(prompt)
       port = Config.port,
       data = request_data,
     }
+    request.data.model = "XXXXXX"
     local curl_args = State.provider.module.command(request)
 
     debug.exec(function()
@@ -237,9 +238,13 @@ function M.execute_prompt(prompt)
     Chats.open_chat(chat, #turns)
 
     -- Execute the curl command streaming the output to the Chat window.
-    curl.execute_command(curl_args, State.provider.module.normaliser, State.chat_window.winid, function(model_response)
+    curl.execute_command(curl_args, State.provider.module.normaliser, State.chat_window.winid, function(model_response, error_message)
       if curl.job_status() ~= "stopped" then
         -- Turn did not complete
+        return
+      end
+
+      if error_message then
         return
       end
 

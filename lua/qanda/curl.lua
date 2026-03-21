@@ -4,7 +4,7 @@ local M = {}
 
 local active_job = nil
 local job_status = "stopped" ---@type JobStatus
-local error_message = ""
+local error_message = nil
 local stop_spinner = function(_, _) end
 local model_response = {} -- Stores the full model response as a table of lines
 
@@ -116,6 +116,20 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
 
       line_buffer = line_buffer .. data
 
+      -- Handle non-newline delimited Ollama errors.
+      -- If the buffer starts like a JSON object and contains "error", try to parse it immediately.
+      -- NOTE: This match is valid for all providers.
+      if line_buffer:match "^%s*{" and line_buffer:match '"error"%s*:' then
+        local ok, decoded = pcall(data_normaliser, line_buffer)
+        if ok and decoded and decoded.error then
+          error_message = decoded.error
+          append_to_win(winid, "\n\n___\n**Error: " .. error_message .. "**", true)
+          job_status = "error"
+          done = true
+          return
+        end
+      end
+
       -- Process complete JSON objects delimited by newlines
       while true do
         local newline_pos = line_buffer:find "\n"
@@ -171,9 +185,10 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
     end,
     stderr = function(_, data)
       if data and data:len() > 0 then
-        append_to_win(winid, "\n\n**Error: " .. data .. "**", true)
         error_message = data
+        append_to_win(winid, "\n\n___\n**Curl error: " .. error_message .. "**", true)
         job_status = "error"
+        done = true
       end
     end,
   }, function(_)
@@ -186,7 +201,7 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
     end
     active_job = nil
     if on_exit_callback then
-      on_exit_callback(model_response)
+      on_exit_callback(model_response, error_message)
     end
   end)
 end
