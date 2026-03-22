@@ -11,8 +11,8 @@ local default = {
   -- User configuration --
   debug = true,
 
-  provider = "ollama",
-  model = "mistral",
+  provider = nil,
+  model = nil,
   host = "localhost",
   port = "11434",
 
@@ -24,10 +24,10 @@ local default = {
 
   -- Provider specific options
   provider_options = {
-    openrouter = { api_key = "$OPENROUTER_API_KEY" }, -- TODO:
+    openrouter = { api_key = "$OPENROUTER_API_KEY" },
   },
 
-  chat_reload = true,
+  chat_reload = false, -- Reload the most recent chat at startup
 
   help_key = "<C-h>",
 
