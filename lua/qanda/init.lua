@@ -227,7 +227,6 @@ function M.execute_prompt(prompt)
       port = Config.port,
       data = request_data,
     }
-    request.data.model = "XXXXXX"
     local curl_args = State.provider.module.command(request)
 
     debug.exec(function()

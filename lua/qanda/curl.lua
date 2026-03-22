@@ -102,12 +102,22 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
 
   local start_ms = utils.get_time_ms()
 
+  local log_error = function(msg)
+    error_message = msg
+    append_to_win(winid, "\n\n___\n**Error: " .. msg .. "**", true)
+    job_status = "error"
+    done = true
+  end
+
   active_job = vim.system(cmd, {
     stdout = function(err, data)
       if done then -- Discard second and subsequent "done" messages
         return
       end
       if err then
+        if err ~= "closed" and err ~= "timeout" then -- Don't break streaming on closure/timeout
+          log_error("stdout: " .. err)
+        end
         return
       end
       if not data then
@@ -122,10 +132,7 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
       if line_buffer:match "^%s*{" and line_buffer:match '"error"%s*:' then
         local ok, decoded = pcall(data_normaliser, line_buffer)
         if ok and decoded and decoded.error then
-          error_message = decoded.error
-          append_to_win(winid, "\n\n___\n**Error: " .. error_message .. "**", true)
-          job_status = "error"
-          done = true
+          log_error(decoded.error)
           return
         end
       end
@@ -185,10 +192,7 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
     end,
     stderr = function(_, data)
       if data and data:len() > 0 then
-        error_message = data
-        append_to_win(winid, "\n\n___\n**Curl error: " .. error_message .. "**", true)
-        job_status = "error"
-        done = true
+        log_error("curl: " .. data)
       end
     end,
   }, function(_)
