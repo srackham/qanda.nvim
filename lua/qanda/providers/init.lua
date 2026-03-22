@@ -46,8 +46,6 @@ function M.setup()
     end
   end
 
-  M.restore_provider()
-
 end
 
 ---Retrieve provider by name.
@@ -64,6 +62,8 @@ function M.get_provider(name)
 end
 
 -- Restore State.provider from saved provider and model names.
+-- Returns nil if the saved provider was invalid and a user selection was scheduled,
+-- otherwise returns the saved provider.
 function M.restore_provider()
   local provider = nil
   local provider_name = State.saved_state.provider or Config.provider
@@ -81,8 +81,10 @@ function M.restore_provider()
       State.provider.model = model_name
       State.saved_state.model = model_name
       State.saved_state.provider = provider.name
+      return provider
     end
   end
+  return nil
 end
 
 function M.select_provider(current_provider, callback)
@@ -91,7 +93,7 @@ function M.select_provider(current_provider, callback)
     table.insert(items, v.name)
   end
   for i, v in ipairs(items) do
-    if v == current_provider.name then -- Highlight current provider
+    if current_provider and v == current_provider.name then -- Highlight current provider
       items[i] = "* " .. v
     else
       items[i] = "  " .. v

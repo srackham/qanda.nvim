@@ -64,8 +64,21 @@ function M.new_qanda()
   ---@todo
 end
 
+local initialised = false
+
 function M.create_user_command()
   vim.api.nvim_create_user_command("Qanda", function(arg)
+
+    -- One-off provider restoration when first command is executed
+    if not initialised then
+      initialised = true
+      -- Return if the saved provider/model was invalid because user selection is asynchronous,
+      -- otherwise continue and execute the original command.
+      if not Providers.restore_provider() then
+        return
+      end
+    end
+
     local args = arg.args
     if args == "" then
       args = "/prompts"
