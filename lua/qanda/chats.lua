@@ -169,18 +169,14 @@ function M.recent_chat_file()
 end
 
 function M.delete_turn(chat, turn_index)
-  if turn_index then
+  if turn_index and turn_index > 0 then
     table.remove(chat.turns, turn_index)
-    -- if turn_index > #chat.turns then
-    --   turn_index = #chat.turns
-    -- end
-    M.open_chat(chat)
     if #chat.turns == 0 then
       -- Once the last turn has been deleted, delete the chat file
       if chat.filename then
-        if utils.delete_file(chat.filename) then
+        utils.delete_file(chat.filename)
+        if chat == State.chat_window.chat then
           M.new_chat()
-          M.open_chat()
         end
       end
     else
@@ -244,6 +240,7 @@ function M.open_chat(chat, turn_index)
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_delete_key, function()
     M.delete_turn(win.chat, win.turn_index)
+    M.open_chat(win.chat, win.turn_index)
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_edit_key, function()
     if win.chat.filename then
@@ -314,6 +311,13 @@ end
 ---@return string[]
 function M.turn_to_lines(chat, turn_index)
   local turn = chat.turns[turn_index]
+
+  -- Ensure the turn actually exists before proceeding
+  -- TODO: replace with an assert
+  if not turn then
+    return { "**No data for turn " .. tostring(turn_index) .. "**" }
+  end
+
   local lines = {}
   local rule = string.rep("_", 3)
 
@@ -575,6 +579,28 @@ function M.turns_picker()
   local current_chat = State.chat_window.chat
   local current_turn = State.chat_window.chat.turns[State.chat_window.turn_index]
 
+  local delete_entry = function(picker_bufnr)
+    local current_picker = action_state.get_current_picker(picker_bufnr)
+
+    current_picker:delete_selection(function(selection)
+      if selection then
+        -- 1. Identify the specific turn to delete
+        local turn_to_delete = selection.value.turn
+
+        -- 2. Find its current position in the actual state table
+        -- (This is safer than relying on the index from when the picker opened)
+        for i, turn in ipairs(current_chat.turns) do
+          if turn == turn_to_delete then
+            M.delete_turn(current_chat, i)
+            break
+          end
+        end
+        return true
+      end
+      return false
+    end)
+  end
+
   -- Key commands
   local mappings = function(picker_bufnr, map)
 
@@ -587,14 +613,7 @@ function M.turns_picker()
     end, { desc = "Close the picker and open the selected turn in the chat window" })
 
     map({ "n", "i" }, Config.turn_picker_delete_key, function()
-      local selection = action_state.get_selected_entry()
-      actions.close(picker_bufnr)
-      if selection then
-        vim.schedule(function()
-          local turn_index = selection.value.index
-          M.delete_turn(current_chat, turn_index)
-        end)
-      end
+      delete_entry(picker_bufnr)
     end, { desc = "Close the picker and delete the selected chat file" })
 
     map({ "n", "i" }, Config.help_key, function()
