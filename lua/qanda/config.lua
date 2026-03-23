@@ -50,6 +50,7 @@ local default = {
 
   -- Turn picker key commands --
   turn_picker_open_key = "<Enter>",
+  turn_picker_delete_key = "<C-d>",
 
   -- Prompt window key commands --
   prompt_abort_key = "<Esc>",

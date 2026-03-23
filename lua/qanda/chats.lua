@@ -168,6 +168,27 @@ function M.recent_chat_file()
   return State.saved_state.chat_file
 end
 
+function M.delete_turn(chat, turn_index)
+  if turn_index then
+    table.remove(chat.turns, turn_index)
+    -- if turn_index > #chat.turns then
+    --   turn_index = #chat.turns
+    -- end
+    M.open_chat(chat)
+    if #chat.turns == 0 then
+      -- Once the last turn has been deleted, delete the chat file
+      if chat.filename then
+        if utils.delete_file(chat.filename) then
+          M.new_chat()
+          M.open_chat()
+        end
+      end
+    else
+      M.save_chat(chat)
+    end
+  end
+end
+
 ---Open chat window, load the chat turn at chat index `turn_index`.
 ---If the chat window does not exist, create it and attach key-mapped commands.
 ---@param chat Chat?
@@ -184,7 +205,10 @@ function M.open_chat(chat, turn_index)
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_chat_syntax_highlighting(win.bufnr)
   if win.turn_index > 0 then
-    assert(win.turn_index <= #win.chat.turns)
+    -- assert(win.turn_index <= #win.chat.turns)
+    if win.turn_index > #win.chat.turns then
+      win.turn_index = #win.chat.turns
+    end
     local lines = M.turn_to_lines(win.chat, win.turn_index)
     win:set_lines(lines)
   else
@@ -219,24 +243,7 @@ function M.open_chat(chat, turn_index)
     end
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_delete_key, function()
-    if win.turn_index then
-      table.remove(win.chat.turns, win.turn_index)
-      if win.turn_index > #win.chat.turns then
-        win.turn_index = #win.chat.turns
-      end
-      M.open_chat(win.chat)
-      if #win.chat.turns == 0 then
-        -- Once the last turn has been deleted, delete the chat file
-        if win.chat.filename then
-          if utils.delete_file(win.chat.filename) then
-            M.new_chat()
-            M.open_chat()
-          end
-        end
-      else
-        M.save_chat(win.chat)
-      end
-    end
+    M.delete_turn(win.chat, win.turn_index)
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.chat_edit_key, function()
     if win.chat.filename then
@@ -579,12 +586,24 @@ function M.turns_picker()
       end
     end, { desc = "Close the picker and open the selected turn in the chat window" })
 
+    map({ "n", "i" }, Config.turn_picker_delete_key, function()
+      local selection = action_state.get_selected_entry()
+      actions.close(picker_bufnr)
+      if selection then
+        vim.schedule(function()
+          local turn_index = selection.value.index
+          M.delete_turn(current_chat, turn_index)
+        end)
+      end
+    end, { desc = "Close the picker and delete the selected chat file" })
+
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Turn Picker Commands --
 
 - %s - Open turn in Chat window
+- %s - Delete selected turn
 
-]]):format(Config.chat_picker_open_key)
+]]):format(Config.chat_picker_open_key, Config.turn_picker_delete_key)
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
 
