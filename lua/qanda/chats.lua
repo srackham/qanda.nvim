@@ -168,7 +168,7 @@ function M.recent_chat_file()
   return State.saved_state.chat_file
 end
 
----Open chat window, load the chat turn at chat index `idx`.
+---Open chat window, load the chat turn at chat index `turn_index`.
 ---If the chat window does not exist, create it and attach key-mapped commands.
 ---@param chat Chat?
 function M.open_chat(chat, turn_index)
@@ -230,6 +230,7 @@ function M.open_chat(chat, turn_index)
         if win.chat.filename then
           if utils.delete_file(win.chat.filename) then
             M.new_chat()
+            M.open_chat()
           end
         end
       else
@@ -286,11 +287,13 @@ Normal mode commands:
   end, { buffer = win.bufnr, desc = "Show Chat window help" })
 end
 
+-- Assign a new empty chat to the Chat window.
 function M.new_chat()
   local new_chat = { turns = {} }
 
-  -- Bind the chat to the Chat window
-  M.open_chat(new_chat, 0)
+  local win = State.chat_window
+  win.chat = new_chat
+  win.turn_index = 0
 
   -- Include the system prompt in the first turn
   if State.system_prompt then
@@ -435,6 +438,7 @@ function M.chat_picker()
           if utils.delete_file(chat.filename, { confirm = true }) then
             if chat == State.chat_window.chat then
               M.new_chat()
+              M.open_chat()
             end
           end
         end)

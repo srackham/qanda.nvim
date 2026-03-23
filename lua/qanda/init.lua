@@ -69,12 +69,17 @@ local initialised = false
 function M.create_user_command()
   vim.api.nvim_create_user_command("Qanda", function(arg)
 
-    -- One-off provider restoration when first command is executed
+    -- One-off lazy initialisations when first command is executed
     if not initialised then
+      -- If the most recently used Chat window is not loaded then create a new empty chat
+      if not State.chat_window.chat then
+        Chats.new_chat()
+      end
       initialised = true
-      -- Return if the saved provider/model was invalid because user selection is asynchronous,
-      -- otherwise continue and execute the original command.
+      -- Provider restoration
       if not Providers.restore_provider() then
+        -- Return if the saved provider/model is invalid because the ensuing user selection is asynchronous,
+        -- otherwise continue and execute the original command.
         return
       end
     end
@@ -88,12 +93,12 @@ function M.create_user_command()
       State.prompt_window:close()
       if #State.chats == 0 then
         Chats.new_chat()
-      else
-        Chats.open_chat()
       end
+      Chats.open_chat()
       return
     elseif args == "/new" then
       Chats.new_chat()
+      Chats.open_chat()
       Prompts.open_prompt(nil)
       return
     elseif args == "/prompt" then
