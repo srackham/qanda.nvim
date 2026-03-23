@@ -72,8 +72,7 @@ local default = {
 
   -- Miscellaneous --
   data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
-  -- system_prompt_name = nil, -- Default system prompt name
-  system_prompt_name = "Generic", -- Default system prompt name
+  system_prompt_name = nil, -- Default system prompt name
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_prompt_lines = 10, -- The maximum number of system prompt lines to display in the Chat window
   response_register = "r", -- Holds the most recent response (extracted)
