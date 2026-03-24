@@ -203,6 +203,7 @@ function M.delete_turn(chat, turn)
       end
     else
       M.save_chat(chat)
+      State.chat_window.current_turn = nil -- Force Chat window refresh when picker is closed
     end
   end
 end
@@ -621,6 +622,18 @@ function M.turns_picker()
 
   -- Key commands
   local mappings = function(picker_bufnr, map)
+
+    -- Execute the callback when the picker is closed
+    vim.api.nvim_create_autocmd("BufWipeout", {
+      buffer = picker_bufnr,
+      once = true,
+      callback = function()
+        -- Reload the chat window if it is open and a deletion occurred
+        if not State.chat_window.current_turn and State.chat_window:is_open() then
+          M.open_chat(State.chat_window.chat)
+        end
+      end,
+    })
 
     map({ "n", "i" }, Config.turn_picker_open_key, function()
       local selection = action_state.get_selected_entry()

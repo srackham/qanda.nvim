@@ -252,6 +252,11 @@ function M.UIWindow:close()
   end
 end
 
+--- Return true if the window is open.
+function M.UIWindow:is_open()
+  return self.winid and vim.api.nvim_win_is_valid(self.winid)
+end
+
 --- Set window title
 function M.UIWindow:set_title(title)
   local win_config = vim.api.nvim_win_get_config(self.winid)
