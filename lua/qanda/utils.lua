@@ -599,4 +599,13 @@ function M.file_exists(path)
   return vim.fn.filereadable(path) == 1
 end
 
+function M.index_of(tbl, value)
+  for i, v in ipairs(tbl) do
+    if v == value then
+      return i
+    end
+  end
+  return nil -- not found
+end
+
 return M

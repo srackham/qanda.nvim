@@ -13,7 +13,7 @@ local M = {
     modifiable = false,
     mode = nil,
     chat = nil,
-    turn_index = nil, -- 1-based index of the turn in the chat window
+    current_turn = nil,
   },
 
   prompt_window = ui.UIWindow.new {

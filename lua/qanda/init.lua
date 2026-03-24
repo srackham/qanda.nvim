@@ -252,7 +252,7 @@ function M.execute_prompt(prompt)
     end)
 
     -- Clear the Chat window and write the header.
-    Chats.open_chat(chat, #turns)
+    Chats.open_chat(chat, turn)
 
     -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(curl_args, State.provider.module.normaliser, State.chat_window.winid, function(model_response, error_message)

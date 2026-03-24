@@ -307,6 +307,7 @@ function M.open_prompt(prompt)
     local lines = M.prompt_to_lines(prompt)
     win:set_lines(lines)
   end
+
   -- Attach key commands.
   vim.keymap.set("n", Config.prompt_close_key, function()
     win:close()
@@ -314,6 +315,7 @@ function M.open_prompt(prompt)
   vim.keymap.set("n", Config.prompt_switch_key, function()
     vim.cmd "Qanda /chat"
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.prompt_exec_key, function()
     local lines = win:get_lines()
     win:close()
@@ -322,6 +324,7 @@ function M.open_prompt(prompt)
       require("qanda").execute_prompt(p)
     end
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.prompt_clear_key, function()
     -- Clear the current buffer in the window
     vim.api.nvim_buf_set_lines(0, 0, -1, true, {})

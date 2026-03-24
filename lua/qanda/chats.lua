@@ -95,7 +95,7 @@ function M.load_chats(chat_file)
         -- Update active state if this file matches the current window's chat
         if State.chat_window.chat and State.chat_window.chat.filename == file_path then
           State.chat_window.chat = chat
-          State.chat_window.turn_index = nil
+          State.chat_window.current_turn = nil
           chat_window_updated = true
         end
       else
@@ -110,7 +110,7 @@ function M.load_chats(chat_file)
   -- (We usually only want to invalidate if we're doing a fresh directory scan)
   if not chat_file and not chat_window_updated then
     State.chat_window.chat = { turns = {} }
-    State.chat_window.turn_index = nil
+    State.chat_window.current_turn = nil
   end
 
   return result
@@ -168,9 +168,31 @@ function M.recent_chat_file()
   return State.saved_state.chat_file
 end
 
-function M.delete_turn(chat, turn_index)
-  if turn_index and turn_index > 0 then
-    table.remove(chat.turns, turn_index)
+local function get_turn_index(chat, turn)
+  return utils.index_of(chat.turns, turn)
+end
+
+local function get_next_turn(chat, turn)
+  local index = get_turn_index(chat, turn)
+  if index and index < #chat.turns then
+    return chat.turns[index + 1]
+  else
+    return nil
+  end
+end
+
+local function get_prev_turn(chat, turn)
+  local index = get_turn_index(chat, turn)
+  if index and index > 1 then
+    return chat.turns[index - 1]
+  else
+    return nil
+  end
+end
+
+function M.delete_turn(chat, turn)
+  if turn then
+    table.remove(chat.turns, get_turn_index(chat, turn))
     if #chat.turns == 0 then
       -- Once the last turn has been deleted, delete the chat file
       if chat.filename then
@@ -185,67 +207,77 @@ function M.delete_turn(chat, turn_index)
   end
 end
 
----Open chat window, load the chat turn at chat index `turn_index`.
+---Open chat window, load the chat turn at chat `current_turn`.
 ---If the chat window does not exist, create it and attach key-mapped commands.
 ---@param chat Chat?
-function M.open_chat(chat, turn_index)
+function M.open_chat(chat, turn)
   local win = State.chat_window
   if chat then
     win.chat = chat
   end
   assert(win.chat)
-  win.turn_index = turn_index or win.turn_index or #win.chat.turns
+  win.current_turn = turn or win.current_turn or win.chat.turns[#win.chat.turns]
   win:open()
   win:set_title("Chat [" .. Config.help_key .. " help]")
 
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_chat_syntax_highlighting(win.bufnr)
-  if win.turn_index > 0 then
-    -- assert(win.turn_index <= #win.chat.turns)
-    if win.turn_index > #win.chat.turns then
-      win.turn_index = #win.chat.turns
-    end
-    local lines = M.turn_to_lines(win.chat, win.turn_index)
+  if win.current_turn then
+    local lines = M.turn_to_lines(win.chat, win.current_turn)
     win:set_lines(lines)
   else
     win:set_lines { "" }
   end
+
   -- Attach key commands.
   vim.keymap.set("n", Config.chat_close_key, function()
     win:close()
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_abort_key, function()
     curl.kill_command()
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_switch_key, function()
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_exec_key, function()
-    local turn = win.chat.turns[win.turn_index or #win.chat.turns] or {}
+    local current_turn = win.current_turn or {}
     require("qanda.prompts").open_prompt {
-      model_options = turn.model_options,
-      extract = turn.extract,
-      prompt = turn.request,
+      model_options = current_turn.model_options,
+      extract = current_turn.extract,
+      prompt = current_turn.request,
     }
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_prev_key, function()
-    if win.turn_index and win.turn_index > 1 then
-      M.open_chat(win.chat, win.turn_index - 1)
+    if win.current_turn then
+      local t = get_prev_turn(win.chat, win.current_turn)
+      if t then
+        M.open_chat(win.chat, t)
+      end
     end
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_next_key, function()
-    if win.turn_index and win.turn_index < #win.chat.turns then
-      M.open_chat(win.chat, win.turn_index + 1)
+    if win.current_turn then
+      local t = get_next_turn(win.chat, win.current_turn)
+      if t then
+        M.open_chat(win.chat, t)
+      end
     end
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_delete_key, function()
-    M.delete_turn(win.chat, win.turn_index)
-    M.open_chat(win.chat, win.turn_index)
+    M.delete_turn(win.chat, win.current_turn)
+    M.open_chat(win.chat, win.current_turn)
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_edit_key, function()
     if win.chat.filename then
       win:close()
-      local timestamp = win.chat.turns[win.turn_index].timestamp
+      local timestamp = win.current_turn.timestamp
       utils.edit_file(
         win.chat.filename,
         M.add_chat_syntax_highlighting,
@@ -258,6 +290,7 @@ function M.open_chat(chat, turn_index)
       utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.WARN)
     end
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.chat_redo_key, function()
     ---@todo Not implemented
   end, { buffer = win.bufnr })
@@ -297,7 +330,7 @@ function M.new_chat()
 
   local win = State.chat_window
   win.chat = new_chat
-  win.turn_index = 0
+  win.current_turn = nil
 
   -- Include the system prompt in the first turn
   if State.system_prompt then
@@ -307,16 +340,10 @@ function M.new_chat()
 end
 
 ---@param chat Chat
----@param turn_index number
+---@param turn ChatTurn
 ---@return string[]
-function M.turn_to_lines(chat, turn_index)
-  local turn = chat.turns[turn_index]
-
-  -- Ensure the turn actually exists before proceeding
-  -- TODO: replace with an assert
-  if not turn then
-    return { "**No data for turn " .. tostring(turn_index) .. "**" }
-  end
+function M.turn_to_lines(chat, turn)
+  assert(turn)
 
   local lines = {}
   local rule = string.rep("_", 3)
@@ -379,7 +406,7 @@ function M.turn_to_lines(chat, turn_index)
       table.insert(lines, k .. ": " .. v)
     end
   end
-  table.insert(lines, string.format("turn: %d of %d", turn_index, #chat.turns))
+  table.insert(lines, string.format("turn: %d of %d", get_turn_index(chat, turn), #chat.turns))
 
   if turn.system then
     local system_lines = get_limited_prompt("system", turn.system, Config.system_prompt_lines)
@@ -577,24 +604,15 @@ function M.turns_picker()
   local conf = require("telescope.config").values
 
   local current_chat = State.chat_window.chat
-  local current_turn = State.chat_window.chat.turns[State.chat_window.turn_index]
+  local current_turn = State.chat_window.current_turn
 
   local delete_entry = function(picker_bufnr)
     local current_picker = action_state.get_current_picker(picker_bufnr)
 
     current_picker:delete_selection(function(selection)
       if selection then
-        -- 1. Identify the specific turn to delete
-        local turn_to_delete = selection.value.turn
-
-        -- 2. Find its current position in the actual state table
-        -- (This is safer than relying on the index from when the picker opened)
-        for i, turn in ipairs(current_chat.turns) do
-          if turn == turn_to_delete then
-            M.delete_turn(current_chat, i)
-            break
-          end
-        end
+        local turn_to_delete = selection.value
+        M.delete_turn(current_chat, get_turn_index(current_chat, turn_to_delete))
         return true
       end
       return false
@@ -608,7 +626,7 @@ function M.turns_picker()
       local selection = action_state.get_selected_entry()
       actions.close(picker_bufnr)
       if selection then
-        M.open_chat(current_chat, selection.value.index)
+        M.open_chat(current_chat, selection.value)
       end
     end, { desc = "Close the picker and open the selected turn in the chat window" })
 
@@ -641,22 +659,20 @@ function M.turns_picker()
 
   -- Prepare data for telescope
   local picker_entries = {}
-  for i, turn in ipairs(current_chat.turns) do
-    -- Wrap turn along with its index
-    table.insert(picker_entries, { index = i, turn = turn })
+  for _, turn in ipairs(current_chat.turns) do
+    table.insert(picker_entries, turn)
   end
-  -- picker_entries = utils.reverse_table(picker_entries)
 
   -- The original order is the chronological turn order which makes the most sense.
   -- This sort puts the oldest turn at the top of the displayed list; the latest is at the bottom.
   table.sort(picker_entries, function(a, b)
-    return a.index > b.index
+    return get_turn_index(current_chat, a) > get_turn_index(current_chat, b)
   end)
 
   -- Create previewer that shows the chat value
   local turn_previewer = previewers.new_buffer_previewer {
     define_preview = function(self, entry)
-      local lines = M.turn_to_lines(current_chat, entry.value.index)
+      local lines = M.turn_to_lines(current_chat, entry.value)
 
       if #lines == 0 then
         table.insert(lines, "**[No content available for this turn]**")
@@ -677,7 +693,7 @@ function M.turns_picker()
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(entry)
-          local displayed_name = display_entry(entry.turn)
+          local displayed_name = display_entry(entry)
           return {
             value = entry,
             display = displayed_name,
