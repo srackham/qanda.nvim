@@ -702,4 +702,20 @@ function M.paste_registers()
   end
 end
 
+-- Recursive function to ensure numeric strings are converted in-place to numbers in a table.
+-- Targets common Ollama/OpenRouter params like temperature, top_p, max_tokens, etc.
+-- Preserves other types unchanged.
+function M.normalize_numerics(tbl)
+  for k, v in pairs(tbl) do
+    if type(v) == "string" then
+      local num = tonumber(v)
+      if num then
+        tbl[k] = num
+      end
+    elseif type(v) == "table" then
+      tbl[k] = M.normalize_numerics(v) -- Recurse into nested tables (e.g., options)
+    end
+  end
+end
+
 return M

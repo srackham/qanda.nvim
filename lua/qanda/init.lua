@@ -237,6 +237,10 @@ function M.execute_prompt(prompt)
         request_data[k] = v
       end
     end
+
+    -- Ensure numeric strings are converted to numbers
+    utils.normalize_numerics(request_data)
+
     -- Add model messages
     local messages = {}
     for _, t in ipairs(turns) do
