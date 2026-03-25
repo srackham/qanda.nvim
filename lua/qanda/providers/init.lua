@@ -102,7 +102,6 @@ function M.select_provider(current_provider, callback)
   vim.ui.select(items, { prompt = "Providers" }, function(item)
     if item then
       item = string.sub(item, 3)
-      utils.notify("Provider set to '" .. item .. "'", vim.log.levels.INFO)
       callback(item)
     end
   end)

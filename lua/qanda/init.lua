@@ -24,6 +24,10 @@ end
 
 local function select_model()
   local items = State.provider.module.models(Config)
+  if not items then
+    return
+  end
+
   for i, v in ipairs(items) do
     if v == State.provider.model then -- Highlight current model
       items[i] = "* " .. v
@@ -238,7 +242,7 @@ function M.execute_prompt(prompt)
       end
     end
 
-    -- Ensure numeric strings are converted to numbers
+    -- Ensure numeric string values are converted to numbers
     utils.normalize_numerics(request_data)
 
     -- Add model messages

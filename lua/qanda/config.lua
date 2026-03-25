@@ -20,11 +20,13 @@ local default = {
   model_options = {
     ollama = { think = false, stream = true },
     openrouter = { stream = true },
+    gemini = { stream = true },
   },
 
   -- Provider specific options
   provider_options = {
     openrouter = { api_key = "$OPENROUTER_API_KEY" },
+    gemini = { api_key = "$GEMINI_API_KEY" },
   },
 
   chat_reload = false, -- Reload the most recent chat at startup
