@@ -98,7 +98,11 @@ function M.setup(opts)
   end
 
   for k, v in pairs(opts) do
-    M[k] = v
+    if k == "model_options" then
+      M[k] = vim.tbl_deep_extend("force", M[k] or {}, v) -- Merge setup model_options rather than replace
+    else
+      M[k] = v
+    end
   end
 
   -- Expand all configuration paths

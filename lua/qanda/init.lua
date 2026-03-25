@@ -216,14 +216,22 @@ function M.execute_prompt(prompt)
       model = turn.model,
       model_options = turn.model_option,
     }
-    -- Add configuration model options
+
+    -- Add configuration model options (lowest priority)
     local model_options = Config.model_options[turn.provider]
     if model_options then
       for k, v in pairs(model_options) do
         request_data[k] = v
       end
     end
-    -- Add prompt model options
+    -- Add system prompt model options
+    model_options = State.system_prompt and State.system_prompt.model_options
+    if model_options then
+      for k, v in pairs(model_options) do
+        request_data[k] = v
+      end
+    end
+    -- Add user prompt model options (highest priority)
     if turn.model_options then
       for k, v in pairs(turn.model_options) do
         request_data[k] = v
