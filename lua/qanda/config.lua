@@ -76,8 +76,10 @@ local default = {
   system_prompt_name = nil, -- Default system prompt name
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_prompt_lines = 10, -- The maximum number of system prompt lines to display in the Chat window
-  response_register = "r", -- Holds the most recent response (extracted)
-  prompt_register = "p", -- Holds the most recent submitted prompt (mandatory, cannot be nil)
+  user_prompt_register = "u", -- The most recent submitted user prompt
+  system_prompt_register = "s", -- The most recent submitted user prompt
+  response_register = "r", -- The most recent response (extracted)
+  curl_command_register = "c", -- The curl model request shell command
 
   -- Window layouts --
   chat_window_mode = "right",

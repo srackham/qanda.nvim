@@ -4,7 +4,6 @@ local Chats = require "qanda.chats"
 local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
-local debug = require "qanda.debug"
 local curl = require "qanda.curl"
 
 local M = {} -- This module
@@ -135,6 +134,9 @@ function M.create_user_command()
       end
       utils.notify(info, vim.log.levels.INFO)
       return
+    elseif args == "/registers" then
+      utils.paste_registers()
+      return
     else
       local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
       if not prompt then
@@ -163,6 +165,7 @@ function M.create_user_command()
       table.insert(args, "/providers")
       table.insert(args, "/system")
       table.insert(args, "/info")
+      table.insert(args, "/registers")
 
       local completion_candidates = {}
       for _, arg in ipairs(args) do
@@ -247,9 +250,17 @@ function M.execute_prompt(prompt)
     }
     local curl_args = State.provider.module.command(request)
 
-    debug.exec(function()
-      vim.fn.setreg("q", utils.args_to_shell_command(curl_args)) -- Copy executable shell command to clipboard
-    end)
+    if Config.user_prompt_register then
+      vim.fn.setreg(Config.user_prompt_register, turn.request)
+    end
+
+    if turn.system and Config.system_prompt_register then
+      vim.fn.setreg(Config.system_prompt_register, turn.system)
+    end
+
+    if Config.curl_command_register then
+      vim.fn.setreg(Config.curl_command_register, utils.curl_args_to_shell_command(curl_args))
+    end
 
     -- Clear the Chat window and write the header.
     Chats.open_chat(chat, turn)
@@ -266,8 +277,15 @@ function M.execute_prompt(prompt)
       end
 
       -- Update completed turn
-      turns[#turns].response = table.concat(model_response, "\n")
+      local response = table.concat(model_response, "\n")
+      turns[#turns].response = response
       turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
+
+      if Config.response_register then
+        vim.schedule(function() -- Defer because of Neovim's "fast event" context
+          vim.fn.setreg(Config.response_register, response)
+        end)
+      end
 
       -- Consume the system prompt
       if State.system_prompt then
@@ -278,8 +296,6 @@ function M.execute_prompt(prompt)
       vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
         Chats.save_chat(chat)
       end)
-
-      -- Clear Prompt window
 
     end)
 

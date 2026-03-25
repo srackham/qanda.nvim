@@ -608,4 +608,98 @@ function M.index_of(tbl, value)
   return nil -- not found
 end
 
+function M.curl_args_to_shell_command(args)
+  local grouped_flags = {
+    ["-H"] = true,
+    ["-X"] = true,
+    ["-d"] = true,
+    ["--data"] = true,
+    ["--data-raw"] = true,
+    ["--data-binary"] = true,
+  }
+
+  local function format_arg(str)
+    if str:match "^[A-Za-z0-9%-%_%./:=@]+$" then
+      return str
+    else
+      return "'" .. str:gsub("'", "'\\''") .. "'"
+    end
+  end
+
+  local lines = {}
+  local i = 1
+
+  table.insert(lines, format_arg(args[1]) .. " \\")
+  i = 2
+
+  while i <= #args do
+    local arg = args[i]
+    local next_arg = args[i + 1]
+
+    if grouped_flags[arg] and next_arg then
+      local formatted
+
+      if arg == "-d" or arg:match "^%-%-data" then
+        if next_arg:match "^%b{}$" then
+          -- Escape single quotes inside JSON
+          local escaped = next_arg:gsub("'", "'\\''")
+          formatted = "'\n" .. escaped .. "\n'"
+        else
+          formatted = format_arg(next_arg)
+        end
+
+        table.insert(lines, "  " .. arg .. " " .. formatted .. " \\")
+      else
+        table.insert(lines, "  " .. arg .. " " .. format_arg(next_arg) .. " \\")
+      end
+
+      i = i + 2
+    else
+      table.insert(lines, "  " .. format_arg(arg) .. " \\")
+      i = i + 1
+    end
+  end
+
+  -- Remove trailing backslash
+  lines[#lines] = lines[#lines]:gsub(" \\$", "")
+
+  return table.concat(lines, "\n")
+end
+
+function M.paste_registers()
+  local Config = require "qanda.config"
+  local registers = { Config.curl_command_register, Config.system_prompt_register, Config.user_prompt_register, Config.response_register }
+  local titles = { "## Curl command", "## System prompt", "## User prompt", "## Model response" }
+  local lines = {}
+
+  if not vim.api.nvim_get_option_value("modifiable", { buf = 0 }) then
+    M.notify("Buffer is not modifiable", vim.log.levels.ERROR)
+    return
+  end
+
+  for i, reg in ipairs(registers) do
+    local content = vim.fn.getreg(reg)
+    table.insert(lines, "___")
+    table.insert(lines, titles[i])
+    table.insert(lines, "")
+    if content then
+      if reg == Config.curl_command_register then
+        table.insert(lines, "```")
+      end
+      for line in string.gmatch(content, "[^\n]+") do
+        table.insert(lines, line)
+      end
+      if reg == Config.curl_command_register then
+        table.insert(lines, "```")
+      end
+    end
+  end
+
+  table.insert(lines, "___")
+
+  if #lines > 1 then
+    vim.api.nvim_put(lines, "l", true, true)
+  end
+end
+
 return M
