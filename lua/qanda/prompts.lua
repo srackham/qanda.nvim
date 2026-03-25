@@ -90,7 +90,8 @@ local function parse_prompts(lines)
   local i = 1
 
   local match_ruler = function(line)
-    return line:match "^%-%-%-+%s*$" or line:match "^___+%s*$"
+    -- return line:match "^%-%-%-+%s*$" or line:match "^___+%s*$"
+    return line:match "^___+%s*$"
   end
 
   while i <= #lines do
