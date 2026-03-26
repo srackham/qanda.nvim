@@ -475,7 +475,7 @@ function M.chat_picker()
     current_picker:delete_selection(function(selection)
       if selection then
         local chat = selection.value
-        if utils.delete_file(chat.filename, { confirm = false }) then
+        if utils.delete_file(chat.filename, { confirm = Config.confirm_chat_file_deletion }) then
           current_chat_deleted = (chat == current_chat)
           return true
         end

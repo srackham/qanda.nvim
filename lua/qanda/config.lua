@@ -83,6 +83,7 @@ local default = {
   system_prompt_register = "s", -- The most recent submitted user prompt
   response_register = "r", -- The most recent response (extracted)
   curl_command_register = "c", -- The curl model request shell command
+  confirm_chat_file_deletion = true,
 
   -- Window layouts --
   chat_window_mode = "right",
