@@ -421,11 +421,6 @@ function M.turn_to_lines(chat, turn)
       table.insert(lines, k .. ": " .. v)
     end
   end
-  if not get_turn_index(chat, turn) then
-    print "get_turn_index(chat,turn) failed to find turn"
-    print(vim.inspect(chat))
-    print(vim.inspect(turn))
-  end
   table.insert(lines, string.format("turn: %d of %d", get_turn_index(chat, turn), #chat.turns))
 
   if turn.system then
@@ -493,7 +488,7 @@ function M.chat_picker()
       if selection then
         vim.schedule(function()
           local chat = selection.value
-          if utils.delete_file(chat.filename, { confirm = true }) then
+          if utils.delete_file(chat.filename, { confirm = false }) then
             if chat == State.chat_window.chat then
               M.new_chat()
               M.open_chat()
@@ -632,7 +627,7 @@ function M.turns_picker()
     current_picker:delete_selection(function(selection)
       if selection then
         local turn_to_delete = selection.value
-        M.delete_turn(current_chat, get_turn_index(current_chat, turn_to_delete))
+        M.delete_turn(current_chat, turn_to_delete)
         return true
       end
       return false
