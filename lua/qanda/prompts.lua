@@ -326,6 +326,17 @@ function M.open_prompt(prompt)
     end
   end, { buffer = win.bufnr })
 
+  vim.keymap.set("n", Config.prompt_exec_new_key, function()
+    local lines = win:get_lines()
+    win:close()
+    local p = parse_one_prompt(lines)
+    if p then
+      require("qanda/chats").new_chat()
+      require("qanda/chats").open_chat()
+      require("qanda").execute_prompt(p)
+    end
+  end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.prompt_clear_key, function()
     -- Clear the current buffer in the window
     vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
@@ -339,13 +350,21 @@ function M.open_prompt(prompt)
 
 Normal mode commands:
 
-- %s - Submit the prompt to the LLM for execution
+- %s - Execute the prompt
+- %s - Execute the prompt in a new chat
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to Chat window
 - %s - Close Prompt window
 - %s - Inject file into the prompt
 
-]]):format(Config.prompt_exec_key, Config.prompt_clear_key, Config.prompt_switch_key, Config.prompt_close_key, Config.prompt_inject_key)
+]]):format(
+      Config.prompt_exec_key,
+      Config.prompt_exec_new_key,
+      Config.prompt_clear_key,
+      Config.prompt_switch_key,
+      Config.prompt_close_key,
+      Config.prompt_inject_key
+    )
     vim.notify(help_message, vim.log.levels.INFO)
   end, { buffer = win.bufnr, desc = "Show Prompt window help" })
 end
