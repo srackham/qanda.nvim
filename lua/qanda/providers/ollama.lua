@@ -1,5 +1,7 @@
 -- Ollama provider --
 
+local utils = require "qanda.utils"
+
 local M = {} -- This module
 
 ---Local model provider initialisation.
@@ -7,15 +9,28 @@ function M.setup()
   pcall(io.popen, "ollama serve > /dev/null 2>&1 &")
 end
 
----Returns a list of the names of available models.
+--- Returns a list of the names of available models or `nil` if an error occurred.
 ---@param opts table User configuration options
----@return string[]
+---@return string[]|nil
 function M.models(opts)
-  local response = vim.fn.systemlist("curl -q --silent --no-buffer http://" .. opts.host .. ":" .. opts.port .. "/api/tags")
-  local list = vim.fn.json_decode(response)
+  vim.keymap.set("n", "<S-CR>", ":echo 'Shift+Enter pressed'<CR>")
+  local _ = opts -- Suppress unused variable warning
+
+  local data
+  local response
+
+  local ok, err = pcall(function()
+    response = vim.fn.systemlist("curl -q --silent --no-buffer http://" .. opts.host .. ":" .. opts.port .. "/api/tags")
+    data = vim.fn.json_decode(response)
+  end)
+  if not ok then
+    utils.notify("Error retrieving model names from provider: " .. tostring(err), vim.log.levels.ERROR)
+    return nil
+  end
+
   local models = {}
-  for key, _ in ipairs(list.models) do
-    table.insert(models, list.models[key].name)
+  for key, _ in ipairs(data.models) do
+    table.insert(models, data.models[key].name)
   end
   table.sort(models)
   return models

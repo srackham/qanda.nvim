@@ -27,15 +27,26 @@ function M.setup()
 
 end
 
----Returns a list of the names of available models.
+--- Returns a list of the names of available models or `nil` if an error occurred.
 ---@param opts table User configuration options
----@return string[]
+---@return string[]|nil
 function M.models(opts)
   local _ = opts -- Suppress unused variable warning
-  local response = vim.fn.systemlist(
-    "curl -q --silent --no-buffer " .. "-H 'Authorization: Bearer " .. api_key .. "' " .. "'https://openrouter.ai/api/v1/models'"
-  )
-  local data = vim.json.decode(table.concat(response, ""))
+
+  local data
+  local response
+
+  local ok, err = pcall(function()
+    response = vim.fn.systemlist(
+      "curl -q --silent --no-buffer " .. "-H 'Authorization: Bearer " .. api_key .. "' " .. "'https://openrouter.ai/api/v1/models'"
+    )
+    data = vim.json.decode(table.concat(response, ""))
+  end)
+  if not ok then
+    utils.notify("Error retrieving model names from provider: " .. tostring(err), vim.log.levels.ERROR)
+    return nil
+  end
+
   local models = {}
   for _, model in ipairs(data.data) do
     table.insert(models, model.id)

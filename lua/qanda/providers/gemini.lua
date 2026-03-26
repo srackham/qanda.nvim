@@ -24,7 +24,7 @@ function M.setup()
 
 end
 
---- Returns a list of the names of available models or `nil` if an error occured.
+--- Returns a list of the names of available models or `nil` if an error occurred.
 function M.models(opts)
   local _ = opts -- Suppress unused variable warning
   local url = "https://generativelanguage.googleapis.com/v1beta/models"
