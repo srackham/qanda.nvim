@@ -243,7 +243,7 @@ function M.open_chat(chat, turn)
     vim.cmd "Qanda /prompt"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_exec_key, function()
+  vim.keymap.set("n", Config.chat_prompt_key, function()
     local current_turn = win.current_turn or {}
     require("qanda.prompts").open_prompt {
       model_options = current_turn.model_options,
@@ -293,7 +293,21 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_redo_key, function()
-    ---@todo Not implemented
+    if #win.chat.turns == 0 then
+      utils.notify("Empty chat, there is nothing to redo", vim.log.levels.WARN)
+      return
+    end
+
+    -- Delete the most recent turn and re-execute it
+    local most_recent_turn = win.chat.turns[#win.chat.turns]
+    table.remove(win.chat.turns)
+    win.current_turn = nil
+    M.open_chat()
+    require("qanda.prompts").open_prompt {
+      model_options = most_recent_turn.model_options,
+      extract = most_recent_turn.extract,
+      prompt = most_recent_turn.request,
+    }
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
@@ -306,12 +320,12 @@ Normal mode commands:
 - %s/`%s` Scroll up/down for previous/next prompt (from the current chat message)
 - %s - Delete current turn, if last turn delete the chat
 - %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
-- %s - Re-execute and replace the latest turn.
+- %s - Delete then re-execute the latest turn
 - %s - Abort the current request
 - %s - Close Chat window.
 
 ]]):format(
-      Config.chat_exec_key,
+      Config.chat_prompt_key,
       Config.chat_switch_key,
       Config.chat_prev_key,
       Config.chat_next_key,
@@ -406,6 +420,11 @@ function M.turn_to_lines(chat, turn)
     for k, v in pairs(turn.model_options) do
       table.insert(lines, k .. ": " .. v)
     end
+  end
+  if not get_turn_index(chat, turn) then
+    print "get_turn_index(chat,turn) failed to find turn"
+    print(vim.inspect(chat))
+    print(vim.inspect(turn))
   end
   table.insert(lines, string.format("turn: %d of %d", get_turn_index(chat, turn), #chat.turns))
 

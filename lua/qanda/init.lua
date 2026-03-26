@@ -283,7 +283,7 @@ function M.execute_prompt(prompt)
 
     -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(curl_args, State.provider.module.normaliser, State.chat_window.winid, function(model_response, error_message)
-      if curl.job_status() ~= "stopped" then
+      if curl.get_job_status() ~= "stopped" then
         -- Turn did not complete
         return
       end

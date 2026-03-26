@@ -72,7 +72,7 @@ function M.kill_command()
   end
 end
 
-function M.job_status()
+function M.get_job_status()
   return job_status
 end
 

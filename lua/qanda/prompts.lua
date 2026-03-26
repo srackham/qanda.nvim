@@ -449,7 +449,7 @@ function M.user_prompt_picker()
 
   prompt_picker(M.user_prompts, nil, {
     results_title = "User Prompts",
-    preview_title = "Prompt Template",
+    preview_title = "User Prompt Template",
     prompt_title = "[" .. Config.help_key .. " help]",
     attach_mappings = function(picker_bufnr, map)
 
@@ -526,7 +526,7 @@ function M.system_prompt_picker()
     end
   end, {
     results_title = "System Prompts",
-    preview_title = "Prompt Template",
+    preview_title = "System Prompt Template",
     prompt_title = "[" .. Config.help_key .. " help]",
     attach_mappings = function(picker_bufnr, map)
 
