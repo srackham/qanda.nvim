@@ -210,7 +210,7 @@ function M.prompt_to_lines(prompt)
     table.insert(lines, 1, rule)
     table.insert(lines, rule)
   end
-  for _, v in ipairs(vim.split(utils.trim_string(prompt.prompt or ""), "\n")) do
+  for _, v in ipairs(vim.split(utils.trim_string(prompt.expanded or prompt.prompt or ""), "\n")) do
     table.insert(lines, v)
   end
   return lines
@@ -459,11 +459,19 @@ function M.user_prompt_picker()
         if selection then
           local prompt = selection.value
           assert(prompt)
-          M.open_prompt(prompt)
+          -- Expand prompt template and open in Prompt window
+          coroutine.wrap(function()
+            prompt.expanded = M.substitute_placeholders(prompt.prompt)
+            if prompt.expanded then
+              M.open_prompt(prompt)
+            else
+              utils.notify("User cancelled", vim.log.levels.INFO)
+            end
+          end)()
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end
-      end, { desc = "Close the picker and open the prompt in the prompt window" })
+      end, { desc = "Expand the prompt template and open in the prompt window" })
 
       map({ "n", "i" }, Config.user_picker_exec_key, function()
         local selection = action_state.get_selected_entry()
@@ -474,7 +482,7 @@ function M.user_prompt_picker()
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end
-      end, { desc = "Close the picker and execute the selected prompt template" })
+      end, { desc = "Expand and execute the selected prompt template" })
 
       map({ "n", "i" }, Config.user_picker_edit_key, function()
         local selection = action_state.get_selected_entry()
@@ -491,13 +499,13 @@ function M.user_prompt_picker()
       end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
 
       map({ "n", "i" }, Config.help_key, function()
-        local help_message = ([[-- User Prompt Picker Commands --
+        local help_message = ([[-- User Prompt Template Picker Commands --
 
-- %s - Execute prompt
-- %s - Open prompt in Prompt window
+- %s - Expand the prompt template and open in the prompt window
+- %s - Expand and execute the selected prompt template
 - %s - Edit prompt templates file
 
-]]):format(Config.user_picker_exec_key, Config.user_picker_open_key, Config.user_picker_edit_key)
+]]):format(Config.user_picker_open_key, Config.user_picker_exec_key, Config.user_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)
       end, { buffer = picker_bufnr, desc = "Show User prompt picker help" })
 
@@ -555,7 +563,7 @@ function M.system_prompt_picker()
       end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
 
       map({ "n", "i" }, Config.help_key, function()
-        local help_message = ([[-- System Prompt Picker Commands --
+        local help_message = ([[-- System Prompt Template Picker Commands --
 
 - %s - Select prompt
 - %s - Disable system prompt

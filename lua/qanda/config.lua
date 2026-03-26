@@ -63,11 +63,11 @@ local default = {
   prompt_switch_key = "<Tab>",
   prompt_inject_key = "<Leader>fi",
 
-  -- Prompt picker key commands --
+  -- Prompt template picker key commands --
+  user_picker_open_key = "<Enter>",
+  user_picker_exec_key = "<S-Enter>",
   user_picker_delete_key = "<C-d>",
   user_picker_edit_key = "<C-e>",
-  user_picker_exec_key = "<Enter>",
-  user_picker_open_key = "<C-Space>",
 
   -- System prompt picker key commands --
   system_picker_edit_key = "<C-e>",
