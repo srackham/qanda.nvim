@@ -466,9 +466,42 @@ function M.chat_picker()
   local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
 
-  -- Key commands
+  local current_chat = State.chat_window.chat
+  local current_chat_deleted = false
+
+  local delete_entry = function(picker_bufnr)
+    local current_picker = action_state.get_current_picker(picker_bufnr)
+
+    current_picker:delete_selection(function(selection)
+      if selection then
+        local chat = selection.value
+        if utils.delete_file(chat.filename, { confirm = false }) then
+          current_chat_deleted = (chat == current_chat)
+          return true
+        end
+      end
+      return false
+    end)
+  end
+
   local mappings = function(picker_bufnr, map)
 
+    -- Execute the callback when the picker is closed
+    vim.api.nvim_create_autocmd("BufWipeout", {
+      buffer = picker_bufnr,
+      once = true,
+      callback = function()
+        -- If necessary, clear the Chat window
+        if current_chat_deleted then
+          M.new_chat()
+          if State.chat_window:is_open() then
+            M.open_chat()
+          end
+        end
+      end,
+    })
+
+    -- Key commands
     map({ "n", "i" }, Config.chat_picker_open_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(picker_bufnr)
@@ -483,19 +516,7 @@ function M.chat_picker()
     end, { desc = "Close the picker and open the chat in the chat window" })
 
     map({ "n", "i" }, Config.chat_picker_delete_key, function()
-      local selection = action_state.get_selected_entry()
-      actions.close(picker_bufnr)
-      if selection then
-        vim.schedule(function()
-          local chat = selection.value
-          if utils.delete_file(chat.filename, { confirm = false }) then
-            if chat == State.chat_window.chat then
-              M.new_chat()
-              M.open_chat()
-            end
-          end
-        end)
-      end
+      delete_entry(picker_bufnr)
     end, { desc = "Close the picker and delete the selected chat file" })
 
     map({ "n", "i" }, Config.chat_picker_rename_key, function()
@@ -626,15 +647,13 @@ function M.turns_picker()
 
     current_picker:delete_selection(function(selection)
       if selection then
-        local turn_to_delete = selection.value
-        M.delete_turn(current_chat, turn_to_delete)
+        M.delete_turn(current_chat, selection.value)
         return true
       end
       return false
     end)
   end
 
-  -- Key commands
   local mappings = function(picker_bufnr, map)
 
     -- Execute the callback when the picker is closed
@@ -649,6 +668,7 @@ function M.turns_picker()
       end,
     })
 
+    -- Key commands
     map({ "n", "i" }, Config.turn_picker_open_key, function()
       local selection = action_state.get_selected_entry()
       actions.close(picker_bufnr)
