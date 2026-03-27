@@ -89,46 +89,46 @@ function M.create_user_command()
 
     local args = arg.args
     if args == "" then
-      args = "/prompts"
+      args = "/prompt_picker"
     end
 
-    if args == "/chat" then
+    if args == "/chat_window" then
       State.prompt_window:close()
       if #State.chats == 0 then
         Chats.new_chat()
       end
       Chats.open_chat()
       return
-    elseif args == "/new" then
+    elseif args == "/new_chat" then
       Chats.new_chat()
       Chats.open_chat()
       Prompts.open_prompt(nil)
       return
-    elseif args == "/prompt" then
+    elseif args == "/prompt_window" then
       Prompts.open_prompt(nil)
       return
-    elseif args == "/chats" then
+    elseif args == "/chat_picker" then
       State.chats = Chats.load_chats()
       Chats.chat_picker()
       return
-    elseif args == "/turns" then
+    elseif args == "/turn_picker" then
       Chats.turns_picker()
       return
-    elseif args == "/prompts" then
+    elseif args == "/prompt_picker" then
       Prompts.load_user_prompts()
       Prompts.user_prompt_picker()
       return
-    elseif args == "/system" then
+    elseif args == "/system_message_picker" then
       Prompts.load_system_prompts()
       Prompts.system_prompt_picker()
       return
-    elseif args == "/models" then
+    elseif args == "/model_selector" then
       select_model()
       return
-    elseif args == "/providers" then
+    elseif args == "/provider_selector" then
       select_provider()
       return
-    elseif args == "/info" then
+    elseif args == "/status" then
       local info = "provider: " .. vim.inspect(State.provider.name) .. ", model: " .. vim.inspect(State.provider.model) .. ", chat: "
       local chat = State.chat_window.chat
       if chat and #chat.turns > 0 then
@@ -138,7 +138,7 @@ function M.create_user_command()
       end
       utils.notify(info, vim.log.levels.INFO)
       return
-    elseif args == "/registers" then
+    elseif args == "/dump_diagnostics" then
       utils.paste_registers()
       return
     else
@@ -159,17 +159,17 @@ function M.create_user_command()
         table.insert(args, p.name)
       end
 
-      table.insert(args, "/new")
-      table.insert(args, "/chat")
-      table.insert(args, "/chats")
-      table.insert(args, "/turns")
-      table.insert(args, "/prompt")
-      table.insert(args, "/prompts")
-      table.insert(args, "/models")
-      table.insert(args, "/providers")
-      table.insert(args, "/system")
-      table.insert(args, "/info")
-      table.insert(args, "/registers")
+      table.insert(args, "/new_chat")
+      table.insert(args, "/chat_window")
+      table.insert(args, "/chat_picker")
+      table.insert(args, "/turn_picker")
+      table.insert(args, "/prompt_window")
+      table.insert(args, "/prompt_picker")
+      table.insert(args, "/model_selector")
+      table.insert(args, "/provider_selector")
+      table.insert(args, "/system_message_picker")
+      table.insert(args, "/status")
+      table.insert(args, "/dump_diagnostics")
 
       local completion_candidates = {}
       for _, arg in ipairs(args) do
