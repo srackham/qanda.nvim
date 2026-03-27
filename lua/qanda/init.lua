@@ -119,8 +119,8 @@ function M.create_user_command()
       Prompts.user_prompt_picker()
       return
     elseif args == "/system_message_picker" then
-      Prompts.load_system_prompts()
-      Prompts.system_prompt_picker()
+      Prompts.load_system_messages()
+      Prompts.system_message_picker()
       return
     elseif args == "/model_selector" then
       select_model()
@@ -203,8 +203,8 @@ function M.execute_prompt(prompt)
     if prompt.model_options then
       turn.model_options = utils.shallow_clone_table(prompt.model_options)
     end
-    if State.system_prompt and not State.system_prompt.consumed then
-      turn.system = State.system_prompt.expanded
+    if State.system_message and not State.system_message.consumed then
+      turn.system = State.system_message.expanded
     end
 
     -- Delete the most recent chat turn if did not complete.
@@ -228,8 +228,8 @@ function M.execute_prompt(prompt)
         request_data[k] = v
       end
     end
-    -- Add system prompt model options
-    model_options = State.system_prompt and State.system_prompt.model_options
+    -- Add system message model options
+    model_options = State.system_message and State.system_message.model_options
     if model_options then
       for k, v in pairs(model_options) do
         request_data[k] = v
@@ -270,8 +270,8 @@ function M.execute_prompt(prompt)
       vim.fn.setreg(Config.user_prompt_register, turn.request)
     end
 
-    if turn.system and Config.system_prompt_register then
-      vim.fn.setreg(Config.system_prompt_register, turn.system)
+    if turn.system and Config.system_message_register then
+      vim.fn.setreg(Config.system_message_register, turn.system)
     end
 
     if Config.curl_command_register then
@@ -303,9 +303,9 @@ function M.execute_prompt(prompt)
         end)
       end
 
-      -- Consume the system prompt
-      if State.system_prompt then
-        State.system_prompt.consumed = true
+      -- Consume the system message
+      if State.system_message then
+        State.system_message.consumed = true
       end
 
       -- Save chat file

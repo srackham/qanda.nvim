@@ -34,11 +34,11 @@ local default = {
 
   -- Miscellaneous --
   data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
-  system_prompt_name = nil, -- Default system prompt name
+  system_message_name = nil, -- Default system message name
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
-  system_prompt_lines = 10, -- The maximum number of system prompt lines to display in the Chat window
+  system_message_lines = 10, -- The maximum number of system message lines to display in the Chat window
   user_prompt_register = "u", -- The most recent submitted user prompt
-  system_prompt_register = "s", -- The most recent submitted user prompt
+  system_message_register = "s", -- The most recent submitted user prompt
   response_register = "r", -- The most recent response (extracted)
   curl_command_register = "c", -- The curl model request shell command
   confirm_chat_file_deletion = true,
@@ -83,7 +83,7 @@ local default = {
   user_picker_delete_key = "<C-d>",
   user_picker_edit_key = "<C-e>",
 
-  -- System prompt picker key commands --
+  -- System message picker key commands --
   system_picker_edit_key = "<C-e>",
   system_picker_select_key = "<Enter>",
   system_picker_disable_key = "<C-d>",

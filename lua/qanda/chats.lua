@@ -22,9 +22,9 @@ function M.setup()
       if #chats == 1 then
         State.chats = chats
         State.chat_window.chat = chats[1]
-        if M.chat_has_system_prompt(chats[1], State.system_prompt.expanded) then
-          if State.system_prompt then
-            State.system_prompt.consumed = true
+        if M.chat_has_system_message(chats[1], State.system_message.expanded) then
+          if State.system_message then
+            State.system_message.consumed = true
           end
         end
       end
@@ -36,14 +36,14 @@ local function chats_dir()
   return Config.data_dir .. "/chats"
 end
 
---- Checks if any turn in the chat has a system prompt matching the given string.
+--- Checks if any turn in the chat has a system message matching the given string.
 ---@param chat Chat The chat object to search.
----@param prompt string The system prompt string to look for.
+---@param message string The system message string to look for.
 ---@return boolean found Returns true if a match is found, otherwise false.
-function M.chat_has_system_prompt(chat, prompt)
+function M.chat_has_system_message(chat, message)
   for _, turn in ipairs(chat.turns) do
     -- Check if the system field exists and matches the target prompt
-    if turn.system == prompt then
+    if turn.system == message then
       return true
     end
   end
@@ -347,9 +347,9 @@ function M.new_chat()
   win.chat = new_chat
   win.current_turn = nil
 
-  -- Include the system prompt in the first turn
-  if State.system_prompt then
-    State.system_prompt.consumed = false
+  -- Include the system message in the first turn
+  if State.system_message then
+    State.system_message.consumed = false
   end
 
 end
@@ -424,7 +424,7 @@ function M.turn_to_lines(chat, turn)
   table.insert(lines, string.format("turn: %d of %d", get_turn_index(chat, turn), #chat.turns))
 
   if turn.system then
-    local system_lines = get_limited_prompt("system", turn.system, Config.system_prompt_lines)
+    local system_lines = get_limited_prompt("system", turn.system, Config.system_message_lines)
     vim.list_extend(lines, system_lines)
     table.insert(lines, "")
   end

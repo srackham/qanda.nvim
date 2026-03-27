@@ -6,13 +6,13 @@
 ---@field chats Chats
 ---@field chat_window UIWindow
 ---@field prompt_window UIWindow
----@field system_prompt Prompt The current system prompt object
+---@field system_message Prompt The current system message object
 
 ---@class SaveState -- Saved in STATE.json
 ---@field provider string -- Most recently selected provider
 ---@field model string -- Most recently selected model
 ---@field chat_file string -- Most recently updated chat file
----@field system_prompt_name string
+---@field system_message_name string
 
 -- UI definitions --
 
@@ -82,7 +82,7 @@
 ---@field prompt string The prompt string
 ---@field expanded? string The prompt string after placeholder expansion
 ---@field extract string? A regex pattern to extract content from the model's response
----@field system string? Name of system prompt template
+---@field system string? Name of system message template
 ---@field provider? string The provider name
 ---@field model? string The model name
 ---@field model_options table? Additional model request fields
@@ -95,7 +95,7 @@
 ---@field chat string? The chat name (if a custom value is set it is stored in the first turn)
 ---@field request string Model prompt (expanded)
 ---@field response string Model response (extracted)
----@field system string? System prompt (expanded)
+---@field system string? System message (expanded)
 ---@field provider string The provider name
 ---@field model string The model name
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration

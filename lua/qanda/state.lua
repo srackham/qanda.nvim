@@ -4,7 +4,7 @@ local utils = require "qanda.utils"
 
 local M = {
   provider = nil, ---@type Provider
-  system_prompt = nil, ---@type Prompt System prompt with placeholders expanded
+  system_message = nil, ---@type Prompt System message with placeholders expanded
   chats = {}, ---@type Chats
   saved_state = {},
 

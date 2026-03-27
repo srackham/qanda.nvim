@@ -668,8 +668,8 @@ end
 
 function M.paste_registers()
   local Config = require "qanda.config"
-  local registers = { Config.curl_command_register, Config.system_prompt_register, Config.user_prompt_register, Config.response_register }
-  local titles = { "## Curl command", "## System prompt", "## User prompt", "## Model response" }
+  local registers = { Config.curl_command_register, Config.system_message_register, Config.user_prompt_register, Config.response_register }
+  local titles = { "## Curl command", "## System message", "## User prompt", "## Model response" }
   local lines = {}
 
   if not vim.api.nvim_get_option_value("modifiable", { buf = 0 }) then

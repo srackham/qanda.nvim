@@ -5,11 +5,11 @@ local ui = require "qanda.ui"
 
 local M = {
   user_prompts = {}, ---@type Prompts
-  system_prompts = {}, ---@type Prompts
+  system_messages = {}, ---@type Prompts
 }
 
 function M.setup()
-  State.system_prompt = nil
+  State.system_message = nil
 
   -- Close existing Prompt window
   vim.api.nvim_create_autocmd("SessionLoadPost", {
@@ -18,16 +18,16 @@ function M.setup()
     end,
   })
 
-  -- Load user and system prompt templates
+  -- Load user prompt and system message templates
   M.load_user_prompts()
-  M.load_system_prompts()
+  M.load_system_messages()
 
-  -- Set default system prompt template
-  local system_prompt_name = State.saved_state.system_prompt_name or Config.system_prompt_name
-  if system_prompt_name then
-    local prompt = M.get_prompt(M.system_prompts, system_prompt_name)
+  -- Set default system message template
+  local system_message_name = State.saved_state.system_message_name or Config.system_message_name
+  if system_message_name then
+    local prompt = M.get_prompt(M.system_messages, system_message_name)
     if prompt then
-      M.set_system_prompt(prompt)
+      M.set_system_message(prompt)
     end
   end
 
@@ -50,15 +50,15 @@ function M.get_prompt(prompts, name)
   return nil
 end
 
-function M.set_system_prompt(prompt)
+function M.set_system_message(prompt)
   if prompt ~= nil then
     prompt.expanded = M.substitute_placeholders(prompt.prompt)
-    State.system_prompt = prompt
-    State.saved_state.system_prompt_name = prompt.name
+    State.system_message = prompt
+    State.saved_state.system_message_name = prompt.name
     prompt.consumed = false
   else
-    State.system_prompt = nil
-    State.saved_state.system_prompt_name = nil
+    State.system_message = nil
+    State.saved_state.system_message_name = nil
   end
   State.save_state()
 end
@@ -274,13 +274,13 @@ ${input:Enter request:}
   return result
 end
 
-function M.load_system_prompts()
-  M.system_prompts = load_prompts "system"
-  -- Sync the State.system_prompt prompt because loading creates new objects
-  if State.system_prompt then
-    for _, p in ipairs(M.system_prompts) do
-      if p.name == State.system_prompt.name then
-        State.system_prompt = p
+function M.load_system_messages()
+  M.system_messages = load_prompts "system"
+  -- Sync the State.system_message prompt because loading creates new objects
+  if State.system_message then
+    for _, p in ipairs(M.system_messages) do
+      if p.name == State.system_message.name then
+        State.system_message = p
         return
       end
     end
@@ -512,19 +512,19 @@ function M.user_prompt_picker()
   })
 end
 
-function M.system_prompt_picker()
+function M.system_message_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  prompt_picker(M.system_prompts, function(prompt)
-    if prompt == State.system_prompt then
+  prompt_picker(M.system_messages, function(prompt)
+    if prompt == State.system_message then
       return "* " .. prompt.name
     else
       return "  " .. prompt.name
     end
   end, {
-    results_title = "System Prompts",
-    preview_title = "System Prompt Template",
+    results_title = "System Messages",
+    preview_title = "System Message Template",
     prompt_title = "[" .. Config.help_key .. " help]",
     attach_mappings = function(picker_bufnr, map)
 
@@ -532,7 +532,7 @@ function M.system_prompt_picker()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
-          M.set_system_prompt(selection.value)
+          M.set_system_message(selection.value)
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end
@@ -542,7 +542,7 @@ function M.system_prompt_picker()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
-          M.set_system_prompt(nil)
+          M.set_system_message(nil)
         end
       end, { desc = "Close the picker window; execute callback" })
 
@@ -561,15 +561,15 @@ function M.system_prompt_picker()
       end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
 
       map({ "n", "i" }, Config.help_key, function()
-        local help_message = ([[-- System Prompt Template Picker Commands --
+        local help_message = ([[-- System Message Template Picker Commands --
 
-- %s - Select prompt
-- %s - Disable system prompt
-- %s - Edit prompt templates file
+- %s - Select system message
+- %s - Disable system message
+- %s - Edit system message templates file
 
 ]]):format(Config.system_picker_select_key, Config.system_picker_disable_key, Config.system_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)
-      end, { buffer = picker_bufnr, desc = "Show System prompt picker help" })
+      end, { buffer = picker_bufnr, desc = "Show System message picker help" })
 
       return true
     end,
