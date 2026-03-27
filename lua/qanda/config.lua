@@ -6,13 +6,16 @@ M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 M.SAVED_STATE_FILE = "QANDA_SAVED_STATE.json"
 
+-- Default configuration options --
 local default = {
 
-  -- User configuration --
   debug = true,
 
+  -- Default onboarding provider and model names
   provider = nil,
   model = nil,
+
+  -- Ollama server
   host = "localhost",
   port = "11434",
 
@@ -29,8 +32,19 @@ local default = {
     gemini = { api_key = "$GEMINI_API_KEY" },
   },
 
+  -- Miscellaneous --
+  data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
+  system_prompt_name = nil, -- Default system prompt name
+  user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
+  system_prompt_lines = 10, -- The maximum number of system prompt lines to display in the Chat window
+  user_prompt_register = "u", -- The most recent submitted user prompt
+  system_prompt_register = "s", -- The most recent submitted user prompt
+  response_register = "r", -- The most recent response (extracted)
+  curl_command_register = "c", -- The curl model request shell command
+  confirm_chat_file_deletion = true,
   chat_reload = false, -- Reload the most recent chat at startup
 
+  -- Pickers, Chat and Prompt windows help key --
   help_key = "<C-h>",
 
   -- Chat window key commands --
@@ -73,17 +87,6 @@ local default = {
   system_picker_edit_key = "<C-e>",
   system_picker_select_key = "<Enter>",
   system_picker_disable_key = "<C-d>",
-
-  -- Miscellaneous --
-  data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
-  system_prompt_name = nil, -- Default system prompt name
-  user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
-  system_prompt_lines = 10, -- The maximum number of system prompt lines to display in the Chat window
-  user_prompt_register = "u", -- The most recent submitted user prompt
-  system_prompt_register = "s", -- The most recent submitted user prompt
-  response_register = "r", -- The most recent response (extracted)
-  curl_command_register = "c", -- The curl model request shell command
-  confirm_chat_file_deletion = true,
 
   -- Window layouts --
   chat_window_mode = "right",
