@@ -317,7 +317,7 @@ function M.open_prompt(prompt)
     vim.cmd "Qanda /chat"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.prompt_exec_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_key, function()
     local lines = win:get_lines()
     win:close()
     local p = parse_one_prompt(lines)
@@ -326,7 +326,7 @@ function M.open_prompt(prompt)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.prompt_exec_new_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_new_chat_key, function()
     local lines = win:get_lines()
     win:close()
     local p = parse_one_prompt(lines)
@@ -348,18 +348,16 @@ function M.open_prompt(prompt)
   vim.keymap.set("n", Config.help_key, function()
     local help_message = ([[-- Prompt Window Commands --
 
-Normal mode commands:
-
-- %s - Execute the prompt
-- %s - Execute the prompt in a new chat
+- %s - Submit the prompt (all modes)
+- %s - Submit the prompt in a new chat (all modes)
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to Chat window
 - %s - Close Prompt window
 - %s - Inject file into the prompt
 
 ]]):format(
-      Config.prompt_exec_key,
-      Config.prompt_exec_new_key,
+      Config.prompt_submit_key,
+      Config.prompt_new_chat_key,
       Config.prompt_clear_key,
       Config.prompt_switch_key,
       Config.prompt_close_key,

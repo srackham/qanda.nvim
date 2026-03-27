@@ -72,8 +72,8 @@ local default = {
   prompt_abort_key = "<Esc>",
   prompt_clear_key = "<C-Space>",
   prompt_close_key = "q",
-  prompt_exec_key = "<Enter>",
-  prompt_exec_new_key = "<S-Enter>",
+  prompt_submit_key = "<S-Enter>",
+  prompt_new_chat_key = "<C-s>", -- Submit prompt in a new chat
   prompt_switch_key = "<Tab>",
   prompt_inject_key = "<Leader>fi",
 

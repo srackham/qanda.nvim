@@ -317,7 +317,7 @@ Normal mode commands:
 
 - %s - Create a new prompt from the current Chat window prompt
 - %s - Switch to Prompt window
-- %s/`%s` Scroll up/down for previous/next prompt (from the current chat message)
+- %s/%s Scroll up/down for previous/next prompt (from the current chat message)
 - %s - Delete current turn, if last turn delete the chat
 - %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
 - %s - Delete then re-execute the latest turn
