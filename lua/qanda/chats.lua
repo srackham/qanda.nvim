@@ -73,8 +73,10 @@ end
 function M.load_chats(chat_file)
   local result = {} ---@type Chat[]
   local chat_files = {}
+  local current_chat_loaded = false
+  local current_chat_filename = State.chat_window.chat and State.chat_window.chat.filename
 
-  -- 1. Determine which files to load
+  -- Determine which files to load
   if chat_file then
     table.insert(chat_files, chat_file)
   else
@@ -82,8 +84,7 @@ function M.load_chats(chat_file)
     chat_files = vim.fn.glob(glob_pattern, false, true)
   end
 
-  -- 2. Process the files
-  local chat_window_updated = false
+  -- Process the files
   for _, file_path in ipairs(chat_files) do
     if utils.file_exists(file_path) then
       local lines = vim.fn.readfile(file_path)
@@ -91,12 +92,9 @@ function M.load_chats(chat_file)
       if turns then
         local chat = { turns = turns, filename = file_path }
         table.insert(result, chat)
-
-        -- Update active state if this file matches the current window's chat
-        if State.chat_window.chat and State.chat_window.chat.filename == file_path then
-          State.chat_window.chat = chat
-          State.chat_window.current_turn = nil
-          chat_window_updated = true
+        if current_chat_filename == file_path then
+          -- The chat in the Chat window is in the loaded chats.
+          current_chat_loaded = true
         end
       else
         utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
@@ -106,11 +104,13 @@ function M.load_chats(chat_file)
     end
   end
 
-  -- 3. Invalidate chat window if no match was found during a full load
-  -- (We usually only want to invalidate if we're doing a fresh directory scan)
-  if not chat_file and not chat_window_updated then
-    State.chat_window.chat = { turns = {} }
-    State.chat_window.current_turn = nil
+  -- Create a new chat if the chat in the Chat window was not loaded
+  if current_chat_filename and not current_chat_loaded then
+    utils.notify("The current chat file was missing: '" .. State.chat_window.chat.filename .. "'.", vim.log.levels.WARN)
+    M.new_chat()
+    if State.chat_window:is_open() then
+      M.open_chat()
+    end
   end
 
   return result
@@ -476,7 +476,7 @@ function M.chat_picker()
       if selection then
         local chat = selection.value
         if utils.delete_file(chat.filename, { confirm = Config.confirm_chat_file_deletion }) then
-          current_chat_deleted = (chat == current_chat)
+          current_chat_deleted = (chat.filename == current_chat.filename)
           return true
         end
       end
@@ -508,7 +508,7 @@ function M.chat_picker()
       if selection then
         local chat = selection.value
         assert(chat)
-        M.open_chat(chat)
+        M.open_chat(chat, chat.turns[#chat.turns]) -- Open at most recent turn
         M.set_recent_chat_file(chat.filename)
       else
         utils.notify("User cancelled", vim.log.levels.INFO)
