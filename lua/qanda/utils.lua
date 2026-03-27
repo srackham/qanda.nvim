@@ -391,6 +391,7 @@ function M.close_ephemeral_window(buffer_name)
     vim.api.nvim_buf_delete(bufnr, { force = true })
   end
 end
+
 --- Helper to check if a file is binary by scanning the first kilobyte for null bytes.
 --- @param path string
 --- @return boolean
@@ -409,60 +410,68 @@ function M.is_binary(path)
   return bytes:find "\0" ~= nil
 end
 
---- Prompts user via Telescope to select a text file and injects its
---- content into the current buffer as a Markdown block.
+--- Prompts user via Telescope to select text files and injects their
+--- content into the current buffer as Markdown blocks.
 function M.inject_file()
   local builtin = require "telescope.builtin"
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
   builtin.find_files {
-    prompt_title = "Inject Text File",
-    attach_mappings = function(prompt_bufnr, _)
+    prompt_title = "Inject Text File(s)",
+    attach_mappings = function(picker_bufnr, map)
+      -- Allow TAB to mark multiple files
+      map({ "n", "i" }, "<Tab>", actions.toggle_selection + actions.move_selection_next)
+
       actions.select_default:replace(function()
-        local selection = action_state.get_selected_entry()
-        if selection == nil then
+        local picker = action_state.get_current_picker(picker_bufnr)
+        local multi = picker:get_multi_selection()
+
+        -- If no multi-selection, use the current entry
+        if #multi == 0 then
+          local single = action_state.get_selected_entry()
+          if single then
+            table.insert(multi, single)
+          end
+        end
+
+        actions.close(picker_bufnr)
+
+        if #multi == 0 then
           return
         end
 
-        local file_path = selection.value
+        for _, entry in ipairs(multi) do
+          local injection = {}
+          local file_path = entry.value
 
-        -- Guard clause using the hoisted helper
-        if M.is_binary(file_path) then
-          actions.close(prompt_bufnr)
-          M.notify("Selection is a binary file; skipping injection.", vim.log.levels.WARN)
-          return
+          if M.is_binary(file_path) then
+            M.notify("Skipped binary file: " .. file_path, vim.log.levels.WARN)
+          else
+            local file_ext = vim.fn.fnamemodify(file_path, ":e")
+            local lines = vim.fn.readfile(file_path)
+
+            table.insert(injection, "")
+            table.insert(injection, "`" .. file_path .. "`")
+            table.insert(injection, "")
+            table.insert(injection, "```" .. file_ext)
+
+            for _, line in ipairs(lines) do
+              table.insert(injection, line)
+            end
+
+            table.insert(injection, "```")
+            table.insert(injection, "")
+
+            local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
+            vim.api.nvim_buf_set_lines(0, row, row, false, injection)
+
+            local new_row = row + #injection
+            vim.api.nvim_win_set_cursor(0, { new_row, 0 })
+          end
         end
-
-        actions.close(prompt_bufnr)
-
-        local file_ext = vim.fn.fnamemodify(file_path, ":e")
-        local lines = vim.fn.readfile(file_path)
-
-        -- Build the Markdown injection block
-        local injection = {
-          "",
-          "`" .. file_path .. "`",
-          "",
-          "```" .. file_ext,
-        }
-
-        for _, line in ipairs(lines) do
-          table.insert(injection, line)
-        end
-
-        table.insert(injection, "```")
-        table.insert(injection, "") -- The blank line the cursor will land on
-
-        local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-
-        -- row is used as the starting point for insertion
-        vim.api.nvim_buf_set_lines(0, row, row, false, injection)
-
-        -- Move cursor to the final blank line
-        local new_row = row + #injection
-        vim.api.nvim_win_set_cursor(0, { new_row, 0 })
       end)
+
       return true
     end,
   }
@@ -528,11 +537,11 @@ function M.select(items, opts, on_choice)
       end,
     },
     sorter = conf.generic_sorter(opts),
-    attach_mappings = function(prompt_bufnr, map)
+    attach_mappings = function(picker_bufnr, map)
       -- Handle selection
       actions.select_default:replace(function()
         local selection = action_state.get_selected_entry()
-        actions.close(prompt_bufnr)
+        actions.close(picker_bufnr)
 
         if not selection then
           on_choice(nil, nil)
@@ -553,7 +562,7 @@ function M.select(items, opts, on_choice)
 
       -- Handle explicit cancellation
       local cancel = function()
-        actions.close(prompt_bufnr)
+        actions.close(picker_bufnr)
         on_choice(nil, nil)
       end
 

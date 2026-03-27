@@ -353,7 +353,7 @@ function M.open_prompt(prompt)
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to Chat window
 - %s - Close Prompt window
-- %s - Inject file into the prompt
+- %s - Inject file(s) into the prompt
 
 ]]):format(
       Config.prompt_submit_key,
