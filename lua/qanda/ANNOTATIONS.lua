@@ -48,7 +48,15 @@
 ---| - `bufhidden=hide` : Buffer persists when not shown
 ---| - `bufhidden=wipe` : Buffer erased entirely
 ---@field float_layout FloatLayout
----@field [string] any Additional options forwarded to the underlying window creation function TODO: is this comment correct?
+---@field new fun(opts: table): UIWindow Constructor
+---@field open fun(self: UIWindow, opts?: table) Focus or create the window. `opts` can initialize or override `UIWindow` fields.
+---@field close fun(self: UIWindow) Close the window. The buffer is not deleted.
+---@field is_open fun(self: UIWindow): boolean Return true if the window is open.
+---@field set_title fun(self: UIWindow, title: string) Set window title
+---@field set_cursor fun(self: UIWindow, cursor_position?: {row: number, col: number}) Activate and show cursor position. If `cursor_position` is `nil`, go to end of buffer.
+---@field append fun(self: UIWindow, lines: string[]) Append lines and position cursor at end.
+---@field get_lines fun(self: UIWindow): string[] Return list of buffer lines.
+---@field set_lines fun(self: UIWindow, lines: string[]) Set buffer lines and position cursor at end.
 
 -- Model definitions --
 
@@ -115,4 +123,3 @@
 ---| "stopped"
 ---| "error"
 ---| "aborted"
-

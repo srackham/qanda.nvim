@@ -240,7 +240,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_switch_key, function()
-    vim.cmd "Qanda /prompt"
+    vim.cmd "Qanda /prompt_window"
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_prompt_key, function()

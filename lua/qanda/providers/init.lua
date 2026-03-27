@@ -71,12 +71,12 @@ function M.restore_provider()
     provider = M.get_provider(provider_name)
   end
   if not provider then
-    vim.cmd "Qanda /providers"
+    vim.cmd "Qanda /provider_selector"
   else
     State.provider = provider
     local model_name = State.saved_state.model or Config.model
     if not model_name or not M.is_valid_model_name(provider, model_name) then
-      vim.cmd "Qanda /models"
+      vim.cmd "Qanda /model_selector"
     else
       State.provider.model = model_name
       State.saved_state.model = model_name

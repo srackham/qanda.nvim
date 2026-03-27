@@ -165,7 +165,6 @@ end
 --- Open a window according to the requested window options.
 ---
 --- If `opts.window_mode` is omitted or `"normal"`, the window replaces the current window.
---- Other options are passed to the underlying window creation function
 ---
 ---@param buf_name string Buffer name
 ---@param opts? UIWindow Window and buffer options.

@@ -295,7 +295,7 @@ end
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 ---@param prompt Prompt?
 function M.open_prompt(prompt)
-  local win = State.prompt_window
+  local win = State.prompt_window  ---@type UIWindow
   local already_open = win.winid ~= nil
   win:open()
   if not already_open then
@@ -314,7 +314,7 @@ function M.open_prompt(prompt)
     win:close()
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.prompt_switch_key, function()
-    vim.cmd "Qanda /chat"
+    vim.cmd "Qanda /chat_window"
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_key, function()
