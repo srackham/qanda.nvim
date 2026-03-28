@@ -476,6 +476,8 @@ function M.chat_picker()
       if selection then
         local chat = selection.value
         if utils.delete_file(chat.filename, { confirm = Config.confirm_chat_file_deletion }) then
+          -- NOTE: The next statement should have worked, it didn't so there may be a reference inconsistency lurking in the code.
+          -- current_chat_deleted = (chat == current_chat)
           current_chat_deleted = (chat.filename == current_chat.filename)
           return true
         end

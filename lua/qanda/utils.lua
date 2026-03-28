@@ -41,14 +41,17 @@ function M.unescape_string(s)
   end))
 end
 
--- Escape special characters in Lua regular expressions
+--- Escapes special characters in a string for use in Lua regular expressions.
+--- @param text string The string to escape.
+--- @return string The escaped string.
 function M.escape_pattern(text)
   -- Matches any of: ^ $ ( ) % . [ ] * + - ?
   -- And prefixes them with a %
   return (text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1"))
 end
 
--- Clear a Lua array table (sequence)
+--- Clears a Lua array table (sequence) in-place.
+--- @param s table The table to clear (modified in-place).
 function M.clear_sequence(s)
   for i = #s, 1, -1 do
     s[i] = nil
@@ -124,6 +127,11 @@ function M.read_file_to_string(filepath)
   return content
 end
 
+--- Writes a string to a file.
+--- @param str string The string content to write.
+--- @param fname string The path to the file.
+--- @param mode string? The file open mode (e.g., "w", "a+"). Defaults to "w".
+--- @return boolean `true` if successful, `false` otherwise.
 function M.write_string_to_file(str, fname, mode)
   mode = mode or "w" -- Replace file contents by default
   fname = vim.fn.expand(fname)
@@ -138,6 +146,10 @@ function M.write_string_to_file(str, fname, mode)
   end
 end
 
+--- Appends a string to a file.
+--- @param str string The string content to append.
+--- @param fname string The path to the file.
+--- @return boolean `true` if successful, `false` otherwise.
 function M.append_string_to_file(str, fname)
   return M.write_string_to_file(str, fname, "a+")
 end
@@ -239,6 +251,9 @@ function M.trim_table(tbl)
   return tbl
 end
 
+--- Creates a shallow clone of a table.
+--- @param t table The table to clone.
+--- @return table A new table containing the same key-value pairs as the original.
 function M.shallow_clone_table(t)
   assert(type(t) == "table")
   local copy = {}
@@ -248,6 +263,9 @@ function M.shallow_clone_table(t)
   return copy
 end
 
+--- Creates a new table with elements of the input array table in reverse order.
+--- @param t table The array-like table to reverse.
+--- @return table A new table with elements in reverse order.
 function M.reverse_table(t)
   local reversed = {}
   for i = #t, 1, -1 do
@@ -297,6 +315,11 @@ function M.ui_select_sync(items, opts)
   return coroutine.yield()
 end
 
+--- Opens a file for editing, applies syntax highlighting, positions the cursor, and sets up a post-write callback.
+--- @param filename string The path to the file to edit.
+--- @param add_syntax_highlighting fun(bufnr: number) A function to apply syntax highlighting to the buffer.
+--- @param pattern string? An optional Lua pattern to search for and position the cursor.
+--- @param postwrite fun(bufnr: number)? An optional callback function to run after the buffer is written.
 function M.edit_file(filename, add_syntax_highlighting, pattern, postwrite)
   vim.cmd("edit " .. vim.fn.fnameescape(filename))
   local bufnr = vim.api.nvim_get_current_buf()
@@ -366,8 +389,10 @@ function M.args_to_shell_command(args_table)
   return table.concat(escaped_args, " ")
 end
 
+--- Closes any windows displaying a buffer with the given name and deletes the buffer.
+--- @param buffer_name string The name of the buffer to close/delete.
 function M.close_ephemeral_window(buffer_name)
-  -- 1. Get the buffer number by name
+  -- Get the buffer number by name
   local bufnr = vim.fn.bufnr(buffer_name)
 
   -- If bufnr is -1, the buffer doesn't exist
@@ -375,7 +400,7 @@ function M.close_ephemeral_window(buffer_name)
     return
   end
 
-  -- 2. Find all windows displaying this buffer
+  -- Find all windows displaying this buffer
   -- Note: win_findbuf returns a list of window IDs
   local windows = vim.fn.win_findbuf(bufnr)
 
@@ -386,7 +411,7 @@ function M.close_ephemeral_window(buffer_name)
     end
   end
 
-  -- 3. Delete the buffer if it still exists
+  -- Delete the buffer if it still exists
   if vim.api.nvim_buf_is_valid(bufnr) then
     vim.api.nvim_buf_delete(bufnr, { force = true })
   end
@@ -576,11 +601,17 @@ function M.select(items, opts, on_choice)
   pickers.new(opts, picker_opts):find()
 end
 
+--- Returns the current time in milliseconds since the Unix epoch.
+--- @return number The current time in milliseconds.
 function M.get_time_ms()
   local seconds, microseconds = vim.uv.gettimeofday()
   return (seconds * 1000) + math.floor(microseconds / 1000)
 end
 
+--- Deletes a file, with an optional confirmation prompt.
+--- @param filename string The path to the file to delete.
+--- @param opts { confirm?: boolean }? Optional configuration.
+--- @return boolean `true` if the file was deleted successfully, `false` otherwise.
 function M.delete_file(filename, opts)
   opts = opts or {}
   if opts.confirm then
@@ -608,6 +639,10 @@ function M.file_exists(path)
   return vim.fn.filereadable(path) == 1
 end
 
+--- Finds the first index of a given value in an array-like table.
+--- @param tbl table The table to search.
+--- @param value any The value to find.
+--- @return number? The 1-based index of the value if found, otherwise `nil`.
 function M.index_of(tbl, value)
   for i, v in ipairs(tbl) do
     if v == value then
@@ -617,6 +652,9 @@ function M.index_of(tbl, value)
   return nil -- not found
 end
 
+--- Formats a list of curl arguments into a multi-line, escaped shell command string.
+--- @param args string[] An array of cURL command arguments.
+--- @return string The formatted shell command string.
 function M.curl_args_to_shell_command(args)
   local grouped_flags = {
     ["-H"] = true,
@@ -675,6 +713,7 @@ function M.curl_args_to_shell_command(args)
   return table.concat(lines, "\n")
 end
 
+--- Dump diagnostic information from Qanda registers into the current buffer, formatted with Markdown headers.
 function M.paste_registers()
   local Config = require "qanda.config"
   local registers = { Config.curl_command_register, Config.system_message_register, Config.user_prompt_register, Config.response_register }
