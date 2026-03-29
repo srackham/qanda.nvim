@@ -6,14 +6,6 @@ local M = {
   providers = {}, ---@type Provider[]
 }
 
--- function M.get_names()
---   local names = {}
---   for _, provider in ipairs(M.providers) do
---     table.insert(names, provider.name)
---   end
---   return names
--- end
-
 ---Load and initialise provider modules.
 function M.setup()
   M.providers = {}
@@ -61,9 +53,9 @@ function M.get_provider(name)
   return nil
 end
 
--- Restore State.provider from saved provider and model names.
--- Returns nil if the saved provider was invalid and a user selection was scheduled,
--- otherwise returns the saved provider.
+--- Restores the provider and model from the saved state.
+--- If the saved provider or model is invalid, it prompts the user for selection.
+--- @return Provider|nil The restored provider if successful, otherwise `nil` (if a selection was scheduled).
 function M.restore_provider()
   local provider = nil
   local provider_name = State.saved_state.provider or Config.provider
@@ -87,6 +79,9 @@ function M.restore_provider()
   return nil
 end
 
+--- Prompts the user to select a provider using `vim.ui.select`.
+--- @param current_provider Provider? The currently active provider, if any, to highlight.
+--- @param callback fun(selected_provider_name: string) The function to call with the name of the selected provider.
 function M.select_provider(current_provider, callback)
   local items = {}
   for _, v in ipairs(M.providers) do
@@ -107,6 +102,10 @@ function M.select_provider(current_provider, callback)
   end)
 end
 
+--- Checks if a given model name is valid for a specific provider.
+--- @param provider Provider The provider object.
+--- @param model_name string The name of the model to validate.
+--- @return boolean `true` if the model name is valid, `false` otherwise.
 function M.is_valid_model_name(provider, model_name)
   local models = provider.module.models(Config)
   if not utils.table_contains(models, model_name) then

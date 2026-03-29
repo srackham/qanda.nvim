@@ -85,6 +85,7 @@ function M.command(request)
   }
 end
 
+---Parse and reshape model response to conform to Ollama api/chat API
 ---@param raw_json string
 ---@return table|nil
 function M.normaliser(raw_json)

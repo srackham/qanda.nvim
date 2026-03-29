@@ -4,7 +4,7 @@ local utils = require "qanda.utils"
 
 local M = {} -- This module
 
----Local model provider initialisation.
+--- Initializes the Ollama provider, attempting to start the Ollama server.
 function M.setup()
   pcall(io.popen, "ollama serve > /dev/null 2>&1 &")
 end
@@ -53,9 +53,11 @@ function M.command(request)
   }
 end
 
+---Parse and reshape model response to conform to Ollama api/chat API
 ---@param raw_json string
 ---@return table|nil
 function M.normaliser(raw_json)
+  -- No reshaping necessary (this is an Ollama response)
   local ok, decoded = pcall(vim.json.decode, raw_json)
   if not ok or type(decoded) ~= "table" then
     return nil
