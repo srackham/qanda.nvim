@@ -90,6 +90,9 @@ local function open_float(buf, opts)
   })
 end
 
+--- Retrieves the ID of a window displaying a specific buffer.
+--- @param bufnr number The buffer number to search for.
+--- @return number|nil The window ID if found, otherwise `nil`.
 function M.get_winid_of_buffer(bufnr)
   -- Check if window for buffer already exists
   local winid = nil
@@ -102,6 +105,9 @@ function M.get_winid_of_buffer(bufnr)
   return winid
 end
 
+--- Opens a foreground floating window with specified content and options.
+--- @param lines string[] The lines of text to display in the buffer.
+--- @param opts table? Optional configuration for `vim.api.nvim_open_win`.
 function M.open_foreground_float(lines, opts)
   local api = vim.api
   local bufnr = api.nvim_create_buf(false, true)
@@ -144,6 +150,10 @@ function M.open_foreground_float(lines, opts)
   })
 end
 
+--- Moves a floating window by a specified offset.
+--- @param winid number The ID of the floating window to move.
+--- @param x number The horizontal offset to move the window by.
+--- @param y number The vertical offset to move the window by.
 function M.move_float_by(winid, x, y)
   -- 1. Fetch current window configuration
   local config = vim.api.nvim_win_get_config(winid)
@@ -243,7 +253,7 @@ function M.UIWindow:open(opts)
   vim.api.nvim_set_option_value("modifiable", self.modifiable, { buf = self.bufnr })
 end
 
----Close the window. The buffer is not deleted.
+--- Closes the window associated with this UIWindow instance. The buffer is not deleted.
 function M.UIWindow:close()
   if self.winid and vim.api.nvim_win_is_valid(self.winid) then
     vim.api.nvim_win_close(self.winid, true)
@@ -251,12 +261,15 @@ function M.UIWindow:close()
   end
 end
 
---- Return true if the window is open.
+--- Checks if the window associated with this UIWindow instance is currently open and valid.
+--- @return boolean `true` if the window is open, `false` otherwise.
 function M.UIWindow:is_open()
   return self.winid and vim.api.nvim_win_is_valid(self.winid)
 end
 
---- Set window title
+--- Sets the title of the window.
+--- If the window is a float, it uses `nvim_win_set_config`. Otherwise, it sets the `winbar` option.
+--- @param title string The title to set.
 function M.UIWindow:set_title(title)
   local win_config = vim.api.nvim_win_get_config(self.winid)
   if self.mode == "float" then
