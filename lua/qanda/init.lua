@@ -189,14 +189,24 @@ function M.execute_prompt(prompt)
     local chat = State.chat_window.chat
     local turns = chat.turns
 
-    prompt.expanded = Prompts.substitute_placeholders(prompt.prompt)
-    if prompt.expanded == nil then
-      return
+    if not prompt.content then
+      return nil
+    end
+
+    -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
+    if prompt.name then
+      prompt = vim.tbl_deep_extend("force", {}, prompt)
+      local expanded = Prompts.substitute_placeholders(prompt.content, { allow_user_inputs = true })
+      if not expanded then
+        return nil
+      end
+      prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
+      prompt.content = expanded
     end
     State.prompt_window:close()
 
     local turn = {
-      request = prompt.expanded,
+      request = prompt.content,
       provider = prompt.provider or State.provider.name,
       model = prompt.model or State.provider.model,
     }
@@ -204,7 +214,7 @@ function M.execute_prompt(prompt)
       turn.model_options = utils.shallow_clone_table(prompt.model_options)
     end
     if State.system_message and not State.system_message.consumed then
-      turn.system = State.system_message.expanded
+      turn.system = State.system_message.content
     end
 
     -- Delete the most recent chat turn if did not complete.
@@ -295,7 +305,7 @@ function M.execute_prompt(prompt)
       -- Update completed turn
       local response = table.concat(model_response, "\n")
       turns[#turns].response = response
-      turns[#turns].timestamp = os.date(Config.TIME_STAMP_FORMAT)
+      turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
 
       if Config.response_register then
         vim.schedule(function() -- Defer because of Neovim's "fast event" context

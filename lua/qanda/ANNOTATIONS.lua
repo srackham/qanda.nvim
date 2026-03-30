@@ -43,6 +43,7 @@
 ---@field modifiable boolean
 ---@field buf_name string? The name of the buffer. Required if bufnr is not provided and window is to be opened.
 ---@field setlocal? string Vim `:setlocal` options. Summary:
+---@field chat Chat Chat window turns array
 ---| - `buftype=nofile` : No disk I/O
 ---| - `buflisted=true` : Shows in `:ls`
 ---| - `bufhidden=hide` : Buffer persists when not shown
@@ -87,8 +88,7 @@
 ---@readonly
 ---@class Prompt An immutable prompt template loaded from user prompt template files or previously executed prompt extracted from chat history
 ---@field name? string The prompt name
----@field prompt string The prompt string
----@field expanded? string The prompt string after placeholder expansion
+---@field content string The prompt message string
 ---@field extract string? A regex pattern to extract content from the model's response
 ---@field system string? Name of system message template
 ---@field provider? string The provider name

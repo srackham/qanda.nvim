@@ -20,9 +20,9 @@ function M.setup()
     if chat_file then
       local chats = M.load_chats(chat_file)
       if #chats == 1 then
-        State.chats = chats
+        State.chats = chats -- The full chats list is lazy-loaded later when the Chat picker is opened
         State.chat_window.chat = chats[1]
-        if M.chat_has_system_message(chats[1], State.system_message.expanded) then
+        if M.chat_has_system_message(chats[1], State.system_message.content) then
           if State.system_message then
             State.system_message.consumed = true
           end
@@ -246,9 +246,10 @@ function M.open_chat(chat, turn)
   vim.keymap.set("n", Config.chat_prompt_key, function()
     local current_turn = win.current_turn or {}
     require("qanda.prompts").open_prompt {
+      name = nil,
+      content = current_turn.request,
       model_options = current_turn.model_options,
       extract = current_turn.extract,
-      prompt = current_turn.request,
     }
   end, { buffer = win.bufnr })
 

@@ -50,31 +50,25 @@ function M.get_prompt(prompts, name)
   return nil
 end
 
-function M.set_system_message(prompt)
-  if prompt ~= nil then
-    prompt.expanded = M.substitute_placeholders(prompt.prompt)
-    State.system_message = prompt
-    State.saved_state.system_message_name = prompt.name
-    prompt.consumed = false
+-- If `system_message` is `nil` then the system message is disabled.
+function M.set_system_message(system_message)
+  if system_message ~= nil then
+    system_message = vim.tbl_deep_extend("force", {}, system_message)
+    local expanded = M.substitute_placeholders(system_message.content)
+    if not expanded then -- Substitution error
+      return
+    end
+    system_message.content = expanded
+    State.system_message = system_message
+    State.saved_state.system_message_name = system_message.name
+    system_message.consumed = false
   else
+    -- Disable system message
     State.system_message = nil
     State.saved_state.system_message_name = nil
   end
   State.save_state()
 end
-
--- ---Make a copy of `prompt`, set its name to `name` and add/replace to `M.prompts`.
--- ---@param prompt Prompt The prompt.
--- ---@param name string? The name of the prompt.
--- ---@return Prompt The new prompt.
--- function M.set_prompt(prompt, name)
---   local p = vim.tbl_deep_extend("force", {}, prompt)
---   p.name = name or p.name
---   utils.insert_replace(M.user_prompts, p, function(p1, p2)
---     return p1.name == p2.name
---   end)
---   return p
--- end
 
 --- Parses markdown-style prompt files into a Prompts array.
 ---Each prompt section starts and ends with either `---` or `___`.
@@ -161,7 +155,7 @@ local function parse_prompts(lines)
       end
 
       -- Create the prompt entry
-      prompt.prompt = table.concat(prompt_lines, "\n")
+      prompt.content = table.concat(prompt_lines, "\n")
       table.insert(result, prompt)
     else
       i = i + 1
@@ -186,7 +180,7 @@ local function parse_one_prompt(lines)
     utils.notify("Missing prompt", vim.log.levels.ERROR)
     return nil
   end
-  return { prompt = table.concat(lines, "\n") }
+  return { content = table.concat(lines, "\n") }
 end
 
 ---@param prompt Prompt
@@ -210,7 +204,7 @@ function M.prompt_to_lines(prompt)
     table.insert(lines, 1, rule)
     table.insert(lines, rule)
   end
-  for _, v in ipairs(vim.split(utils.trim_string(prompt.expanded or prompt.prompt or ""), "\n")) do
+  for _, v in ipairs(vim.split(utils.trim_string(prompt.content or ""), "\n")) do
     table.insert(lines, v)
   end
   return lines
@@ -295,7 +289,7 @@ end
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 ---@param prompt Prompt?
 function M.open_prompt(prompt)
-  local win = State.prompt_window  ---@type UIWindow
+  local win = State.prompt_window ---@type UIWindow
   local already_open = win.winid ~= nil
   win:open()
   if not already_open then
@@ -313,6 +307,7 @@ function M.open_prompt(prompt)
   vim.keymap.set("n", Config.prompt_close_key, function()
     win:close()
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.prompt_switch_key, function()
     vim.cmd "Qanda /chat_window"
   end, { buffer = win.bufnr })
@@ -331,8 +326,8 @@ function M.open_prompt(prompt)
     win:close()
     local p = parse_one_prompt(lines)
     if p then
-      require("qanda/chats").new_chat()
-      require("qanda/chats").open_chat()
+      require("qanda.chats").new_chat()
+      require("qanda.chats").open_chat()
       require("qanda").execute_prompt(p)
     end
   end, { buffer = win.bufnr })
@@ -459,8 +454,11 @@ function M.user_prompt_picker()
           assert(prompt)
           -- Expand prompt template and open in Prompt window
           coroutine.wrap(function()
-            prompt.expanded = M.substitute_placeholders(prompt.prompt)
-            if prompt.expanded then
+            prompt = vim.tbl_deep_extend("force", {}, prompt)
+            local expanded = M.substitute_placeholders(prompt.content, { allow_user_inputs = true })
+            if expanded then
+              prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
+              prompt.content = expanded
               M.open_prompt(prompt)
             else
               utils.notify("User cancelled", vim.log.levels.INFO)
@@ -603,25 +601,37 @@ function M.resolve_prompt_path(file_path)
   end
 end
 
---- Substitutes placeholders in the prompt with actual values.
+--- Substitutes placeholders in the prompt template with actual values.
 ---This function processes a prompt string and replaces special placeholders
 ---with their corresponding values.
 ---Placeholders within placeholder values are not replaced.
 ---
----NOTE: Must be called from a coroutine.
+---NOTE: If the `allow_user_input` option is `true` then this function must be called from a coroutine.
 ---
 ---Placeholders processed:
+--- - `$select`: Prompt the user with a choice of inputs
 --- - `$input`: Prompts user for input and substitutes the value
 --- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
 --- - `$yanked`: Substitutes most recently yanked text (alias for `$register_0`)
 --- - `$filetype`: Substitutes current buffer's filetype
 --- - `$register_<name>`: Substitutes content of specified register
+--- -  ${file:<filename>}: Inject text file
 ---
----@param prompt_string string: The prompt string containing placeholders to substitute
----@return string|nil: The prompt with placeholders substituted, or nil if processing should abort
-function M.substitute_placeholders(prompt_string)
+---@param prompt_string string The prompt string containing placeholders to substitute
+---@param opts? table Options: `allow_user_inputs` when set to `true` `$input` and `$select` placeholders are allowed, in which case this function must be called from a coroutine.
+---@return string|nil The prompt with placeholders substituted, or `nil` if processing should abort i.e. user cancelled or substitution error.
+function M.substitute_placeholders(prompt_string, opts)
   if not prompt_string or prompt_string:match "^%s*$" ~= nil then
     return nil
+  end
+
+  opts = opts or {}
+
+  if not opts.allow_user_inputs then
+    if prompt_string:find("$input", 1, true) or prompt_string:find("${input:", 1, true) or prompt_string:find("$select", 1, true) then
+      utils.notify("User input placeholders not allowed in system messages", vim.log.levels.ERROR)
+      return nil
+    end
   end
 
   -- Handle the $select placeholder first
