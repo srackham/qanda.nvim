@@ -442,31 +442,33 @@ function M.inject_file()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
+  -- Lock in the current buffer and window BEFORE opening Telescope
+  local target_buf = vim.api.nvim_get_current_buf()
+  local target_win = vim.api.nvim_get_current_win()
+
   builtin.find_files {
     prompt_title = "Inject Text File(s)",
     attach_mappings = function(picker_bufnr, map)
-      -- Allow TAB to mark multiple files
       map({ "n", "i" }, "<Tab>", actions.toggle_selection + actions.move_selection_next)
 
       actions.select_default:replace(function()
         local picker = action_state.get_current_picker(picker_bufnr)
-        local multi = picker:get_multi_selection()
+        local selections = picker:get_multi_selection()
 
-        -- If no multi-selection, use the current entry
-        if #multi == 0 then
+        -- Fallback to single selection if multi-selection is empty
+        if vim.tbl_isempty(selections) then
           local single = action_state.get_selected_entry()
-          if single then
-            table.insert(multi, single)
-          end
+          selections = single and { single } or {}
         end
 
+        -- Close the picker first
         actions.close(picker_bufnr)
 
-        if #multi == 0 then
+        if #selections == 0 then
           return
         end
 
-        for _, entry in ipairs(multi) do
+        for _, entry in ipairs(selections) do
           local injection = {}
           local file_path = entry.value
 
@@ -488,11 +490,12 @@ function M.inject_file()
             table.insert(injection, "```")
             table.insert(injection, "")
 
-            local row, _ = unpack(vim.api.nvim_win_get_cursor(0))
-            vim.api.nvim_buf_set_lines(0, row, row, false, injection)
+            -- Use target_win and target_buf instead of 0
+            local row, _ = unpack(vim.api.nvim_win_get_cursor(target_win))
+            vim.api.nvim_buf_set_lines(target_buf, row, row, false, injection)
 
             local new_row = row + #injection
-            vim.api.nvim_win_set_cursor(0, { new_row, 0 })
+            vim.api.nvim_win_set_cursor(target_win, { new_row, 0 })
           end
         end
       end)
