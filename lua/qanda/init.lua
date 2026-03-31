@@ -14,6 +14,13 @@ M.State = State
 M.Prompts = Prompts
 M.Providers = Providers
 
+---@alias Qanda.Opts table<string, any>
+
+---Sets up the Qanda module with the given options.
+---
+---This function initializes various sub-modules like `Config`, `Providers`, `Prompts`, and `Chats`,
+---and then creates the user command for Qanda.
+---@param opts Qanda.Opts Options table to configure Qanda.
 function M.setup(opts)
   Config.setup(opts)
   Providers.setup()
@@ -22,6 +29,11 @@ function M.setup(opts)
   M.create_user_command()
 end
 
+---@private
+---Presents a model selection picker to the user.
+---
+---Allows the user to select a model from the currently active provider.
+---The selected model is then saved in the application state.
 local function select_model()
   local items = State.provider.module.models(Config)
   if not items then
@@ -51,6 +63,11 @@ local function select_model()
   end)
 end
 
+---@private
+---Presents a provider selection picker to the user.
+---
+---Allows the user to select an LLM provider. After selection, it calls `select_model`
+---to allow the user to choose a model from the newly selected provider.
 local function select_provider()
   Providers.select_provider(State.provider, function(item)
     State.provider = Providers.get_provider(item)
@@ -58,17 +75,21 @@ local function select_provider()
   end)
 end
 
+---Opens the main Qanda chat window.
+---
+---This function creates or focuses the chat buffer window.
 function M.open_qanda()
   ---@todo
   utils.create_window(Config.CHAT_BUFFER_NAME, { window_mode = "right" })
 end
 
-function M.new_qanda()
-  ---@todo
-end
-
 local initialised = false
 
+---Creates the Neovim user command `:Qanda`.
+---
+---This command provides various functionalities for interacting with Qanda,
+---such as opening chat windows, selecting prompts, models, and providers,
+---and executing prompts. It also handles one-off lazy initializations.
 function M.create_user_command()
   vim.api.nvim_create_user_command("Qanda", function(arg)
 
@@ -183,6 +204,14 @@ function M.create_user_command()
   })
 end
 
+---@alias Qanda.Prompt table<string, any>
+
+---Executes a given prompt, sending it to the configured LLM provider.
+---
+---This function handles prompt expansion, constructs the API request,
+---manages chat turns, and streams the LLM response back to the chat window.
+---It runs in a coroutine to avoid blocking the Neovim UI.
+---@param prompt Qanda.Prompt The prompt object to execute.
 function M.execute_prompt(prompt)
   coroutine.wrap(function()
 
