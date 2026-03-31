@@ -6,6 +6,7 @@ local curl = require "qanda.curl"
 
 local M = {}
 
+--- Initialize the chats module.
 function M.setup()
   -- Close existing Chat window
   vim.api.nvim_create_autocmd("SessionLoadPost", {
@@ -32,6 +33,7 @@ function M.setup()
   end
 end
 
+---@return string The chats directory path.
 local function chats_dir()
   return Config.data_dir .. "/chats"
 end
@@ -50,6 +52,9 @@ function M.chat_has_system_message(chat, message)
   return false
 end
 
+--- Parse JSONL lines into chat turns.
+---@param lines string[] Array of JSON strings.
+---@return ChatTurn[]|nil result Array of parsed turns, or nil on parse error.
 local function parse_turns(lines)
   local result = {}
   for _, line in ipairs(lines) do
@@ -158,20 +163,29 @@ function M.save_chat(chat)
 
 end
 
+--- Set the most recently updated chat file in saved state.
+---@param chat_file string Path to the chat file.
 function M.set_recent_chat_file(chat_file)
   State.saved_state.chat_file = chat_file
   State.save_state()
 end
 
 --- Returns the full path of the most recently updated chat file
+---@return string|nil The most recently updated chat file path, or nil if not set.
 function M.recent_chat_file()
   return State.saved_state.chat_file
 end
 
+---@param chat Chat
+---@param turn ChatTurn
+---@return number|nil index The 1-based index of the turn, or nil if not found.
 local function get_turn_index(chat, turn)
   return utils.index_of(chat.turns, turn)
 end
 
+---@param chat Chat
+---@param turn ChatTurn
+---@return ChatTurn|nil next_turn The next turn, or nil if at end.
 local function get_next_turn(chat, turn)
   local index = get_turn_index(chat, turn)
   if index and index < #chat.turns then
@@ -181,6 +195,9 @@ local function get_next_turn(chat, turn)
   end
 end
 
+---@param chat Chat
+---@param turn ChatTurn
+---@return ChatTurn|nil prev_turn The previous turn, or nil if at start.
 local function get_prev_turn(chat, turn)
   local index = get_turn_index(chat, turn)
   if index and index > 1 then
@@ -190,6 +207,9 @@ local function get_prev_turn(chat, turn)
   end
 end
 
+--- Delete a turn from a chat.
+---@param chat Chat The chat to modify.
+---@param turn ChatTurn The turn to delete.
 function M.delete_turn(chat, turn)
   if turn then
     table.remove(chat.turns, get_turn_index(chat, turn))
@@ -211,6 +231,7 @@ end
 ---Open chat window, load the chat turn at chat `current_turn`.
 ---If the chat window does not exist, create it and attach key-mapped commands.
 ---@param chat Chat?
+---@param turn ChatTurn?
 function M.open_chat(chat, turn)
   local win = State.chat_window
   if chat then
@@ -305,6 +326,7 @@ function M.open_chat(chat, turn)
     win.current_turn = nil
     M.open_chat()
     require("qanda.prompts").open_prompt {
+      content = most_recent_turn.request,
       model_options = most_recent_turn.model_options,
       extract = most_recent_turn.extract,
       prompt = most_recent_turn.request,
@@ -459,6 +481,7 @@ function M.add_chat_syntax_highlighting(bufnr)
   end)
 end
 
+--- Open a Telescope picker to select and manage chats.
 function M.chat_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
@@ -468,6 +491,7 @@ function M.chat_picker()
   local conf = require("telescope.config").values
 
   local current_chat = State.chat_window.chat
+  assert(current_chat)
   local current_chat_deleted = false
 
   local delete_entry = function(picker_bufnr)
@@ -630,10 +654,14 @@ function M.chat_picker()
 
 end
 
+--- Generate a display name for a chat.
+---@param chat Chat The chat to name.
+---@return string name The chat name.
 function M.chat_name(chat)
   return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request, 60)
 end
 
+--- Open a Telescope picker to select and manage turns in the current chat.
 function M.turns_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
@@ -643,6 +671,7 @@ function M.turns_picker()
   local conf = require("telescope.config").values
 
   local current_chat = State.chat_window.chat
+  assert(current_chat)
   local current_turn = State.chat_window.current_turn
 
   local delete_entry = function(picker_bufnr)

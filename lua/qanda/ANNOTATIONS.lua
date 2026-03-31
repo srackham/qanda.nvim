@@ -1,19 +1,5 @@
 ---@meta
 
--- State --
----@class State
----@field provider Provider
----@field chats Chats
----@field chat_window UIWindow
----@field prompt_window UIWindow
----@field system_message Prompt The current system message object
-
----@class SaveState -- Saved in STATE.json
----@field provider string -- Most recently selected provider
----@field model string -- Most recently selected model
----@field chat_file string -- Most recently updated chat file
----@field system_message_name string
-
 -- UI definitions --
 
 ---@alias UIMode
@@ -43,11 +29,6 @@
 ---@field modifiable boolean
 ---@field buf_name string? The name of the buffer. Required if bufnr is not provided and window is to be opened.
 ---@field setlocal? string Vim `:setlocal` options. Summary:
----@field chat Chat Chat window turns array
----| - `buftype=nofile` : No disk I/O
----| - `buflisted=true` : Shows in `:ls`
----| - `bufhidden=hide` : Buffer persists when not shown
----| - `bufhidden=wipe` : Buffer erased entirely
 ---@field float_layout FloatLayout
 ---@field new fun(opts: table): UIWindow Constructor
 ---@field open fun(self: UIWindow, opts?: table) Focus or create the window. `opts` can initialize or override `UIWindow` fields.
@@ -58,6 +39,23 @@
 ---@field append fun(self: UIWindow, lines: string[]) Append lines and position cursor at end.
 ---@field get_lines fun(self: UIWindow): string[] Return list of buffer lines.
 ---@field set_lines fun(self: UIWindow, lines: string[]) Set buffer lines and position cursor at end.
+---@field chat Chat? The Chat window chat object
+---@field current_turn ChatTurn? Chat window current turn
+
+-- State --
+
+---@class State
+---@field provider Provider
+---@field chats Chats
+---@field chat_window UIWindow
+---@field prompt_window UIWindow
+---@field system_message Prompt The current system message object
+
+---@class SaveState -- Saved in STATE.json
+---@field provider string -- Most recently selected provider
+---@field model string -- Most recently selected model
+---@field chat_file string -- Most recently updated chat file
+---@field system_message_name string
 
 -- Model definitions --
 

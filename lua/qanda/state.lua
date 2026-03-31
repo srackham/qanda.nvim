@@ -3,6 +3,7 @@ local ui = require "qanda.ui"
 local utils = require "qanda.utils"
 
 local M = {
+
   provider = nil, ---@type Provider
   system_message = nil, ---@type Prompt System message with placeholders expanded
   chats = {}, ---@type Chats
