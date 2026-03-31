@@ -292,38 +292,45 @@ function M.execute_prompt(prompt)
     Chats.open_chat(chat, turn)
 
     -- Execute the curl command streaming the output to the Chat window.
-    curl.execute_command(curl_args, State.provider.module.normaliser, State.chat_window.winid, function(model_response, error_message)
-      if curl.get_job_status() ~= "stopped" then
-        -- Turn did not complete
-        return
-      end
+    local payload = vim.json.encode(request.data)
+    curl.execute_command(
+      curl_args,
+      payload,
+      State.provider.module.normaliser,
+      State.chat_window.winid,
+      function(model_response, error_message)
+        if curl.get_job_status() ~= "stopped" then
+          -- Turn did not complete
+          return
+        end
 
-      if error_message then
-        return
-      end
+        if error_message then
+          return
+        end
 
-      -- Update completed turn
-      local response = table.concat(model_response, "\n")
-      turns[#turns].response = response
-      turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
+        -- Update completed turn
+        local response = table.concat(model_response, "\n")
+        turns[#turns].response = response
+        turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
 
-      if Config.response_register then
-        vim.schedule(function() -- Defer because of Neovim's "fast event" context
-          vim.fn.setreg(Config.response_register, response)
+        if Config.response_register then
+          vim.schedule(function() -- Defer because of Neovim's "fast event" context
+            vim.fn.setreg(Config.response_register, response)
+          end)
+        end
+
+        -- Consume the system message
+        if State.system_message then
+          State.system_message.consumed = true
+        end
+
+        -- Save chat file
+        vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
+          Chats.save_chat(chat)
         end)
+
       end
-
-      -- Consume the system message
-      if State.system_message then
-        State.system_message.consumed = true
-      end
-
-      -- Save chat file
-      vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
-        Chats.save_chat(chat)
-      end)
-
-    end)
+    )
 
   end)()
 end

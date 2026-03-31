@@ -40,6 +40,7 @@ end
 ---@param request Request
 ---@return string[]
 function M.command(request)
+  local _ = request -- Suppress unused variable warning
   return {
     "curl",
     "-q",
@@ -48,8 +49,8 @@ function M.command(request)
     "-X",
     "POST",
     "http://" .. request.host .. ":" .. request.port .. "/api/chat",
-    "-d",
-    vim.json.encode(request.data),
+    "--data-binary",
+    "@-",
   }
 end
 

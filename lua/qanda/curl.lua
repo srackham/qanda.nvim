@@ -80,13 +80,14 @@ function M.is_active_job()
   return active_job ~= nil
 end
 
---- Executes the command and streams API 'content' to the window
---- The data_normaliser should convert raw_json into Ollama‑shape (message/done fields).
+--- Executes the command and streams API 'content' to the window.
+--- The data_normaliser should convert raw_json response data into Ollama‑shape response data.
 --- @param cmd table The command array (e.g., {'curl', ...})
+--- @param stdin string|string[]|nil If non-nil is written to the process stdin
 --- @param data_normaliser function (raw_json: string) -> table | nil
 --- @param winid number The Neovim window ID to target
 --- @param on_exit_callback function Function to call when job finishes
-function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
+function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
     return
@@ -110,6 +111,7 @@ function M.execute_command(cmd, data_normaliser, winid, on_exit_callback)
   end
 
   active_job = vim.system(cmd, {
+    stdin = stdin,
     stdout = function(err, data)
       if done then -- Discard second and subsequent "done" messages
         return

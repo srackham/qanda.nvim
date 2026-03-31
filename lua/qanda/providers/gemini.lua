@@ -68,6 +68,7 @@ end
 ---@param request Request
 ---@return string[]
 function M.command(request)
+  local _ = request -- Suppress unused variable warning
   return {
     "curl",
     "-q",
@@ -80,8 +81,8 @@ function M.command(request)
     "Authorization: Bearer " .. api_key,
     "-H",
     "Content-Type: application/json",
-    "-d",
-    vim.json.encode(request.data),
+    "--data-binary",
+    "@-",
   }
 end
 
