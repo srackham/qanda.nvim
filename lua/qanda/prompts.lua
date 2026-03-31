@@ -8,6 +8,7 @@ local M = {
   system_messages = {}, ---@type Prompts
 }
 
+--- Sets up the prompt module, including loading templates and setting the default system message.
 function M.setup()
   State.system_message = nil
 
@@ -33,6 +34,7 @@ function M.setup()
 
 end
 
+--- @return string The absolute path to the prompts directory.
 local function prompts_dir()
   return Config.data_dir .. "/prompts"
 end
@@ -50,7 +52,10 @@ function M.get_prompt(prompts, name)
   return nil
 end
 
--- If `system_message` is `nil` then the system message is disabled.
+--- Sets the active system message.
+--- If `system_message` is `nil`, the system message is disabled.
+--- Expands placeholders in the system message content.
+--- @param system_message Prompt|nil The system message to set, or `nil` to disable.
 function M.set_system_message(system_message)
   if system_message ~= nil then
     system_message = vim.tbl_deep_extend("force", {}, system_message)
@@ -160,7 +165,9 @@ local function parse_prompt_templates(lines)
   return result
 end
 
--- Used to parse the Prompt window to a Prompt object
+--- Parses lines from the Prompt window into a Prompt object.
+--- @param lines string[] The lines from the prompt buffer.
+--- @return Prompt|nil The parsed prompt object, or `nil` if parsing fails.
 local function parse_prompt(lines)
   local prompt = { model_options = {} }
   local i = 1
@@ -241,8 +248,9 @@ local function parse_prompt(lines)
   return prompt
 end
 
----@param prompt Prompt
----@return string[]
+--- Converts a Prompt object into an array of lines suitable for display in a buffer.
+--- @param prompt Prompt The prompt object to convert.
+--- @return string[] An array of strings representing the prompt's content and metadata.
 function M.prompt_to_lines(prompt)
   local lines = {}
   local rule = string.rep("_", 3)
@@ -268,7 +276,9 @@ function M.prompt_to_lines(prompt)
   return lines
 end
 
---- Initialise M.prompts table from prompts files (custom markdown file in the configuration prompts directory).
+--- Loads prompt templates from files in the configured prompts directory.
+--- @param role "user"|"system" The role of the prompts to load (e.g., "user" or "system").
+--- @return Prompts An array of loaded prompt objects.
 local function load_prompts(role)
   local result = {} ---@type Prompts
 
@@ -290,7 +300,7 @@ local function load_prompts(role)
       local f, err = io.open(path, "w")
       if not f then
         utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
-        return false
+        return result
       end
       local content = [[
 ___
@@ -326,6 +336,7 @@ ${input:Enter request:}
   return result
 end
 
+--- Loads system message templates from files and updates `M.system_messages` and `State.system_message`.
 function M.load_system_messages()
   M.system_messages = load_prompts "system"
   -- Sync the State.system_message prompt because loading creates new objects
@@ -339,6 +350,7 @@ function M.load_system_messages()
   end
 end
 
+--- Loads user prompt templates from files and updates `M.user_prompts`.
 function M.load_user_prompts()
   M.user_prompts = load_prompts "user"
 end
@@ -440,7 +452,10 @@ function M.add_prompt_syntax_highlighting(bufnr)
   end)
 end
 
----Displays a telescope picker for selecting, editing and executing prompts.
+--- Displays a Telescope picker for selecting, editing, and executing prompts.
+--- @param prompts Prompts The array of prompt objects to display.
+--- @param display_entry? fun(prompt: Prompt): string? Optional function to format how each prompt is displayed in the picker.
+--- @param opts table? Optional configuration options for the Telescope picker.
 local function prompt_picker(prompts, display_entry, opts)
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
@@ -494,6 +509,7 @@ local function prompt_picker(prompts, display_entry, opts)
     :find()
 end
 
+--- Displays a Telescope picker for user prompt templates, allowing selection, execution, or editing.
 function M.user_prompt_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
@@ -568,6 +584,7 @@ function M.user_prompt_picker()
   })
 end
 
+--- Displays a Telescope picker for system message templates, allowing selection, disabling, or editing.
 function M.system_message_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
@@ -676,7 +693,7 @@ end
 --- -  ${file:<filename>}: Inject text file
 ---
 ---@param prompt_string string The prompt string containing placeholders to substitute
----@param opts? table Options: `allow_user_inputs` when set to `true` `$input` and `$select` placeholders are allowed, in which case this function must be called from a coroutine.
+---@param opts? { allow_user_inputs?: boolean } Options: `allow_user_inputs` when set to `true` `$input` and `$select` placeholders are allowed, in which case this function must be called from a coroutine.
 ---@return string|nil The prompt with placeholders substituted, or `nil` if processing should abort i.e. user cancelled or substitution error.
 function M.substitute_placeholders(prompt_string, opts)
   if not prompt_string or prompt_string:match "^%s*$" ~= nil then
