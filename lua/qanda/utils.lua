@@ -719,8 +719,8 @@ end
 --- Dump diagnostic information from Qanda registers into the current buffer, formatted with Markdown headers.
 function M.paste_registers()
   local Config = require "qanda.config"
-  local registers = { Config.curl_command_register, Config.system_message_register, Config.user_prompt_register, Config.response_register }
-  local titles = { "## Curl command", "## System message", "## User prompt", "## Model response" }
+  local registers = { Config.curl_command_register, Config.system_message_register, Config.request_register }
+  local titles = { "## Curl command", "## System message", "## Request Data"}
   local lines = {}
 
   if not vim.api.nvim_get_option_value("modifiable", { buf = 0 }) then
@@ -737,10 +737,16 @@ function M.paste_registers()
       if reg == Config.curl_command_register then
         table.insert(lines, "```")
       end
+      if reg == Config.request_register then
+        table.insert(lines, "```json")
+      end
       for line in string.gmatch(content, "[^\n]+") do
         table.insert(lines, line)
       end
       if reg == Config.curl_command_register then
+        table.insert(lines, "```")
+      end
+      if reg == Config.request_register then
         table.insert(lines, "```")
       end
     end

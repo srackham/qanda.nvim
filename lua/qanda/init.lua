@@ -276,10 +276,6 @@ function M.execute_prompt(prompt)
     }
     local curl_args = State.provider.module.command(request)
 
-    if Config.user_prompt_register then
-      vim.fn.setreg(Config.user_prompt_register, turn.request)
-    end
-
     if turn.system and Config.system_message_register then
       vim.fn.setreg(Config.system_message_register, turn.system)
     end
@@ -291,8 +287,13 @@ function M.execute_prompt(prompt)
     -- Clear the Chat window and write the header.
     Chats.open_chat(chat, turn)
 
-    -- Execute the curl command streaming the output to the Chat window.
+    -- Encode the request data as JSON and assign to diagnostics register
     local payload = vim.json.encode(request.data)
+    if Config.request_register then
+      vim.fn.setreg(Config.request_register, payload)
+    end
+
+    -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(
       curl_args,
       payload,
