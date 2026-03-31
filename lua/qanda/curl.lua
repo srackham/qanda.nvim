@@ -1,15 +1,21 @@
+---@meta
+
 local utils = require "qanda.utils"
 
 local M = {}
 
 local active_job = nil
 local job_status = "stopped" ---@type JobStatus
-local error_message = nil
+local error_message = nil ---@type string|nil
 local stop_spinner = function(_, _) end
-local model_response = {} -- Stores the full model response as a table of lines
+local model_response = {} ---@type string[] Stores the full model response as a table of lines.
 
---- Helper: Appends text to the end of a specific window's buffer
---- Uses vim.schedule to ensure UI calls happen on the main thread.
+--@private
+---Helper: Appends text to the end of a specific window's buffer.
+---Uses `vim.schedule` to ensure UI calls happen on the main thread.
+---@param winid number The Neovim window ID to append text to.
+---@param text string The text to append.
+---@param window_only boolean? If `true`, only updates the window, not the internal `model_response` buffer.
 local function append_to_win(winid, text, window_only)
   vim.schedule(function()
     local bufnr = vim.api.nvim_win_get_buf(winid)
@@ -55,7 +61,8 @@ local function append_to_win(winid, text, window_only)
   end)
 end
 
----Kill existing job instance and reset job status to "stopped"
+---@private
+---Kills the existing job instance and resets job status to "stopped".
 local function stop_job()
   if active_job then
     active_job:kill(15) -- Send SIGTERM
@@ -64,7 +71,9 @@ local function stop_job()
   job_status = "stopped"
 end
 
---- Aborts the current process execution if one is running
+---Aborts the current process execution if one is running.
+---
+---If an active job exists, it will be killed and the job status will be set to "aborted".
 function M.kill_command()
   if active_job then
     stop_job()
@@ -72,21 +81,25 @@ function M.kill_command()
   end
 end
 
+---Retrieves the current status of the job.
+---@return JobStatus The current status of the job (e.g., "stopped", "running", "aborted", "error").
 function M.get_job_status()
   return job_status
 end
 
+---Checks if there is an active job running.
+---@return boolean _true_ if a job is active, _false_ otherwise.
 function M.is_active_job()
   return active_job ~= nil
 end
 
---- Executes the command and streams API 'content' to the window.
---- The data_normaliser should convert raw_json response data into Ollama‑shape response data.
---- @param cmd table The command array (e.g., {'curl', ...})
---- @param stdin string|string[]|nil If non-nil is written to the process stdin
---- @param data_normaliser function (raw_json: string) -> table | nil
---- @param winid number The Neovim window ID to target
---- @param on_exit_callback function Function to call when job finishes
+---Executes the command and streams API 'content' to the window.
+---The `data_normaliser` should convert raw_json response data into Ollama‑shape response data.
+---@param cmd table The command array (e.g., `{'curl', ...}`).
+---@param stdin string|string[]|nil If non-nil, this content is written to the process's stdin.
+---@param data_normaliser fun(raw_json: string): table | nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
+---@param winid number The Neovim window ID to target for streaming output.
+---@param on_exit_callback fun(model_response: string[], error_message: string|nil): nil Function to call when the job finishes, providing the full model response and any error message.
 function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
