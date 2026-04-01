@@ -333,6 +333,12 @@ function M.open_chat(chat, turn)
     }
   end, { buffer = win.bufnr })
 
+  -- Toggle chat display fields
+  vim.keymap.set("n", Config.chat_truncate_key, function()
+    local lines = M.turn_to_lines(win.chat, win.current_turn, { no_truncation = true })
+    win:set_lines(lines)
+  end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.help_key, function()
     local help_message = ([[-- Chat Window Commands --
 
@@ -345,7 +351,8 @@ Normal mode commands:
 - %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
 - %s - Delete then re-execute the latest turn
 - %s - Abort the current request
-- %s - Close Chat window.
+- %s - Close Chat window
+- %s - Show truncated fields
 
 ]]):format(
       Config.chat_prompt_key,
@@ -356,7 +363,8 @@ Normal mode commands:
       Config.chat_edit_key,
       Config.chat_redo_key,
       Config.chat_abort_key,
-      Config.chat_close_key
+      Config.chat_close_key,
+      Config.chat_truncate_key
     )
     vim.notify(help_message, vim.log.levels.INFO)
   end, { buffer = win.bufnr, desc = "Show Chat window help" })
@@ -379,10 +387,12 @@ end
 
 ---@param chat Chat
 ---@param turn ChatTurn
+---@param opts? {no_truncation: boolean}
 ---@return string[]
-function M.turn_to_lines(chat, turn)
+function M.turn_to_lines(chat, turn, opts)
   assert(turn)
 
+  opts = opts or {}
   local lines = {}
   local rule = string.rep("_", 3)
 
@@ -390,7 +400,7 @@ function M.turn_to_lines(chat, turn)
   ---@param content string|nil
   ---@param max_lines number
   ---@return string[]
-  local function get_limited_prompt(label, content, max_lines)
+  local get_limited_prompt = function(label, content, max_lines)
 
     if max_lines == 0 then
       return {}
@@ -449,13 +459,16 @@ function M.turn_to_lines(chat, turn)
   end
   table.insert(lines, string.format("turn: %d of %d", get_turn_index(chat, turn), #chat.turns))
 
+  local max_lines
   if turn.system then
-    local system_lines = get_limited_prompt("system", turn.system, Config.system_message_lines)
+    max_lines = opts.no_truncation and 999 or Config.system_message_lines
+    local system_lines = get_limited_prompt("system", turn.system, max_lines)
     vim.list_extend(lines, system_lines)
     table.insert(lines, "")
   end
 
-  local request_lines = get_limited_prompt("prompt", turn.request, Config.user_prompt_lines)
+  max_lines = opts.no_truncation and 999 or Config.user_prompt_lines
+  local request_lines = get_limited_prompt("prompt", turn.request, max_lines)
   vim.list_extend(lines, request_lines)
   table.insert(lines, "")
 

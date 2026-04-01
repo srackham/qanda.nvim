@@ -57,6 +57,7 @@ local default = {
   chat_prev_key = "<C-p>",
   chat_redo_key = "<C-r>",
   chat_switch_key = "<Tab>",
+  chat_truncate_key = "<C-z>",
 
   -- Chat picker key commands --
   chat_picker_delete_key = "<C-d>",
