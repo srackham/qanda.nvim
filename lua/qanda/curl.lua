@@ -19,7 +19,6 @@ local model_response = {} ---@type string[] Stores the full model response as a 
 local function append_to_win(winid, text, window_only)
   vim.schedule(function()
     local bufnr = vim.api.nvim_win_get_buf(winid)
-    vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
 
     local line_count = vim.api.nvim_buf_line_count(bufnr)
     local last_line_idx = math.max(0, line_count - 1)
@@ -45,6 +44,8 @@ local function append_to_win(winid, text, window_only)
       end
     end
 
+    vim.api.nvim_set_option_value("modifiable", true, { buf = bufnr })
+
     -- Insert the first chunk of text into the current last line
     vim.api.nvim_buf_set_text(bufnr, last_line_idx, #last_line_content, last_line_idx, #last_line_content, { lines_from_text[1] })
 
@@ -54,10 +55,11 @@ local function append_to_win(winid, text, window_only)
       vim.api.nvim_buf_set_lines(bufnr, -1, -1, false, rest)
     end
 
+    vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
+
     -- Auto-scroll the window to follow the streaming output
     local new_last_line = vim.api.nvim_buf_line_count(bufnr)
     vim.api.nvim_win_set_cursor(winid, { new_last_line, 0 })
-    vim.api.nvim_set_option_value("modifiable", false, { buf = bufnr })
   end)
 end
 
