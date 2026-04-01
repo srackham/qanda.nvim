@@ -216,6 +216,7 @@ function M.execute_prompt(prompt)
   coroutine.wrap(function()
 
     local chat = State.chat_window.chat
+    assert(chat)
     local turns = chat.turns
 
     if not prompt.content then
@@ -328,24 +329,25 @@ function M.execute_prompt(prompt)
       payload,
       State.provider.module.normaliser,
       State.chat_window.winid,
-      function(model_response, error_message)
+      function(response) ---@type CurlResponse
         if curl.get_job_status() ~= "stopped" then
           -- Turn did not complete
           return
         end
 
-        if error_message then
+        if response.error then
           return
         end
 
         -- Update completed turn
-        local response = table.concat(model_response, "\n")
-        turns[#turns].response = response
+        local data = table.concat(response.data, "\n")
+        turns[#turns].response = data
         turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
+        turns[#turns].duration = response.duration
 
         if Config.response_register then
           vim.schedule(function() -- Defer because of Neovim's "fast event" context
-            vim.fn.setreg(Config.response_register, response)
+            vim.fn.setreg(Config.response_register, response.data)
           end)
         end
 

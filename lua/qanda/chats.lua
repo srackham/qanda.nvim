@@ -436,6 +436,9 @@ function M.turn_to_lines(chat, turn)
   if turn.timestamp then
     table.insert(lines, "timestamp: " .. turn.timestamp)
   end
+  if turn.duration then
+    table.insert(lines, "duration: " .. string.format("%.2fs", turn.duration))
+  end
   if turn.extract then
     table.insert(lines, "extract: " .. utils.escape_string(turn.extract))
   end
@@ -464,7 +467,7 @@ function M.turn_to_lines(chat, turn)
 end
 
 local chat_syntax_rules = {
-  QandaChatProperty = [[\v^(provider|timestamp|prompt|system|model|provider|extract|turn|temperature|top_p|max_tokens|stream):]],
+  QandaChatProperty = [[\v^(provider|timestamp|duration|prompt|system|model|provider|extract|turn|temperature|top_p|max_tokens|stream):]],
 }
 
 -- Define highlight groups once (link to existing groups)

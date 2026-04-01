@@ -107,6 +107,7 @@
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
 ---@field extract string? A regex pattern to extract content from the model's response.
 ---@field timestamp string The time/date the request was sent
+---@field duration number The time taken for the request in seconds
 
 ---@class Chat
 ---@field turns ChatTurn[] A list of conversation request/response pairs
@@ -121,3 +122,9 @@
 ---| "stopped"
 ---| "error"
 ---| "aborted"
+
+---@class CurlResponse
+---@field data? string[] The aggregated response body data
+---@field error? string Error message if the request failed
+---@field duration? number Request duration in seconds
+

@@ -490,7 +490,6 @@ function M.inject_file()
             table.insert(injection, "```")
             table.insert(injection, "")
 
-            -- Use target_win and target_buf instead of 0
             local row, _ = unpack(vim.api.nvim_win_get_cursor(target_win))
             vim.api.nvim_buf_set_lines(target_buf, row, row, false, injection)
 

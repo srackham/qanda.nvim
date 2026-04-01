@@ -99,7 +99,7 @@ end
 ---@param stdin string|string[]|nil If non-nil, this content is written to the process's stdin.
 ---@param data_normaliser fun(raw_json: string): table | nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
 ---@param winid number The Neovim window ID to target for streaming output.
----@param on_exit_callback fun(model_response: string[], error_message: string|nil): nil Function to call when the job finishes, providing the full model response and any error message.
+---@param on_exit_callback fun(response: CurlResponse): nil Function to call when the job finishes.
 function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
@@ -115,6 +115,7 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
   local done = false
 
   local start_ms = utils.get_time_ms()
+  local duration = nil -- Turn duration in seconds
 
   local log_error = function(msg)
     error_message = msg
@@ -178,7 +179,6 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
           goto continue
         end
 
-        -- Now treat decoded_or_normalized as Ollama‑style
         local chunk = nil
         local duration_msg = nil
 
@@ -189,9 +189,9 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
         if decoded.done then
           -- Compute elapsed time in ms, convert to seconds for display
           local now_ms = utils.get_time_ms()
-          local duration_sec = (now_ms - start_ms) / 1000.0
+          duration = (now_ms - start_ms) / 1000.0
 
-          duration_msg = string.format("\n\n___\n**Time taken**: %.2fs", duration_sec)
+          duration_msg = string.format("\n\n___\n**Time taken**: %.2fs", duration)
           done = true
         end
 
@@ -220,7 +220,12 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
     end
     active_job = nil
     if on_exit_callback then
-      on_exit_callback(model_response, error_message)
+      local response = { ---@type CurlResponse
+        data = model_response,
+        error = error_message,
+        duration = duration,
+      }
+      on_exit_callback(response)
     end
   end)
 end
