@@ -23,8 +23,8 @@ function M.setup()
       if #chats == 1 then
         State.chats = chats -- The full chats list is lazy-loaded later when the Chat picker is opened
         State.chat_window.chat = chats[1]
-        if M.chat_has_system_message(chats[1], State.system_message.content) then
-          if State.system_message then
+        if State.system_message then
+          if M.chat_has_system_message(chats[1], State.system_message.content) then
             State.system_message.consumed = true
           end
         end
