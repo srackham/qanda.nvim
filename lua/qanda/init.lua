@@ -150,13 +150,19 @@ function M.create_user_command()
       select_provider()
       return
     elseif args == "/status" then
-      local info = "provider: " .. vim.inspect(State.provider.name) .. ", model: " .. vim.inspect(State.provider.model) .. ", chat: "
+      local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
       local chat = State.chat_window.chat
       if chat and #chat.turns > 0 then
-        info = info .. '"' .. utils.sanitize_display_entry(Chats.chat_name(chat), 20) .. '"'
+        info = info .. '"' .. utils.sanitize_display_entry(Chats.chat_name(chat), 60) .. '"'
       else
         info = info .. "nil"
       end
+      info = info .. "\nglobal data: " .. vim.inspect(Config.get_global_data_dir())
+      if Config.get_global_data_dir() ~= Config.get_data_dir() then
+        info = info .. "\nlocal data: " .. vim.inspect(Config.get_data_dir())
+      end
+      info = info .. "\nchats: " .. vim.inspect(Config.chats_dir())
+      info = info .. "\nprompts: " .. vim.inspect(Config.prompts_dir())
       utils.notify(info, vim.log.levels.INFO)
       return
     elseif args == "/dump_diagnostics" then
