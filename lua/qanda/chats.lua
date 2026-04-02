@@ -505,6 +505,36 @@ function M.chat_picker()
   assert(current_chat)
   local current_chat_deleted = false
 
+  -- Display entry function
+  local display_entry = function(chat)
+    local chat_name = M.chat_name(chat)
+    if chat.filename == State.chat_window.chat.filename then
+      return "* " .. chat_name
+    else
+      return "  " .. chat_name
+    end
+  end
+
+  local function get_picker_entries()
+    local picker_entries = {}
+    for _, chat in ipairs(State.chats) do
+      table.insert(picker_entries, chat)
+    end
+    table.sort(picker_entries, function(a, b)
+      return a.filename > b.filename
+    end)
+    return picker_entries
+  end
+
+  local function entry_maker(chat)
+    local displayed_name = display_entry(chat)
+    return {
+      value = chat,
+      display = displayed_name,
+      ordinal = displayed_name,
+    }
+  end
+
   local delete_entry = function(picker_bufnr)
     local current_picker = action_state.get_current_picker(picker_bufnr)
 
@@ -559,16 +589,29 @@ function M.chat_picker()
 
     map({ "n", "i" }, Config.chat_picker_rename_key, function()
       local selection = action_state.get_selected_entry()
-      if selection then
-        local chat = selection.value
-        actions.close(picker_bufnr)
-        local new_name = vim.fn.input("Enter chat name: ", M.chat_name(chat))
-        if new_name == "" then
-          return -- User cancelled
-        end
-        chat.turns[1].chat = new_name
-        M.save_chat(chat)
+      if not selection then
+        return
       end
+
+      local chat = selection.value
+      local new_name = vim.fn.input("Enter chat name: ", M.chat_name(chat))
+      if new_name == "" then
+        return -- User cancelled
+      end
+
+      -- Update + persist
+      chat.turns[1].chat = new_name
+      M.save_chat(chat)
+
+      -- Refresh picker
+      local picker = action_state.get_current_picker(picker_bufnr)
+      picker:refresh(
+        finders.new_table {
+          results = get_picker_entries(),
+          entry_maker = entry_maker,
+        },
+        { reset_prompt = false }
+      )
     end, { desc = "Rename the selected chat" })
 
     map({ "n", "i" }, Config.chat_picker_edit_key, function()
@@ -599,28 +642,7 @@ function M.chat_picker()
     return true
   end
 
-  -- Display entry function
-  local display_entry = function(chat)
-    local display_entry = M.chat_name(chat)
-    if chat.filename == State.chat_window.chat.filename then
-      return "* " .. display_entry
-    else
-      return "  " .. display_entry
-    end
-  end
-
-  -- Prepare chat data for telescope
-  local chats = State.chats
-
-  local picker_entries = {}
-  for _, chat in ipairs(chats) do
-    table.insert(picker_entries, chat)
-  end
-  table.sort(picker_entries, function(a, b)
-    return a.filename > b.filename
-  end)
-
-  -- Previewer that list the chat turns
+  -- Previewer that lists the chat turns
   local turns_list_previewer = previewers.new_buffer_previewer {
     define_preview = function(self, entry)
       local chat = entry.value
@@ -644,15 +666,8 @@ function M.chat_picker()
       preview_title = "Turns",
       prompt_title = "[" .. Config.help_key .. " help]",
       finder = finders.new_table {
-        results = picker_entries,
-        entry_maker = function(chat)
-          local displayed_name = display_entry(chat)
-          return {
-            value = chat,
-            display = displayed_name,
-            ordinal = displayed_name,
-          }
-        end,
+        results = get_picker_entries(),
+        entry_maker = entry_maker,
       },
       sorter = conf.generic_sorter {},
       previewer = turns_list_previewer,
@@ -660,8 +675,6 @@ function M.chat_picker()
       layout_config = Config.chat_picker_layout,
     })
     :find()
-
-  -- chat_picker(State.chats, function(chat_bufnr, map)
 
 end
 
