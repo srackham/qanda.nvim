@@ -114,17 +114,54 @@ function M.setup(opts)
   end
 
   -- Expand all configuration paths
-  for _, k in ipairs { "data_dir" } do
-    if M[k] then
-      M[k] = vim.fn.expand(M[k])
-    end
-  end
+  M["data_dir"] = M["data_dir"] and vim.fn.expand(M["data_dir"])
 
   local state = require "qanda.state"
   state.prompt_window.float_layout = M.prompt_window_layout
   state.chat_window.mode = M.chat_window_mode
   state.restore_state()
 
+end
+
+--- Return the global plugin data directory.
+---@return string The absolute path to the data directory.
+function M.get_global_data_dir()
+  if M.data_dir ~= nil then
+    return vim.fn.expand(M.data_dir)
+  end
+  return vim.fn.stdpath "data" .. "/qanda_nvim"
+end
+
+--- Return the plugin data directory. Locations prioritised (highest to lowest) as follows:
+---
+--- - Current working directory
+--- - `data_dir` configuration value
+--- - XDG user data directory
+---@return string The absolute path to the data directory.
+function M.get_data_dir()
+  local dir = vim.fn.getcwd() .. "/.qanda_nvim"
+  if vim.fn.isdirectory(dir) == 1 then
+    return dir
+  end
+  return M.get_global_data_dir()
+end
+
+---@return string The absolute path to the prompts directory.
+function M.prompts_dir()
+  local dir = vim.fn.getcwd() .. "/.qanda_nvim/prompts"
+  if vim.fn.isdirectory(dir) == 1 then
+    return dir
+  end
+  return M.get_global_data_dir() .. "/prompts"
+end
+
+---@return string The chats directory path.
+function M.chats_dir()
+  local dir = vim.fn.getcwd() .. "/.qanda_nvim/chats"
+  if vim.fn.isdirectory(dir) == 1 then
+    return dir
+  end
+  return M.get_global_data_dir() .. "/chats"
 end
 
 return M

@@ -33,11 +33,6 @@ function M.setup()
   end
 end
 
----@return string The chats directory path.
-local function chats_dir()
-  return Config.data_dir .. "/chats"
-end
-
 --- Checks if any turn in the chat has a system message matching the given string.
 ---@param chat Chat The chat object to search.
 ---@param message string The system message string to look for.
@@ -85,7 +80,7 @@ function M.load_chats(chat_file)
   if chat_file then
     table.insert(chat_files, chat_file)
   else
-    local glob_pattern = chats_dir() .. "/*.chat.jsonl"
+    local glob_pattern = Config.chats_dir() .. "/*.chat.jsonl"
     chat_files = vim.fn.glob(glob_pattern, false, true)
   end
 
@@ -124,7 +119,7 @@ end
 --- Saves the chat table to a JSONL file.
 ---@param chat Chat
 function M.save_chat(chat)
-  local dir = chats_dir()
+  local dir = Config.chats_dir()
 
   -- 1. Determine the filename
   if not chat.filename then

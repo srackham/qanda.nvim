@@ -27,7 +27,7 @@ local M = {
 
 ---Saves the saved state JSON file.
 function M.save_state()
-  local dir = Config.data_dir
+  local dir = Config.get_data_dir()
   vim.fn.mkdir(dir, "p") -- ensure directory exists
   local path = dir .. "/" .. Config.SAVED_STATE_FILE
   local ok, encoded = pcall(vim.fn.json_encode, M.saved_state)
@@ -50,7 +50,7 @@ end
 ---Restores the saved state JSON file.
 ---@return SaveState|nil
 function M.restore_state()
-  local path = Config.data_dir .. "/" .. Config.SAVED_STATE_FILE
+  local path = Config.get_data_dir() .. "/" .. Config.SAVED_STATE_FILE
 
   -- If file doesn't exist, it's not an error; just return nil
   if not utils.file_exists(path) then
