@@ -13,9 +13,6 @@ end
 ---@param opts table User configuration options
 ---@return string[]|nil
 function M.models(opts)
-  vim.keymap.set("n", "<S-CR>", ":echo 'Shift+Enter pressed'<CR>")
-  local _ = opts -- Suppress unused variable warning
-
   local data
   local response
 

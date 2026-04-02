@@ -42,7 +42,7 @@ end
 
 ---Retrieve provider by name.
 ---@param name string The name of the provider.
----@return Provider|nil The provider.
+---@return Provider|nil The provider. Return `nil` if provider not found.
 function M.get_provider(name)
   for _, provider in ipairs(M.providers) do
     if provider.name == name then
@@ -53,21 +53,42 @@ function M.get_provider(name)
   return nil
 end
 
---- Restores the provider and model from the saved state.
---- If the saved provider or model is invalid, it prompts the user for selection.
---- @return Provider|nil The restored provider if successful, otherwise `nil` (if a selection was scheduled).
-function M.restore_provider()
-  local provider = nil
-  local provider_name = State.saved_state.provider or Config.provider
-  if provider_name then
-    provider = M.get_provider(provider_name)
-  end
+---Checks provider and model names are valid.
+---@param provider_name string The name of the provider.
+---@param model_name string The name of the model.
+---@return Provider|nil Returns the provider if the provider and model names are valid, else returns `nil`.
+function M.is_valid_provider_model(provider_name, model_name)
+  local provider = M.get_provider(provider_name)
   if not provider then
+    utils.notify("No provider named '" .. provider_name .. "'", vim.log.levels.ERROR)
+    return nil
+  end
+  local models = provider.module.models(Config)
+  if not models then
+    return nil
+  end
+  if not utils.table_contains(models, model_name) then
+    utils.notify("No model named '" .. model_name .. "'", vim.log.levels.ERROR)
+    return nil
+  end
+  return provider
+end
+
+--- Restores the provider and model.
+--- If the provider or model names are invalid, it prompts the user for selection.
+---@param provider_name? string The name of the provider.
+---@param model_name? string The name of the model.
+--- @return Provider|nil The restored provider if successful, otherwise `nil` (if a selection was scheduled).
+function M.set_provider(provider_name, model_name)
+  if not provider_name then
     vim.cmd "Qanda /provider_selector"
   else
+    local provider = M.get_provider(provider_name)
+    if not provider then
+      return nil
+    end
     State.provider = provider
-    local model_name = State.saved_state.model or Config.model
-    if not model_name or not M.is_valid_model_name(provider, model_name) then
+    if not model_name or not M.is_valid_provider_model(provider.name, model_name) then
       vim.cmd "Qanda /model_selector"
     else
       State.provider.model = model_name
@@ -102,17 +123,36 @@ function M.select_provider(current_provider, callback)
   end)
 end
 
---- Checks if a given model name is valid for a specific provider.
---- @param provider Provider The provider object.
---- @param model_name string The name of the model to validate.
---- @return boolean `true` if the model name is valid, `false` otherwise.
-function M.is_valid_model_name(provider, model_name)
-  local models = provider.module.models(Config)
-  if not utils.table_contains(models, model_name) then
-    utils.notify("Unable to  find model '" .. model_name .. "' for provider '" .. provider.name .. "'.", vim.log.levels.ERROR)
-    return false
+---Presents a model selection picker to the user.
+---
+---Allows the user to select a model from the currently active provider.
+---The selected model is then saved in the application state.
+function M.select_model()
+  local items = State.provider.module.models(Config)
+  if not items then
+    return
   end
-  return true
+  for i, v in ipairs(items) do
+    if v == State.provider.model then -- Highlight current model
+      items[i] = "* " .. v
+    else
+      items[i] = "  " .. v
+    end
+  end
+  utils.select(items, {
+    results_title = State.provider.name .. " models",
+    prompt = "",
+    layout_config = Config.model_picker_layout,
+  }, function(item)
+    if item then
+      item = string.sub(item, 3)
+      utils.notify("Model set to '" .. item .. "'", vim.log.levels.INFO)
+      State.provider.model = item
+      State.saved_state.model = item
+      State.saved_state.provider = State.provider.name
+      State.save_state()
+    end
+  end)
 end
 
 return M

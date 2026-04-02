@@ -30,40 +30,6 @@ function M.setup(opts)
 end
 
 ---@private
----Presents a model selection picker to the user.
----
----Allows the user to select a model from the currently active provider.
----The selected model is then saved in the application state.
-local function select_model()
-  local items = State.provider.module.models(Config)
-  if not items then
-    return
-  end
-
-  for i, v in ipairs(items) do
-    if v == State.provider.model then -- Highlight current model
-      items[i] = "* " .. v
-    else
-      items[i] = "  " .. v
-    end
-  end
-  utils.select(items, {
-    results_title = State.provider.name .. " models",
-    prompt = "",
-    layout_config = Config.model_picker_layout,
-  }, function(item)
-    if item then
-      item = string.sub(item, 3)
-      utils.notify("Model set to '" .. item .. "'", vim.log.levels.INFO)
-      State.provider.model = item
-      State.saved_state.model = item
-      State.saved_state.provider = State.provider.name
-      State.save_state()
-    end
-  end)
-end
-
----@private
 ---Presents a provider selection picker to the user.
 ---
 ---Allows the user to select an LLM provider. After selection, it calls `select_model`
@@ -71,7 +37,7 @@ end
 local function select_provider()
   Providers.select_provider(State.provider, function(item)
     State.provider = Providers.get_provider(item)
-    select_model()
+    Providers.select_model()
   end)
 end
 
@@ -101,7 +67,9 @@ function M.create_user_command()
       end
       initialised = true
       -- Provider restoration
-      if not Providers.restore_provider() then
+      local provider_name = State.saved_state.provider or Config.provider
+      local model_name = State.saved_state.model or Config.model
+      if not Providers.set_provider(provider_name, model_name) then
         -- Return if the saved provider/model is invalid because the ensuing user selection is asynchronous,
         -- otherwise continue and execute the original command.
         return
@@ -144,7 +112,7 @@ function M.create_user_command()
       Prompts.system_message_picker()
       return
     elseif args == "/model_selector" then
-      select_model()
+      Providers.select_model()
       return
     elseif args == "/provider_selector" then
       select_provider()
