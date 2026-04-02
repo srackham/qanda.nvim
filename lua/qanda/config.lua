@@ -4,7 +4,7 @@ local M = {} -- This module
 M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
-M.SAVED_STATE_FILE = "QANDA_SAVED_STATE.json"
+M.SESSION_FILE = "session.json"
 
 -- Default configuration options --
 local default = {
