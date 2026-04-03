@@ -74,6 +74,23 @@ function M.is_valid_provider_model(provider_name, model_name)
   return provider
 end
 
+-- If the model is in the list then delete it.
+function M.drop_recent_model(provider_name, model_name)
+  -- If it is in the list then delete it
+  for i, v in ipairs(State.recent_models) do
+    if v.provider_name == provider_name and v.model_name == model_name then
+      table.remove(State.recent_models, i)
+      break
+    end
+  end
+end
+
+-- If the model is in the list then delete it, then append it to the list.
+function M.update_recent_models(provider_name, model_name)
+  M.drop_recent_model(provider_name, model_name)
+  table.insert(State.recent_models, { provider_name = provider_name, model_name = model_name })
+end
+
 --- Restores the provider and model.
 --- If the provider or model names are invalid, it prompts the user for selection.
 ---@param provider_name? string The name of the provider.
@@ -94,13 +111,16 @@ function M.set_provider(provider_name, model_name)
       State.provider.model = model_name
       State.saved_state.model = model_name
       State.saved_state.provider = provider.name
+      M.update_recent_models(provider_name, model_name)
+      State.save_state()
+      utils.notify("Model set to " .. provider_name .. "/" .. model_name, vim.log.levels.INFO)
       return provider
     end
   end
   return nil
 end
 
---- Prompts the user to select a provider using `vim.ui.select`.
+--- Prompts the user to select a provider.
 --- @param current_provider Provider? The currently active provider, if any, to highlight.
 --- @param callback fun(selected_provider_name: string) The function to call with the name of the selected provider.
 function M.select_provider(current_provider, callback)
@@ -127,31 +147,74 @@ end
 ---
 ---Allows the user to select a model from the currently active provider.
 ---The selected model is then saved in the application state.
-function M.select_model()
-  local items = State.provider.module.models(Config)
-  if not items then
+---@param provider_name string? The name of the provider to select models from. If nil, uses the current State.provider.
+function M.select_model(provider_name)
+  local provider
+  if provider_name then
+    provider = M.get_provider(provider_name)
+  else
+    provider = State.provider
+  end
+  local models = provider.module.models(Config) ---@diagnostic disable-line: need-check-nil
+  if not models then
     return
   end
-  for i, v in ipairs(items) do
+  for i, v in ipairs(models) do
     if v == State.provider.model then -- Highlight current model
-      items[i] = "* " .. v
+      models[i] = "* " .. v
     else
-      items[i] = "  " .. v
+      models[i] = "  " .. v
     end
   end
-  utils.select(items, {
-    results_title = State.provider.name .. " models",
+  utils.select(models, {
+    results_title = State.provider.name .. " Models",
     prompt = "",
     layout_config = Config.model_picker_layout,
-  }, function(item)
-    if item then
-      item = string.sub(item, 3)
-      utils.notify("Model set to '" .. item .. "'", vim.log.levels.INFO)
-      State.provider.model = item
-      State.saved_state.model = item
-      State.saved_state.provider = State.provider.name
-      State.save_state()
+  }, function(model_name)
+    if model_name then
+      model_name = string.sub(model_name, 3)
+      M.set_provider(provider_name, model_name)
     end
+  end)
+end
+
+--- Prompts the user to select a recent model
+function M.select_recent_model()
+  local recent_models = State.recent_models
+
+  if not recent_models or #recent_models == 0 then
+    utils.notify("No recent models found", vim.log.levels.INFO)
+    return
+  end
+
+  local display_items = {}
+  for _, recent_model in ipairs(State.recent_models) do
+    local display_string = recent_model.provider_name .. "/" .. recent_model.model_name
+    table.insert(display_items, display_string)
+  end
+  display_items = utils.reverse_table(display_items)
+
+  utils.select(display_items, {
+    results_title = "Recent Models",
+    prompt = "",
+    layout_config = Config.recent_models_layout,
+  }, function(selection)
+    if not selection then
+      return -- User cancelled
+    end
+
+    local provider_name, model_name = string.match(selection, "([^/]+)/(.+)")
+    if M.is_valid_provider_model(provider_name, model_name) then
+      M.set_provider(provider_name, model_name)
+    else
+      M.drop_recent_model(provider_name, model_name)
+      State.save_state()
+      utils.notify(
+        "Invalid model `" .. provider_name .. "/" .. model_name .. "' removed from recent models list",
+        vim.log.levels.INFO
+      )
+    end
+
   end)
 end
 

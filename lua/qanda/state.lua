@@ -1,4 +1,4 @@
-local Config = require "qanda.config" -- User configuration options
+local Config = require "qanda.config"
 local ui = require "qanda.ui"
 local utils = require "qanda.utils"
 
@@ -7,7 +7,8 @@ local M = {
   provider = nil, ---@type Provider
   system_message = nil, ---@type Prompt System message with placeholders expanded
   chats = {}, ---@type Chats
-  saved_state = {},
+  saved_state = nil, ---@type SavedState
+  recent_models = nil, ---@type Model[]
 
   chat_window = ui.UIWindow.new {
     buf_name = Config.CHAT_BUFFER_NAME,
@@ -27,6 +28,16 @@ local M = {
 
 ---Saves the saved state JSON file.
 function M.save_state()
+  -- Assemble the saved state object
+  -- TODO: do we need the M.saved_state global?
+  if M.provider then
+    M.saved_state.model = M.provider.model
+    M.saved_state.provider = M.provider.name
+  end
+  if M.recent_models then
+    M.saved_state.recent_models = M.recent_models
+  end
+
   local dir = Config.get_data_dir()
   vim.fn.mkdir(dir, "p") -- ensure directory exists
   local path = dir .. "/" .. Config.SESSION_FILE
@@ -48,7 +59,7 @@ function M.save_state()
 end
 
 ---Restores the saved state JSON file.
----@return SaveState|nil
+---@return SavedState|nil
 function M.restore_state()
   local path = Config.get_data_dir() .. "/" .. Config.SESSION_FILE
 
@@ -78,6 +89,12 @@ function M.restore_state()
   end
 
   M.saved_state = decoded
+
+  if decoded.recent_models then
+    M.recent_models = decoded.recent_models
+  else
+    M.recent_models = {}
+  end
 
 end
 

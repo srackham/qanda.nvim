@@ -50,14 +50,20 @@
 ---@field chat_window UIWindow
 ---@field prompt_window UIWindow
 ---@field system_message Prompt The current system message object
+---@field recent_models Model[] A list of the most recently selected models
 
----@class SaveState -- Saved in STATE.json
+---@class SavedState -- Saved in STATE.json
 ---@field provider string -- Most recently selected provider
 ---@field model string -- Most recently selected model
 ---@field chat_file string -- Most recently updated chat file
 ---@field system_message_name string
+---@field recent_models Model[] A list of the most recently selected models
 
 -- Model definitions --
+
+---@class Model
+---@field provider_name string
+---@field model_name string
 
 ---@class Provider
 ---@field name string The filename of the provider (without extension)

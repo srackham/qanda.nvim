@@ -29,18 +29,6 @@ function M.setup(opts)
   M.create_user_command()
 end
 
----@private
----Presents a provider selection picker to the user.
----
----Allows the user to select an LLM provider. After selection, it calls `select_model`
----to allow the user to choose a model from the newly selected provider.
-local function select_provider()
-  Providers.select_provider(State.provider, function(item)
-    State.provider = Providers.get_provider(item)
-    Providers.select_model()
-  end)
-end
-
 ---Opens the main Qanda chat window.
 ---
 ---This function creates or focuses the chat buffer window.
@@ -115,7 +103,12 @@ function M.create_user_command()
       Providers.select_model()
       return
     elseif args == "/provider_selector" then
-      select_provider()
+      Providers.select_provider(State.provider, function(provider_name)
+        Providers.select_model(provider_name)
+      end)
+      return
+    elseif args == "/recent_models" then
+      Providers.select_recent_model()
       return
     elseif args == "/status" then
       local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
@@ -162,6 +155,7 @@ function M.create_user_command()
       table.insert(args, "/prompt_picker")
       table.insert(args, "/model_selector")
       table.insert(args, "/provider_selector")
+      table.insert(args, "/recent_models")
       table.insert(args, "/system_message_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")

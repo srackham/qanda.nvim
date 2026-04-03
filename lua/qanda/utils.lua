@@ -719,7 +719,7 @@ end
 function M.paste_registers()
   local Config = require "qanda.config"
   local registers = { Config.curl_command_register, Config.system_message_register, Config.request_register }
-  local titles = { "## Curl command", "## System message", "## Request Data"}
+  local titles = { "## Curl command", "## System message", "## Request Data" }
   local lines = {}
 
   if not vim.api.nvim_get_option_value("modifiable", { buf = 0 }) then
@@ -770,6 +770,16 @@ function M.normalize_numerics(tbl)
       end
     elseif type(v) == "table" then
       tbl[k] = M.normalize_numerics(v) -- Recurse into nested tables (e.g., options)
+    end
+  end
+end
+
+-- Delete the first matching item from table `tbl`
+function M.table_delete_item(tbl, item)
+  for i, v in ipairs(tbl) do
+    if v == item then
+      table.remove(tbl, i)
+      break
     end
   end
 end

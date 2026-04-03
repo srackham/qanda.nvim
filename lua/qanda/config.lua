@@ -96,6 +96,7 @@ local default = {
   prompt_picker_layout = { width = 0.8, height = 0.5 },
   prompt_window_layout = { border = "rounded", height = 0.5 },
   model_picker_layout = { width = 0.3, height = 0.6 },
+  recent_models_layout = { width = 0.3, height = 0.6 },
 }
 
 function M.setup(opts)
