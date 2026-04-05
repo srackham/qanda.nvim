@@ -250,6 +250,9 @@ function M.open_chat(chat, turn)
 
   -- Attach key commands.
   vim.keymap.set("n", Config.chat_close_key, function()
+    if curl.is_active_job() then
+      return
+    end
     win:close()
   end, { buffer = win.bufnr })
 
@@ -258,10 +261,16 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_switch_key, function()
+    if curl.is_active_job() then
+      return
+    end
     vim.cmd "Qanda /prompt_window"
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_prompt_key, function()
+    if curl.is_active_job() then
+      return
+    end
     local current_turn = win.current_turn or {}
     require("qanda.prompts").open_prompt {
       name = nil,
@@ -272,6 +281,9 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_prev_key, function()
+    if curl.is_active_job() then
+      return
+    end
     if win.current_turn then
       local t = get_prev_turn(win.chat, win.current_turn)
       if t then
@@ -281,6 +293,9 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_next_key, function()
+    if curl.is_active_job() then
+      return
+    end
     if win.current_turn then
       local t = get_next_turn(win.chat, win.current_turn)
       if t then
@@ -290,11 +305,17 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_delete_key, function()
+    if curl.is_active_job() then
+      return
+    end
     M.delete_turn(win.chat, win.current_turn)
     M.open_chat(win.chat, win.current_turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_edit_key, function()
+    if curl.is_active_job() then
+      return
+    end
     if win.chat.filename then
       win:close()
       local timestamp = win.current_turn.timestamp
@@ -312,6 +333,9 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.chat_redo_key, function()
+    if curl.is_active_job() then
+      return
+    end
     if #win.chat.turns == 0 then
       utils.notify("Empty chat, there is nothing to redo", vim.log.levels.WARN)
       return
@@ -332,11 +356,17 @@ function M.open_chat(chat, turn)
 
   -- Toggle chat display fields
   vim.keymap.set("n", Config.chat_truncate_key, function()
+    if curl.is_active_job() then
+      return
+    end
     local lines = M.turn_to_lines(win.chat, win.current_turn, { no_truncation = true })
     win:set_lines(lines)
   end, { buffer = win.bufnr })
 
   vim.keymap.set("n", Config.help_key, function()
+    if curl.is_active_job() then
+      return
+    end
     local help_message = ([[-- Chat Window Commands --
 
 Normal mode commands:
