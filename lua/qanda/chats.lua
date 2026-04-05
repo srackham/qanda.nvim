@@ -139,6 +139,7 @@ function M.save_chat(chat)
   for _, turn in ipairs(chat.turns) do
     local ok, json = pcall(vim.json.encode, turn)
     if ok then
+      json:gsub("[\r\n]", " ") -- Ensure single line JSONL format
       table.insert(lines, json)
     end
   end
