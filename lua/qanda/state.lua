@@ -78,7 +78,7 @@ function M.restore_state()
   local content = f:read "*a"
   f:close()
 
-  local ok, decoded = pcall(vim.fn.json_decode, content)
+  local ok, decoded = pcall(vim.json.decode, content)
   if not ok then
     utils.notify("Failed to decode state file: " .. path, vim.log.levels.ERROR)
     return nil

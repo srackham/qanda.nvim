@@ -280,6 +280,11 @@ function M.is_visual_mode()
   return vim.fn.mode() == "v" or vim.fn.mode() == "V"
 end
 
+-- Returns `true` if Neovim is in insert mode.
+function M.is_insert_mode()
+  return vim.api.nvim_get_mode().mode == 'i'
+end
+
 ---@param prompt string
 ---@param items string[]
 ---@return number|nil

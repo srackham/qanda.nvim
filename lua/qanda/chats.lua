@@ -52,13 +52,14 @@ end
 ---@return ChatTurn[]|nil result Array of parsed turns, or nil on parse error.
 local function parse_turns(lines)
   local result = {}
-  for _, line in ipairs(lines) do
+  for i, line in ipairs(lines) do
     line = vim.trim(line)
     if #line > 0 then -- Skip blank lines
-      local ok, parsed_line = pcall(vim.fn.json_decode, line)
+      local ok, parsed_line = pcall(vim.json.decode, line)
       if ok and type(parsed_line) == "table" then
         table.insert(result, parsed_line)
       else
+        utils.notify("JSON parse error at line " .. i .. ": " .. tostring(parsed_line), vim.log.levels.ERROR)
         return nil
       end
     end
@@ -97,7 +98,7 @@ function M.load_chats(chat_file)
           current_chat_loaded = true
         end
       else
-        utils.notify("Failed to parse chats from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
+        utils.notify("Failed to parse turns from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
       end
     else
       utils.notify("File not readable or does not exist '" .. file_path .. "', skipping.", vim.log.levels.ERROR)

@@ -18,7 +18,7 @@ function M.models(opts)
 
   local ok, err = pcall(function()
     response = vim.fn.systemlist("curl -q --silent --no-buffer http://" .. opts.host .. ":" .. opts.port .. "/api/tags")
-    data = vim.fn.json_decode(response)
+    data = vim.json.decode(response)
   end)
   if not ok then
     utils.notify("Error retrieving model names from provider: " .. tostring(err), vim.log.levels.ERROR)
