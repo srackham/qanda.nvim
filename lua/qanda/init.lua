@@ -284,6 +284,9 @@ function M.execute_prompt(prompt)
 
     -- Clear the Chat window and write the header.
     Chats.open_chat(chat, turn)
+    -- TODO: Why do we sometimes get here with the Chat window in insert mode
+    -- Ensure it's not in insert mode
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 
     -- Encode the request data as JSON and assign to diagnostics register
     local payload = vim.json.encode(request.data)
