@@ -13,11 +13,13 @@ local model_response = {} ---@type string[] Stores the full model response as a 
 --@private
 ---Helper: Appends text to the end of a specific window's buffer.
 ---Uses `vim.schedule` to ensure UI calls happen on the main thread.
+---If the `window_only` option is `true`, only updates the window, not the internal `model_response` buffer.
 ---@param winid number The Neovim window ID to append text to.
 ---@param text string The text to append.
----@param window_only boolean? If `true`, only updates the window, not the internal `model_response` buffer.
-local function append_to_win(winid, text, window_only)
+--- @param opts { window_only?: boolean }? Optional configuration.
+local function append_to_win(winid, text, opts)
   vim.schedule(function()
+    local window_only = (opts or {}).window_only
     local bufnr = vim.api.nvim_win_get_buf(winid)
 
     local line_count = vim.api.nvim_buf_line_count(bufnr)
@@ -121,7 +123,7 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
 
   local log_error = function(msg)
     error_message = msg
-    append_to_win(winid, "\n\n___\n**Error: " .. msg .. "**", true)
+    append_to_win(winid, "\n\n___\n**Error: " .. msg .. "**", { window_only = true })
     job_status = "error"
     done = true
   end
@@ -201,7 +203,7 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
           append_to_win(winid, chunk)
         end
         if duration_msg then
-          append_to_win(winid, duration_msg, true)
+          append_to_win(winid, duration_msg, { window_only = true })
         end
 
         ::continue::
