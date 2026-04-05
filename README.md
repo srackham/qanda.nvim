@@ -22,6 +22,9 @@ Chat picker
 Prompt template picker
 system message
 System message picker
+Model picker
+Provider picker
+Most recent models picker
 turn
 chat
 request
