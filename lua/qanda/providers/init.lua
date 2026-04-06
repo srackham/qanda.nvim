@@ -154,20 +154,22 @@ function M.select_model(provider_name)
     provider = M.get_provider(provider_name)
   else
     provider = State.provider
+    provider_name = provider.name
   end
-  local models = provider.module.models(Config) ---@diagnostic disable-line: need-check-nil
+  assert(provider)
+  local models = provider.module.models(Config)
   if not models then
     return
   end
   for i, v in ipairs(models) do
-    if v == State.provider.model then -- Highlight current model
+    if v == provider.model then -- Highlight current model
       models[i] = "* " .. v
     else
       models[i] = "  " .. v
     end
   end
   utils.select(models, {
-    results_title = State.provider.name .. " Models",
+    results_title = provider.name .. " Models",
     prompt = "",
     layout_config = Config.model_picker_layout,
   }, function(model_name)
@@ -209,10 +211,7 @@ function M.select_recent_model()
     else
       M.drop_recent_model(provider_name, model_name)
       State.save_state()
-      utils.notify(
-        "Invalid model `" .. provider_name .. "/" .. model_name .. "' removed from recent models list",
-        vim.log.levels.INFO
-      )
+      utils.notify("Invalid model `" .. provider_name .. "/" .. model_name .. "' removed from recent models list", vim.log.levels.INFO)
     end
 
   end)
