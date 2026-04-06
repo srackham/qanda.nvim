@@ -110,6 +110,9 @@ function M.create_user_command()
     elseif args == "/recent_models" then
       Providers.select_recent_model()
       return
+    elseif args == "/abort" then
+      curl.kill_command()
+      return
     elseif args == "/status" then
       local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
       local chat = State.chat_window.chat
@@ -156,6 +159,7 @@ function M.create_user_command()
       table.insert(args, "/model_selector")
       table.insert(args, "/provider_selector")
       table.insert(args, "/recent_models")
+      table.insert(args, "/abort")
       table.insert(args, "/system_message_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")
