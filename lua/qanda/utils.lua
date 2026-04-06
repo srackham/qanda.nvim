@@ -186,8 +186,7 @@ vim.cmd [[
 --- and returns a function to stop the animation and display a completion message.
 --- The spinner uses Unicode braille characters for smooth animation.
 --- @param message string The message to display alongside the spinner
---- @param opts table|nil Optional configuration table forwarded to M.message
---- @param opts.interval number Animation frame interval in milliseconds (default: 100)
+--- @param opts? { interval?: number } `interval` is animation frame interval in milliseconds (default: 100)
 --- @return function A stop function that halts the spinner and shows completion message
 --- @usage
 --- local stop_spinner = notify_with_spinner("Loading...", {interval = 50})
