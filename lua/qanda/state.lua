@@ -59,20 +59,24 @@ function M.save_state()
 end
 
 ---Restores the saved state JSON file.
----@return SavedState|nil
+---If an error occurs an error message is printed and a blank saved state is restored.
 function M.restore_state()
   local path = Config.session_file()
 
-  -- If file doesn't exist, it's not an error; just return nil
+  -- Blank saved state
+  M.saved_state = { recent_models = {} }
+  M.recent_models = {}
+
+  -- If file doesn't exist, it's not an error (the user may be onboarding)
   if not utils.file_exists(path) then
-    return nil
+    return
   end
 
   local f = io.open(path, "r")
   if not f then
     -- If readable check passed but open failed, something went wrong
     utils.notify("Failed to read state file: " .. path, vim.log.levels.ERROR)
-    return nil
+    return
   end
 
   local content = f:read "*a"
@@ -81,7 +85,7 @@ function M.restore_state()
   local ok, decoded = pcall(vim.json.decode, content)
   if not ok then
     utils.notify("Failed to decode state file: " .. path, vim.log.levels.ERROR)
-    return nil
+    return
   end
 
   if decoded.chat_file and not utils.file_exists(decoded.chat_file) then
@@ -89,7 +93,6 @@ function M.restore_state()
   end
 
   M.saved_state = decoded
-
   if decoded.recent_models then
     M.recent_models = decoded.recent_models
   else

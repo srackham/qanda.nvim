@@ -53,10 +53,10 @@
 ---@field recent_models Model[] A list of the most recently selected models
 
 ---@class SavedState -- Saved in STATE.json
----@field provider string -- Most recently selected provider
----@field model string -- Most recently selected model
----@field chat_file string -- Most recently updated chat file
----@field system_message_name string
+---@field provider? string -- Most recently selected provider
+---@field model? string -- Most recently selected model
+---@field chat_file? string -- Most recently updated chat file
+---@field system_message_name? string
 ---@field recent_models Model[] A list of the most recently selected models
 
 -- Model definitions --
