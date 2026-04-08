@@ -44,7 +44,6 @@ local default = {
   response_register = "r", -- The most recent response (extracted)
   curl_command_register = "c", -- The curl model request shell command
   confirm_chat_file_deletion = true,
-  chat_reload = false, -- Reload the most recent chat at startup
 
   -- Pickers, Chat and Prompt windows help key --
   help_key = "<C-h>",
