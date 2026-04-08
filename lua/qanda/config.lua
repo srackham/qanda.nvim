@@ -11,7 +11,7 @@ local default = {
 
   debug = true,
 
-  -- Default onboarding provider and model names
+  -- Default onboarding provider and model names (if `nil` you will be prompted)
   provider = nil,
   model = nil,
 
@@ -32,13 +32,15 @@ local default = {
     gemini = { api_key = "$GEMINI_API_KEY" },
   },
 
-  -- Miscellaneous --
+  -- Global configuration data files root directory
   data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
-  system_message_name = nil, -- Default system message name
+
+  -- Miscellaneous --
+  system_message_name = nil, -- Default system message template name
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
-  system_message_lines = 10, -- The maximum number of system message lines to display in the Chat window
+  system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
   system_message_register = "s", -- The most recent submitted system message
-  request_register = "t", -- The most recent model request JSON data
+  request_register = "t", -- The most recent model request (JSON data)
   response_register = "r", -- The most recent response (extracted)
   curl_command_register = "c", -- The curl model request shell command
   confirm_chat_file_deletion = true,
@@ -90,7 +92,8 @@ local default = {
   system_picker_disable_key = "<C-d>",
 
   -- Window layouts --
-  chat_window_mode = "right",
+  -- chat_window_mode = "right",
+  chat_window_mode = "float",
   chat_picker_layout = { width = 0.9, height = 0.6, preview_width = 0.65 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
   prompt_picker_layout = { width = 0.8, height = 0.5 },
@@ -101,11 +104,11 @@ local default = {
 
 function M.setup(opts)
 
-  opts = opts or {}
   for k, v in pairs(default) do
     M[k] = v
   end
 
+  opts = opts or {}
   for k, v in pairs(opts) do
     if k == "model_options" then
       M[k] = vim.tbl_deep_extend("force", M[k] or {}, v) -- Merge setup model_options rather than replace
@@ -114,9 +117,31 @@ function M.setup(opts)
     end
   end
 
-  -- Expand all configuration paths
-  M["data_dir"] = M["data_dir"] and vim.fn.expand(M["data_dir"])
+  -- Set configuration file locations
+  local global_data_dir = vim.fn.expand(M.data_dir) -- Global data directory
+  local local_data_dir = vim.fn.getcwd() .. "/.qanda_nvim" -- Local project directory
 
+  if vim.fn.isdirectory(local_data_dir) == 1 then
+    M.data_dir = local_data_dir
+  else
+    M.data_dir = global_data_dir
+  end
+
+  local dir = local_data_dir .. "/prompts"
+  if vim.fn.isdirectory(dir) == 1 then
+    M.prompts_dir = dir
+  else
+    M.prompts_dir = global_data_dir .. "/prompts"
+  end
+
+  dir = local_data_dir .. "/chats"
+  if vim.fn.isdirectory(dir) == 1 then
+    M.chats_dir = dir
+  else
+    M.chats_dir = global_data_dir .. "/chats"
+  end
+
+  -- Restore state
   local state = require "qanda.state"
   state.prompt_window.float_layout = M.prompt_window_layout
   state.chat_window.mode = M.chat_window_mode
@@ -124,45 +149,10 @@ function M.setup(opts)
 
 end
 
---- Return the global plugin data directory.
----@return string The absolute path to the data directory.
-function M.get_global_data_dir()
-  if M.data_dir ~= nil then
-    return vim.fn.expand(M.data_dir)
-  end
-  return vim.fn.stdpath "data" .. "/qanda_nvim"
-end
-
---- Return the plugin data directory. Locations prioritised (highest to lowest) as follows:
----
---- - Current working directory
---- - `data_dir` configuration value
---- - XDG user data directory
----@return string The absolute path to the data directory.
-function M.get_data_dir()
-  local dir = vim.fn.getcwd() .. "/.qanda_nvim"
-  if vim.fn.isdirectory(dir) == 1 then
-    return dir
-  end
-  return M.get_global_data_dir()
-end
-
----@return string The absolute path to the prompts directory.
-function M.prompts_dir()
-  local dir = vim.fn.getcwd() .. "/.qanda_nvim/prompts"
-  if vim.fn.isdirectory(dir) == 1 then
-    return dir
-  end
-  return M.get_global_data_dir() .. "/prompts"
-end
-
----@return string The chats directory path.
-function M.chats_dir()
-  local dir = vim.fn.getcwd() .. "/.qanda_nvim/chats"
-  if vim.fn.isdirectory(dir) == 1 then
-    return dir
-  end
-  return M.get_global_data_dir() .. "/chats"
+--- Return the session file path.
+---@return string The absolute path to the session file
+function M.session_file()
+  return M.data_dir .. "/" .. M.SESSION_FILE
 end
 
 return M

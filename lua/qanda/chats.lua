@@ -68,7 +68,7 @@ local function parse_turns(lines)
 end
 
 --- Loads chats. If chat_file is provided, loads only that file.
---- Otherwise, scans chats_dir() for all .chat.jsonl files.
+--- Otherwise, scans chats_dir for all .chat.jsonl files.
 ---@param chat_file string? Optional specific file to load
 ---@return Chat[] result A list of Chat objects
 function M.load_chats(chat_file)
@@ -81,7 +81,7 @@ function M.load_chats(chat_file)
   if chat_file then
     table.insert(chat_files, chat_file)
   else
-    local glob_pattern = Config.chats_dir() .. "/*.chat.jsonl"
+    local glob_pattern = Config.chats_dir .. "/*.chat.jsonl"
     chat_files = vim.fn.glob(glob_pattern, false, true)
   end
 
@@ -120,7 +120,7 @@ end
 --- Saves the chat table to a JSONL file.
 ---@param chat Chat
 function M.save_chat(chat)
-  local dir = Config.chats_dir()
+  local dir = Config.chats_dir
 
   -- 1. Determine the filename
   if not chat.filename then

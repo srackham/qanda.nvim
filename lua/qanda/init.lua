@@ -121,12 +121,9 @@ function M.create_user_command()
       else
         info = info .. "nil"
       end
-      info = info .. "\nglobal data: " .. vim.inspect(Config.get_global_data_dir())
-      if Config.get_global_data_dir() ~= Config.get_data_dir() then
-        info = info .. "\nlocal data: " .. vim.inspect(Config.get_data_dir())
-      end
-      info = info .. "\nchats: " .. vim.inspect(Config.chats_dir())
-      info = info .. "\nprompts: " .. vim.inspect(Config.prompts_dir())
+      info = info .. "\nsession file: " .. vim.inspect(Config.session_file())
+      info = info .. "\nchats directory: " .. vim.inspect(Config.chats_dir)
+      info = info .. "\nprompts directory: " .. vim.inspect(Config.prompts_dir)
       utils.notify(info, vim.log.levels.INFO)
       return
     elseif args == "/dump_diagnostics" then

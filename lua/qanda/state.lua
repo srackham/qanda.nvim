@@ -38,9 +38,8 @@ function M.save_state()
     M.saved_state.recent_models = M.recent_models
   end
 
-  local dir = Config.get_data_dir()
+  local dir = Config.data_dir
   vim.fn.mkdir(dir, "p") -- ensure directory exists
-  local path = dir .. "/" .. Config.SESSION_FILE
   local ok, encoded = pcall(vim.fn.json_encode, M.saved_state)
 
   if not ok then
@@ -48,6 +47,7 @@ function M.save_state()
     return
   end
 
+  local path = Config.session_file()
   local f = io.open(path, "w")
   if not f then
     utils.notify("Failed to open state file for writing: " .. path, vim.log.levels.ERROR)
@@ -61,7 +61,7 @@ end
 ---Restores the saved state JSON file.
 ---@return SavedState|nil
 function M.restore_state()
-  local path = Config.get_data_dir() .. "/" .. Config.SESSION_FILE
+  local path = Config.session_file()
 
   -- If file doesn't exist, it's not an error; just return nil
   if not utils.file_exists(path) then

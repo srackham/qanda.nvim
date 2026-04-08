@@ -278,13 +278,13 @@ local function load_prompts(role)
   local result = {} ---@type Prompts
 
   -- Read and merge prompts from all .user.md files
-  local glob_pattern = Config.prompts_dir() .. "/*." .. role .. ".md"
+  local glob_pattern = Config.prompts_dir .. "/*." .. role .. ".md"
   local prompt_files = vim.fn.glob(glob_pattern, false, true)
 
   if role == "user" then
     -- If there are no prompts files then create one
     if #prompt_files == 0 then
-      local path = Config.prompts_dir() .. "/default.user.md"
+      local path = Config.prompts_dir .. "/default.user.md"
 
       -- Create parent directory if it does not already exist
       local dir = vim.fn.fnamemodify(path, ":h")
@@ -408,8 +408,8 @@ function M.open_prompt(prompt)
   vim.keymap.set("n", Config.help_key, function()
     local help_message = ([[-- Prompt Window Commands --
 
-- %s - Submit the prompt (all modes)
-- %s - Submit the prompt in a new chat (all modes)
+- %s - Submit the prompt
+- %s - Submit the prompt in a new chat
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to Chat window
 - %s - Close Prompt window
@@ -659,7 +659,7 @@ function M.resolve_prompt_path(file_path)
   -- If it's equal to the original file_path, then there was no directory component.
   if vim.fn.fnamemodify(file_path, ":t") == file_path then
     -- If it's just a filename, prepend prompts_dir and then resolve to an absolute path.
-    local full_path = Config.prompts_dir() .. "/" .. file_path
+    local full_path = Config.prompts_dir .. "/" .. file_path
     return vim.fn.fnamemodify(full_path, ":p")
   else
     -- Otherwise, the path either has directory components (relative to cwd) or is already absolute.
