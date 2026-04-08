@@ -275,39 +275,50 @@ end
 --- @param role "user"|"system" The role of the prompts to load (e.g., "user" or "system").
 --- @return Prompts An array of loaded prompt objects.
 local function load_prompts(role)
+  assert(role == "user" or role == "system")
+
   local result = {} ---@type Prompts
 
   -- Read and merge prompts from all .user.md files
   local glob_pattern = Config.prompts_dir .. "/*." .. role .. ".md"
   local prompt_files = vim.fn.glob(glob_pattern, false, true)
 
-  if role == "user" then
-    -- If there are no prompts files then create one
-    if #prompt_files == 0 then
-      local path = Config.prompts_dir .. "/default.user.md"
+  -- If there are no prompts files then create example
+  if #prompt_files == 0 then
+    local path = Config.prompts_dir .. "/default." .. role .. ".md"
 
-      -- Create parent directory if it does not already exist
-      local dir = vim.fn.fnamemodify(path, ":h")
-      if vim.fn.isdirectory(dir) == 0 then
-        vim.fn.mkdir(dir, "p")
-      end
-
-      local f, err = io.open(path, "w")
-      if not f then
-        utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
-        return result
-      end
-      local content = [[
-___
-name: Make a request
-___
-${input:Enter request:}
-]]
-      f:write(content)
-      f:close()
-      prompt_files = vim.fn.glob(glob_pattern, false, true)
-      assert(#prompt_files == 1)
+    -- Create parent directory if it does not already exist
+    local dir = vim.fn.fnamemodify(path, ":h")
+    if vim.fn.isdirectory(dir) == 0 then
+      vim.fn.mkdir(dir, "p")
     end
+
+    local f, err = io.open(path, "w")
+    if not f then
+      utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+      return result
+    end
+    local content
+    if role == "user" then
+      content = [[
+___
+name: Ask a question
+___
+${input:Enter question}
+]]
+    else
+      content = [[
+___
+name: Generic
+___
+- Do not use introductory phrases like 'I understand' or 'Based on your request.', get straight to the point.
+- Use bullet lists for multiple items.
+]]
+    end
+    f:write(content)
+    f:close()
+    prompt_files = vim.fn.glob(glob_pattern, false, true)
+    assert(#prompt_files == 1)
   end
 
   -- Load the prompts files
