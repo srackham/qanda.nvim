@@ -49,8 +49,8 @@ local default = {
   help_key = "<C-h>", -- Display a list of picker commands
 
   -- Chat window key commands --
-  chat_abort_key = "<Esc>",
-  chat_close_key = "q",
+  chat_abort_key = "<C-k>",
+  chat_close_key = "<Esc>",
   chat_edit_key = "<C-e>",
   chat_prompt_key = "<Enter>",
   chat_delete_key = "<C-d>",
@@ -71,12 +71,12 @@ local default = {
   turn_picker_delete_key = "<C-d>",
 
   -- Prompt window key commands --
-  prompt_abort_key = "<Esc>",
-  prompt_close_key = "q",
+  prompt_abort_key = "<C-k>",
+  prompt_close_key = "<Esc>",
   prompt_submit_key = "<S-Enter>",
   prompt_new_chat_key = "<C-s>",
   prompt_redo_key = "<C-r>",
-  prompt_clear_key = "<C-Space>",
+  prompt_clear_key = "<C-Del>",
   prompt_switch_key = "<Tab>",
   prompt_inject_key = "<Leader>fi",
 
