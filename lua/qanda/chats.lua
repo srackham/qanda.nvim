@@ -260,25 +260,25 @@ function M.open_chat(chat, turn)
   })
 
   -- Attach key commands.
-  vim.keymap.set("n", Config.chat_close_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_close_key, function()
     if curl.is_active_job() then
       return
     end
     win:close()
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_abort_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_abort_key, function()
     curl.kill_command()
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_switch_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_switch_key, function()
     if curl.is_active_job() then
       return
     end
     vim.cmd "Qanda /prompt_window"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_prompt_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_prompt_key, function()
     if curl.is_active_job() then
       return
     end
@@ -291,7 +291,7 @@ function M.open_chat(chat, turn)
     }
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_prev_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_prev_key, function()
     if curl.is_active_job() then
       return
     end
@@ -303,7 +303,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_next_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_next_key, function()
     if curl.is_active_job() then
       return
     end
@@ -315,7 +315,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_delete_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_delete_key, function()
     if curl.is_active_job() then
       return
     end
@@ -323,7 +323,7 @@ function M.open_chat(chat, turn)
     M.open_chat(win.chat, win.current_turn)
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_edit_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_edit_key, function()
     if curl.is_active_job() then
       return
     end
@@ -343,7 +343,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.chat_redo_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_redo_key, function()
     if curl.is_active_job() then
       return
     end
@@ -353,20 +353,18 @@ function M.open_chat(chat, turn)
     end
 
     -- Delete the most recent turn and re-execute it
-    local most_recent_turn = win.chat.turns[#win.chat.turns]
-    table.remove(win.chat.turns)
+    local most_recent_turn = table.remove(win.chat.turns)
     win.current_turn = nil
     M.open_chat()
     require("qanda.prompts").open_prompt {
       content = most_recent_turn.request,
       model_options = most_recent_turn.model_options,
       extract = most_recent_turn.extract,
-      prompt = most_recent_turn.request,
     }
   end, { buffer = win.bufnr })
 
   -- Toggle chat display fields
-  vim.keymap.set("n", Config.chat_truncate_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_truncate_key, function()
     if curl.is_active_job() then
       return
     end
@@ -374,7 +372,7 @@ function M.open_chat(chat, turn)
     win:set_lines(lines)
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.help_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
     if curl.is_active_job() then
       return
     end
@@ -387,7 +385,7 @@ Normal mode commands:
 - %s/%s Scroll up/down for previous/next prompt (from the current chat message)
 - %s - Delete current turn, if last turn delete the chat
 - %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
-- %s - Delete then re-execute the latest turn
+- %s - Delete then rerun the latest turn
 - %s - Abort the current request
 - %s - Close Chat window
 - %s - Show truncated fields
