@@ -2,6 +2,7 @@ local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
+local curl = require "qanda.curl"
 
 local M = {
   user_prompts = {}, ---@type Prompts
@@ -408,7 +409,7 @@ function M.open_prompt(prompt)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.prompt_clear_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_clear_key, function()
     -- Clear the current buffer in the window
     vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
     -- Go to insert mode
@@ -416,19 +417,47 @@ function M.open_prompt(prompt)
   end, { buffer = win.bufnr })
   vim.keymap.set("n", Config.prompt_inject_key, utils.inject_file, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.help_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_redo_key, function()
+    local chat_window = State.chat_window
+    if curl.is_active_job() then
+      return
+    end
+    if #chat_window.chat.turns == 0 then
+      utils.notify("Empty chat, there is nothing to redo", vim.log.levels.WARN)
+      return
+    end
+
+    -- Delete the most recent turn
+    table.remove(chat_window.chat.turns)
+    chat_window.current_turn = nil
+    require("qanda.chats").open_chat()
+
+    -- Execute prompt
+    local prompt_lines = win:get_lines()
+    utils.trim_table(prompt_lines)
+    local content = table.concat(prompt_lines, "\n")
+    require("qanda").execute_prompt {
+      content = content,
+    }
+  end, { buffer = win.bufnr })
+
+  vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
     local help_message = ([[-- Prompt Window Commands --
 
-- %s - Submit the prompt
-- %s - Submit the prompt in a new chat
+- %s - Submit the prompt to the current chat
+- %s - Submit the prompt to a new chat
+- %s - Submit the prompt replacing the latest turn
 - %s - Clear the prompt window and enter insert mode
-- %s - Switch to Chat window
-- %s - Close Prompt window
-- %s - Inject file(s) into the prompt
+- %s - Switch to Chat window †
+- %s - Close Prompt window †
+- %s - Inject file(s) into the prompt †
+
+† Normal mode only
 
 ]]):format(
       Config.prompt_submit_key,
       Config.prompt_new_chat_key,
+      Config.prompt_redo_key,
       Config.prompt_clear_key,
       Config.prompt_switch_key,
       Config.prompt_close_key,
