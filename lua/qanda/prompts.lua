@@ -409,7 +409,7 @@ function M.open_prompt(prompt)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_clear_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_new_key, function()
     -- Clear the current buffer in the window
     vim.api.nvim_buf_set_lines(0, 0, -1, true, {})
     -- Go to insert mode
@@ -459,7 +459,7 @@ function M.open_prompt(prompt)
       Config.prompt_submit_key,
       Config.prompt_new_chat_key,
       Config.prompt_redo_key,
-      Config.prompt_clear_key,
+      Config.prompt_new_key,
       Config.prompt_switch_key,
       Config.prompt_close_key,
       Config.prompt_inject_key

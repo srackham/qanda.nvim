@@ -54,7 +54,7 @@ local default = {
   chat_edit_key = "<C-e>",
   chat_prompt_key = "<Enter>",
   chat_switch_key = "<Tab>",
-  chat_clear_prompt_key = "<C-Del>",
+  chat_new_prompt_key = "<C-Del>",
   chat_delete_key = "<C-d>",
   chat_next_key = "<C-n>",
   chat_prev_key = "<C-p>",
@@ -77,7 +77,7 @@ local default = {
   prompt_submit_key = "<S-Enter>",
   prompt_new_chat_key = "<C-s>",
   prompt_redo_key = "<C-r>",
-  prompt_clear_key = "<C-Del>",
+  prompt_new_key = "<C-Del>",
   prompt_switch_key = "<Tab>",
   prompt_inject_key = "<Leader>fi",
 

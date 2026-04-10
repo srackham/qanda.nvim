@@ -84,6 +84,11 @@ function M.create_user_command()
     elseif args == "/prompt_window" then
       Prompts.open_prompt(nil)
       return
+    elseif args == "/new_prompt" then
+      Prompts.open_prompt { content = "" } -- Open a blank Prompt window
+      vim.cmd "startinsert" -- Go to insert mode
+      Prompts.open_prompt(nil)
+      return
     elseif args == "/chat_picker" then
       State.chats = Chats.load_chats()
       Chats.chat_picker()
@@ -152,6 +157,7 @@ function M.create_user_command()
       table.insert(args, "/chat_picker")
       table.insert(args, "/turn_picker")
       table.insert(args, "/prompt_window")
+      table.insert(args, "/new_prompt")
       table.insert(args, "/prompt_picker")
       table.insert(args, "/model_selector")
       table.insert(args, "/provider_selector")

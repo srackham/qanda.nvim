@@ -291,7 +291,7 @@ function M.open_chat(chat, turn)
     }
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_clear_prompt_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_new_prompt_key, function()
     -- Open a blank Prompt window
     require("qanda.prompts").open_prompt { content = "" }
     -- Go to insert mode
@@ -401,7 +401,7 @@ Normal mode commands:
 ]]):format(
       Config.chat_prompt_key,
       Config.chat_switch_key,
-      Config.chat_clear_prompt_key,
+      Config.chat_new_prompt_key,
       Config.chat_prev_key,
       Config.chat_next_key,
       Config.chat_delete_key,
