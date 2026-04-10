@@ -291,6 +291,13 @@ function M.open_chat(chat, turn)
     }
   end, { buffer = win.bufnr })
 
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_clear_prompt_key, function()
+    -- Open a blank Prompt window
+    require("qanda.prompts").open_prompt { content = "" }
+    -- Go to insert mode
+    vim.cmd "startinsert"
+  end, { buffer = win.bufnr })
+
   vim.keymap.set({ "n", "v", "i" }, Config.chat_prev_key, function()
     if curl.is_active_job() then
       return
@@ -382,6 +389,7 @@ Normal mode commands:
 
 - %s - Create a new prompt from the current Chat window prompt
 - %s - Switch to Prompt window
+- %s - Clear the prompt window and enter insert mode
 - %s/%s Scroll up/down for previous/next prompt (from the current chat message)
 - %s - Delete current turn, if last turn delete the chat
 - %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
@@ -393,6 +401,7 @@ Normal mode commands:
 ]]):format(
       Config.chat_prompt_key,
       Config.chat_switch_key,
+      Config.chat_clear_prompt_key,
       Config.chat_prev_key,
       Config.chat_next_key,
       Config.chat_delete_key,

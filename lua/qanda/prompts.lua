@@ -415,6 +415,7 @@ function M.open_prompt(prompt)
     -- Go to insert mode
     vim.cmd "startinsert"
   end, { buffer = win.bufnr })
+
   vim.keymap.set("n", Config.prompt_inject_key, utils.inject_file, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_redo_key, function()

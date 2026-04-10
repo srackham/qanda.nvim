@@ -53,11 +53,12 @@ local default = {
   chat_close_key = "<Esc>",
   chat_edit_key = "<C-e>",
   chat_prompt_key = "<Enter>",
+  chat_switch_key = "<Tab>",
+  chat_clear_prompt_key = "<C-Del>",
   chat_delete_key = "<C-d>",
   chat_next_key = "<C-n>",
   chat_prev_key = "<C-p>",
   chat_redo_key = "<C-r>",
-  chat_switch_key = "<Tab>",
   chat_truncate_key = "<C-z>",
 
   -- Chat picker key commands --
