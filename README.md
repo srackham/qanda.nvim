@@ -1,17 +1,24 @@
+TODO:
+
+- Create sections outline
+- Copy relevant NOTES.md notes
+- Write an AI prompt to generate the README
+
 # qanda.nvim
 
 An easy-to-use Neovim plugin for conversing with AI models.
 
 There are plenty of feature-rich AI applications AI plugins out there; most impose a cognitive load and a learning curve; many are oriented towards task-specific workflows.
 
-Qanda.nvim is for conversing with an AI, not for workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI.
+Qanda.nvim is for conversing with an AI, not for workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way (the default window mappings were chosen for single-key activation and dismissal).
 
 ## Features
 
 - Familiar turn-about chatbot UI.
 - Ollama, OpenRouter and Google Gemini model providers.
+- Models can be switched at any time with the _Recent Models_ picker.
 - Conversations (chats) are persistent, resumable and editable.
-- Reusable named prompt templates for customisable user prompts and system messages.
+- Reusable named prompt templates for customisable user messages (prompts) and system messages.
 - Template placeholders for prompt inputs.
 
 ## Glossary of terms
@@ -31,9 +38,11 @@ request
 response
 model
 provider
+session
 
 ## Tips
 
+- If Neovim is configured to persist the Neovim registers across sessions the Qanda `/dump_diagnostics` command will also persist across sessions.
 - Executing a prompt template from the Prompt picker previews the expanded prompt in the Prompt window; the preview is skipped if you execute a prompt template using the `:Qanda` command.
 - If the `new_chat_on
 - Chat files are updated after each successful turn.

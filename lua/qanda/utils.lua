@@ -281,7 +281,7 @@ end
 
 -- Returns `true` if Neovim is in insert mode.
 function M.is_insert_mode()
-  return vim.api.nvim_get_mode().mode == 'i'
+  return vim.api.nvim_get_mode().mode == "i"
 end
 
 ---@param prompt string
@@ -719,8 +719,8 @@ function M.curl_args_to_shell_command(args)
   return table.concat(lines, "\n")
 end
 
---- Dump diagnostic information from Qanda registers into the current buffer, formatted with Markdown headers.
-function M.paste_registers()
+--- Return readable dump of Qanda diagnostic registers in an array of lines.
+function M.diagnostic_registers()
   local Config = require "qanda.config"
   local registers = { Config.curl_command_register, Config.system_message_register, Config.request_register }
   local titles = { "## Curl command", "## System message", "## Request Data" }
@@ -728,12 +728,14 @@ function M.paste_registers()
 
   if not vim.api.nvim_get_option_value("modifiable", { buf = 0 }) then
     M.notify("Buffer is not modifiable", vim.log.levels.ERROR)
-    return
+    return {}
   end
+
+  table.insert(lines, "# Qanda Diagnostics")
 
   for i, reg in ipairs(registers) do
     local content = vim.fn.getreg(reg)
-    table.insert(lines, "___")
+    table.insert(lines, "")
     table.insert(lines, titles[i])
     table.insert(lines, "")
     if content then
@@ -755,11 +757,7 @@ function M.paste_registers()
     end
   end
 
-  table.insert(lines, "___")
-
-  if #lines > 1 then
-    vim.api.nvim_put(lines, "l", true, true)
-  end
+  return lines
 end
 
 -- Recursive function to ensure numeric strings are converted in-place to numbers in a table.

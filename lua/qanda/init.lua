@@ -5,6 +5,7 @@ local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
 local curl = require "qanda.curl"
+local ui = require "qanda.ui"
 
 local M = {} -- This module
 
@@ -132,7 +133,8 @@ function M.create_user_command()
       utils.notify(info, vim.log.levels.INFO)
       return
     elseif args == "/dump_diagnostics" then
-      utils.paste_registers()
+      local lines = utils.diagnostic_registers()
+      ui.open_foreground_float(lines, { width = 999, height = 999 })
       return
     else
       local prompt = Prompts.get_prompt(Prompts.user_prompts, args)

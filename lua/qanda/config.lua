@@ -93,8 +93,7 @@ local default = {
   system_picker_disable_key = "<C-d>",
 
   -- Window layouts --
-  -- chat_window_mode = "right",
-  chat_window_mode = "float",
+  chat_window_mode = "float", ---@type WindowMode
   chat_picker_layout = { width = 0.9, height = 0.6, preview_width = 0.65 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
   prompt_picker_layout = { width = 0.8, height = 0.5 },
