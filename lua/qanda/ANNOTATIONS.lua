@@ -134,3 +134,10 @@
 ---@field error? string Error message if the request failed
 ---@field duration? number Request duration in seconds
 
+--- Diagnostic types
+---@alias Diagnostic
+---| '"curl_command"'
+---| '"system_message"'
+---| '"request"'
+---| '"response"'
+

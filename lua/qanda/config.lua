@@ -39,10 +39,9 @@ local default = {
   system_message_name = nil, -- Default system message template name
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
-  system_message_register = "s", -- The most recent submitted system message
-  request_register = "t", -- The most recent model request (JSON data)
-  response_register = "r", -- The most recent response (extracted)
-  curl_command_register = "c", -- The curl model request shell command
+
+  diagnostics_register = "q", -- Diagnostics written to this register
+
   confirm_chat_file_deletion = true,
 
   -- Pickers, Chat and Prompt windows help key --

@@ -5,7 +5,7 @@ local Prompts = require "qanda.prompts"
 local Providers = require "qanda.providers" -- LLM providers
 local utils = require "qanda.utils"
 local curl = require "qanda.curl"
-local ui = require "qanda.ui"
+local diagnostics = require "qanda.diagnostics"
 
 local M = {} -- This module
 
@@ -133,8 +133,7 @@ function M.create_user_command()
       utils.notify(info, vim.log.levels.INFO)
       return
     elseif args == "/dump_diagnostics" then
-      local lines = utils.diagnostic_registers()
-      ui.open_foreground_float(lines, { width = 999, height = 999 })
+      diagnostics.open()
       return
     else
       local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
@@ -167,141 +166,135 @@ function M.create_user_command()
       table.insert(args, "/abort")
       table.insert(args, "/system_message_picker")
       table.insert(args, "/status")
-      table.insert(args, "/dump_diagnostics")
+        table.insert(args, "/dump_diagnostics")
 
-      local completion_candidates = {}
-      for _, arg in ipairs(args) do
-        if arg:lower():match("^" .. ArgLead:lower()) then
-          table.insert(completion_candidates, arg)
+        local completion_candidates = {}
+        for _, arg in ipairs(args) do
+          if arg:lower():match("^" .. ArgLead:lower()) then
+            table.insert(completion_candidates, arg)
+          end
         end
-      end
-      table.sort(completion_candidates)
-      return completion_candidates
-    end,
-  })
-end
+        table.sort(completion_candidates)
+        return completion_candidates
+      end,
+    })
+  end
 
----@alias Qanda.Prompt table<string, any>
+  ---@alias Qanda.Prompt table<string, any>
 
----Executes a given prompt, sending it to the configured LLM provider.
----
----This function handles prompt expansion, constructs the API request,
----manages chat turns, and streams the LLM response back to the chat window.
----It runs in a coroutine to avoid blocking the Neovim UI.
----@param prompt Qanda.Prompt The prompt object to execute.
-function M.execute_prompt(prompt)
-  coroutine.wrap(function()
+  ---Executes a given prompt, sending it to the configured LLM provider.
+  ---
+  ---This function handles prompt expansion, constructs the API request,
+  ---manages chat turns, and streams the LLM response back to the chat window.
+  ---It runs in a coroutine to avoid blocking the Neovim UI.
+  ---@param prompt Qanda.Prompt The prompt object to execute.
+  function M.execute_prompt(prompt)
+    coroutine.wrap(function()
 
-    local chat = State.chat_window.chat
-    assert(chat)
-    local turns = chat.turns
+      local chat = State.chat_window.chat
+      assert(chat)
+      local turns = chat.turns
 
-    if not prompt.content then
-      return nil
-    end
-
-    -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
-    if prompt.name then
-      prompt = vim.tbl_deep_extend("force", {}, prompt)
-      local expanded = Prompts.substitute_placeholders(prompt.content, { allow_user_inputs = true })
-      if not expanded then
+      if not prompt.content then
         return nil
       end
-      prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
-      prompt.content = expanded
-    end
-    State.prompt_window:close()
 
-    local turn = {
-      request = prompt.content,
-      provider = prompt.provider or State.provider.name,
-      model = prompt.model or State.provider.model,
-    }
-    if prompt.model_options then
-      turn.model_options = utils.shallow_clone_table(prompt.model_options)
-    end
-    if State.system_message and not State.system_message.consumed then
-      turn.system = State.system_message.content
-    end
-
-    -- Delete the most recent chat turn if did not complete.
-    if #turns > 0 and not turns[#turns].response then
-      table.remove(turns)
-    end
-
-    -- Append the new turn to current chat.
-    table.insert(turns, turn)
-
-    -- Create the model Request object
-    local request_data = {
-      model = turn.model,
-      model_options = turn.model_option,
-    }
-
-    -- Add configuration model options (lowest priority)
-    local model_options = Config.model_options[turn.provider]
-    if model_options then
-      for k, v in pairs(model_options) do
-        request_data[k] = v
+      -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
+      if prompt.name then
+        prompt = vim.tbl_deep_extend("force", {}, prompt)
+        local expanded = Prompts.substitute_placeholders(prompt.content, { allow_user_inputs = true })
+        if not expanded then
+          return nil
+        end
+        prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
+        prompt.content = expanded
       end
-    end
-    -- Add system message model options
-    model_options = State.system_message and State.system_message.model_options
-    if model_options then
-      for k, v in pairs(model_options) do
-        request_data[k] = v
+      State.prompt_window:close()
+
+      local turn = {
+        request = prompt.content,
+        provider = prompt.provider or State.provider.name,
+        model = prompt.model or State.provider.model,
+      }
+      if prompt.model_options then
+        turn.model_options = utils.shallow_clone_table(prompt.model_options)
       end
-    end
-    -- Add user prompt model options (highest priority)
-    if turn.model_options then
-      for k, v in pairs(turn.model_options) do
-        request_data[k] = v
+      if State.system_message and not State.system_message.consumed then
+        turn.system = State.system_message.content
       end
-    end
 
-    -- Ensure numeric string values are converted to numbers
-    utils.normalize_numerics(request_data)
-
-    -- Add model messages
-    local messages = {}
-    for _, t in ipairs(turns) do
-      if t.system then
-        table.insert(messages, { role = "system", content = t.system })
+      -- Delete the most recent chat turn if did not complete.
+      if #turns > 0 and not turns[#turns].response then
+        table.remove(turns)
       end
-      table.insert(messages, { role = "user", content = t.request })
-      if t.response then
-        table.insert(messages, { role = "assistant", content = t.response })
+
+      -- Append the new turn to current chat.
+      table.insert(turns, turn)
+
+      -- Create the model Request object
+      local request_data = {
+        model = turn.model,
+        model_options = turn.model_option,
+      }
+
+      -- Add configuration model options (lowest priority)
+      local model_options = Config.model_options[turn.provider]
+      if model_options then
+        for k, v in pairs(model_options) do
+          request_data[k] = v
+        end
       end
-    end
-    request_data.messages = messages
+      -- Add system message model options
+      model_options = State.system_message and State.system_message.model_options
+      if model_options then
+        for k, v in pairs(model_options) do
+          request_data[k] = v
+        end
+      end
+      -- Add user prompt model options (highest priority)
+      if turn.model_options then
+        for k, v in pairs(turn.model_options) do
+          request_data[k] = v
+        end
+      end
 
-    -- Build the curl command
-    local request = {
-      host = Config.host,
-      port = Config.port,
-      data = request_data,
-    }
-    local curl_args = State.provider.module.command(request)
+      -- Ensure numeric string values are converted to numbers
+      utils.normalize_numerics(request_data)
 
-    if turn.system and Config.system_message_register then
-      vim.fn.setreg(Config.system_message_register, turn.system)
-    end
+      -- Add model messages
+      local messages = {}
+      for _, t in ipairs(turns) do
+        if t.system then
+          table.insert(messages, { role = "system", content = t.system })
+        end
+        table.insert(messages, { role = "user", content = t.request })
+        if t.response then
+          table.insert(messages, { role = "assistant", content = t.response })
+        end
+      end
+      request_data.messages = messages
 
-    if Config.curl_command_register then
-      vim.fn.setreg(Config.curl_command_register, utils.curl_args_to_shell_command(curl_args))
-    end
+      -- Build the curl command
+      local request = {
+        host = Config.host,
+        port = Config.port,
+        data = request_data,
+      }
+      local curl_args = State.provider.module.command(request)
 
-    -- Clear the Chat window and write the header.
-    Chats.open_chat(chat, turn)
-    -- TODO: Why do we sometimes get here with the Chat window in insert mode
-    -- Ensure it's not in insert mode
-    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+      diagnostics.start()
+      diagnostics.append("system_message", "## System", turn.system)
+      diagnostics.append("curl_command", "## Curl command", utils.curl_args_to_shell_command(curl_args))
 
-    -- Encode the request data as JSON and assign to diagnostics register
-    local payload = vim.json.encode(request.data)
-    if Config.request_register then
-      vim.fn.setreg(Config.request_register, payload)
-    end
+      -- Clear the Chat window and write the header.
+      Chats.open_chat(chat, turn)
+      -- TODO: Why do we sometimes get here with the Chat window in insert mode
+      -- Ensure it's not in insert mode
+      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
+
+      -- Encode the request data as JSON and assign to diagnostics register
+      local payload = vim.json.encode(request.data)
+      diagnostics.append("request", "## Request data", payload)
 
     -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(
@@ -325,11 +318,7 @@ function M.execute_prompt(prompt)
         turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
         turns[#turns].duration = response.duration
 
-        if Config.response_register then
-          vim.schedule(function() -- Defer because of Neovim's "fast event" context
-            vim.fn.setreg(Config.response_register, response.data)
-          end)
-        end
+        diagnostics.append("response", "## Extracted response", data)
 
         -- Consume the system message
         if State.system_message then
