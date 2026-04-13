@@ -28,7 +28,14 @@ function M.append(diagnostic, title, content)
       if diagnostic == "curl_command" then
         reg = reg .. "\n```" .. content .. "\n```"
       elseif diagnostic == "request" then
-        reg = reg .. "\n```json" .. content .. "\n```"
+        local formatted = content
+        if vim.fn.executable "jq" == 1 then
+          local result = vim.fn.system("jq '.'", content)
+          if vim.v.shell_error == 0 then
+            formatted = result
+          end
+        end
+        reg = reg .. "\n```json" .. formatted .. "\n```"
       else
         reg = reg .. "\n" .. content
       end
