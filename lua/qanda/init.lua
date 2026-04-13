@@ -166,135 +166,140 @@ function M.create_user_command()
       table.insert(args, "/abort")
       table.insert(args, "/system_message_picker")
       table.insert(args, "/status")
-        table.insert(args, "/dump_diagnostics")
+      table.insert(args, "/dump_diagnostics")
 
-        local completion_candidates = {}
-        for _, arg in ipairs(args) do
-          if arg:lower():match("^" .. ArgLead:lower()) then
-            table.insert(completion_candidates, arg)
-          end
+      local completion_candidates = {}
+      for _, arg in ipairs(args) do
+        if arg:lower():match("^" .. ArgLead:lower()) then
+          table.insert(completion_candidates, arg)
         end
-        table.sort(completion_candidates)
-        return completion_candidates
-      end,
-    })
-  end
+      end
+      table.sort(completion_candidates)
+      return completion_candidates
+    end,
+  })
+end
 
-  ---@alias Qanda.Prompt table<string, any>
+---@alias Qanda.Prompt table<string, any>
 
-  ---Executes a given prompt, sending it to the configured LLM provider.
-  ---
-  ---This function handles prompt expansion, constructs the API request,
-  ---manages chat turns, and streams the LLM response back to the chat window.
-  ---It runs in a coroutine to avoid blocking the Neovim UI.
-  ---@param prompt Qanda.Prompt The prompt object to execute.
-  function M.execute_prompt(prompt)
-    coroutine.wrap(function()
+---Executes a given prompt, sending it to the configured LLM provider.
+---
+---This function handles prompt expansion, constructs the API request,
+---manages chat turns, and streams the LLM response back to the chat window.
+---It runs in a coroutine to avoid blocking the Neovim UI.
+---@param prompt Qanda.Prompt The prompt object to execute.
+function M.execute_prompt(prompt)
+  coroutine.wrap(function()
 
-      local chat = State.chat_window.chat
-      assert(chat)
-      local turns = chat.turns
+    local chat = State.chat_window.chat
+    assert(chat)
+    local turns = chat.turns
 
-      if not prompt.content then
+    if not prompt.content then
+      return nil
+    end
+
+    -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
+    if prompt.name then
+      prompt = vim.tbl_deep_extend("force", {}, prompt)
+      local expanded = Prompts.substitute_placeholders(prompt.content, { allow_user_inputs = true })
+      if not expanded then
         return nil
       end
+      prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
+      prompt.content = expanded
+    end
+    State.prompt_window:close()
 
-      -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
-      if prompt.name then
-        prompt = vim.tbl_deep_extend("force", {}, prompt)
-        local expanded = Prompts.substitute_placeholders(prompt.content, { allow_user_inputs = true })
-        if not expanded then
-          return nil
-        end
-        prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
-        prompt.content = expanded
+    local turn = {
+      request = prompt.content,
+      provider = prompt.provider or State.provider.name,
+      model = prompt.model or State.provider.model,
+    }
+    if prompt.model_options then
+      turn.model_options = utils.shallow_clone_table(prompt.model_options)
+    end
+    if State.system_message and not State.system_message.consumed then
+      turn.system = State.system_message.content
+    end
+
+    -- Delete the most recent chat turn if did not complete.
+    if #turns > 0 and not turns[#turns].response then
+      table.remove(turns)
+    end
+
+    -- Append the new turn to current chat.
+    table.insert(turns, turn)
+
+    -- Create the model Request object
+    local request_data = {
+      model = turn.model,
+      model_options = turn.model_option,
+    }
+
+    -- Add configuration model options (lowest priority)
+    local model_options = Config.model_options[turn.provider]
+    if model_options then
+      for k, v in pairs(model_options) do
+        request_data[k] = v
       end
-      State.prompt_window:close()
-
-      local turn = {
-        request = prompt.content,
-        provider = prompt.provider or State.provider.name,
-        model = prompt.model or State.provider.model,
-      }
-      if prompt.model_options then
-        turn.model_options = utils.shallow_clone_table(prompt.model_options)
+    end
+    -- Add system message model options
+    model_options = State.system_message and State.system_message.model_options
+    if model_options then
+      for k, v in pairs(model_options) do
+        request_data[k] = v
       end
-      if State.system_message and not State.system_message.consumed then
-        turn.system = State.system_message.content
+    end
+    -- Add user prompt model options (highest priority)
+    if turn.model_options then
+      for k, v in pairs(turn.model_options) do
+        request_data[k] = v
       end
+    end
 
-      -- Delete the most recent chat turn if did not complete.
-      if #turns > 0 and not turns[#turns].response then
-        table.remove(turns)
+    -- Ensure numeric string values are converted to numbers
+    utils.normalize_numerics(request_data)
+
+    -- Clear diagnostics
+    diagnostics.start()
+
+    -- Add model messages
+    local messages = {}
+    local system_message = nil -- The conversation's most recent system message
+    for _, t in ipairs(turns) do
+      if t.system then
+        table.insert(messages, { role = "system", content = t.system })
+        system_message = t.system
       end
-
-      -- Append the new turn to current chat.
-      table.insert(turns, turn)
-
-      -- Create the model Request object
-      local request_data = {
-        model = turn.model,
-        model_options = turn.model_option,
-      }
-
-      -- Add configuration model options (lowest priority)
-      local model_options = Config.model_options[turn.provider]
-      if model_options then
-        for k, v in pairs(model_options) do
-          request_data[k] = v
-        end
+      table.insert(messages, { role = "user", content = t.request })
+      if t.response then
+        table.insert(messages, { role = "assistant", content = t.response })
       end
-      -- Add system message model options
-      model_options = State.system_message and State.system_message.model_options
-      if model_options then
-        for k, v in pairs(model_options) do
-          request_data[k] = v
-        end
-      end
-      -- Add user prompt model options (highest priority)
-      if turn.model_options then
-        for k, v in pairs(turn.model_options) do
-          request_data[k] = v
-        end
-      end
+    end
+    request_data.messages = messages
 
-      -- Ensure numeric string values are converted to numbers
-      utils.normalize_numerics(request_data)
+    diagnostics.append("system_message", "## System", system_message)
 
-      -- Add model messages
-      local messages = {}
-      for _, t in ipairs(turns) do
-        if t.system then
-          table.insert(messages, { role = "system", content = t.system })
-        end
-        table.insert(messages, { role = "user", content = t.request })
-        if t.response then
-          table.insert(messages, { role = "assistant", content = t.response })
-        end
-      end
-      request_data.messages = messages
+    -- Build the curl command
+    local request = {
+      host = Config.host,
+      port = Config.port,
+      data = request_data,
+    }
+    local curl_args = State.provider.module.command(request)
 
-      -- Build the curl command
-      local request = {
-        host = Config.host,
-        port = Config.port,
-        data = request_data,
-      }
-      local curl_args = State.provider.module.command(request)
+    diagnostics.append("curl_command", "## Curl command", utils.curl_args_to_shell_command(curl_args))
 
-      diagnostics.start()
-      diagnostics.append("system_message", "## System", turn.system)
-      diagnostics.append("curl_command", "## Curl command", utils.curl_args_to_shell_command(curl_args))
+    -- Clear the Chat window and write the header.
+    Chats.open_chat(chat, turn)
+    -- TODO: Why do we sometimes get here with the Chat window in insert mode
+    -- Ensure it's not in insert mode
+    vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 
-      -- Clear the Chat window and write the header.
-      Chats.open_chat(chat, turn)
-      -- TODO: Why do we sometimes get here with the Chat window in insert mode
-      -- Ensure it's not in insert mode
-      vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
-
-      -- Encode the request data as JSON and assign to diagnostics register
-      local payload = vim.json.encode(request.data)
-      diagnostics.append("request", "## Request data", payload)
+    -- Encode the request data as JSON and assign to diagnostics register
+    local payload = vim.json.encode(request.data)
+    diagnostics.append("request", "## Request data", payload)
 
     -- Execute the curl command streaming the output to the Chat window.
     curl.execute_command(
