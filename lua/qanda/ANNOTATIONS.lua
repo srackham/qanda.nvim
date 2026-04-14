@@ -56,7 +56,7 @@
 ---@field provider? string -- Most recently selected provider
 ---@field model? string -- Most recently selected model
 ---@field chat_file? string -- Most recently updated chat file
----@field system_message_name? string
+---@field system_message_template? string
 ---@field recent_models Model[] A list of the most recently selected models
 
 -- Model definitions --
@@ -94,7 +94,7 @@
 ---@field name? string The prompt name
 ---@field content string The prompt message string
 ---@field extract string? A regex pattern to extract content from the model's response
----@field system string? Name of system message template
+---@field system string? Name of system message template -- TODO: why is this necessary?
 ---@field provider? string The provider name
 ---@field model? string The model name
 ---@field model_options table? Additional model request fields

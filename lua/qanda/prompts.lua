@@ -25,9 +25,9 @@ function M.setup()
   M.load_system_messages()
 
   -- Set global system message
-  local system_message_name = State.saved_state.system_message_name or Config.system_message_name
-  if system_message_name then
-    local template = M.get_prompt(M.system_messages, system_message_name)
+  local system_message_template = State.saved_state.system_message_template
+  if system_message_template then
+    local template = M.get_prompt(M.system_messages, system_message_template)
     if template then
       M.set_system_message(template)
     end
@@ -66,7 +66,7 @@ function M.set_system_message(system_message_template, opts)
     end
     system_message.content = expanded
     State.system_message = system_message
-    State.saved_state.system_message_name = system_message.name
+    State.saved_state.system_message_template = system_message.name
     if opts.update_chat then
       -- Update it in the current chat
       local current_chat = State.chat_window.chat
@@ -79,7 +79,7 @@ function M.set_system_message(system_message_template, opts)
 
     -- Disable system message
     State.system_message = nil
-    State.saved_state.system_message_name = nil
+    State.saved_state.system_message_template = nil
     if opts.update_chat then
       -- Delete it from the current chat
       local current_chat = State.chat_window.chat

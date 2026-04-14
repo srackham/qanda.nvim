@@ -36,7 +36,6 @@ local default = {
   data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
 
   -- Miscellaneous --
-  system_message_name = nil, -- Default system message template name, `nil` for no system message
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
 
