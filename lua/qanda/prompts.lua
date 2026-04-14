@@ -645,14 +645,37 @@ end
 function M.system_message_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
+  local finders = require "telescope.finders"
 
-  prompt_picker(M.system_messages, function(prompt)
-    if prompt == State.system_message then
+  local function display_entry(prompt)
+    if State.system_message and prompt.name == State.system_message.name then
       return "* " .. prompt.name
     else
       return "  " .. prompt.name
     end
-  end, {
+  end
+
+  local function make_finder()
+    local picker_entries = {}
+    for _, prompt in ipairs(M.system_messages) do
+      table.insert(picker_entries, prompt)
+    end
+    table.sort(picker_entries, function(a, b)
+      return a.name < b.name
+    end)
+    return finders.new_table {
+      results = picker_entries,
+      entry_maker = function(prompt)
+        return {
+          value = prompt,
+          display = display_entry(prompt),
+          ordinal = prompt.name,
+        }
+      end,
+    }
+  end
+
+  prompt_picker(M.system_messages, display_entry, {
     results_title = "System Messages",
     preview_title = "System Message Template",
     prompt_title = "[" .. Config.help_key .. " help]",
@@ -660,43 +683,19 @@ function M.system_message_picker()
 
       map({ "n", "i" }, Config.system_picker_select_key, function()
         local selection = action_state.get_selected_entry()
-        actions.close(picker_bufnr)
         if selection then
           M.set_system_message(selection.value, { update_chat = true })
-        else
-          utils.notify("User cancelled", vim.log.levels.INFO)
+          local current_picker = action_state.get_current_picker(picker_bufnr)
+          current_picker:refresh(make_finder())
         end
-      end, { desc = "Close the picker and set the system message" })
+      end, { desc = "Set the system message and refresh the picker" })
 
       map({ "n", "i" }, Config.system_picker_disable_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           M.set_system_message(nil, { update_chat = true })
           local current_picker = action_state.get_current_picker(picker_bufnr)
-          local finders = require "telescope.finders"
-          local picker_entries = {}
-          for _, prompt in ipairs(M.system_messages) do
-            table.insert(picker_entries, prompt)
-          end
-          table.sort(picker_entries, function(a, b)
-            return a.name < b.name
-          end)
-          current_picker:refresh(finders.new_table {
-            results = picker_entries,
-            entry_maker = function(prompt)
-              local display
-              if prompt == State.system_message then
-                display = "* " .. prompt.name
-              else
-                display = "  " .. prompt.name
-              end
-              return {
-                value = prompt,
-                display = display,
-                ordinal = prompt.name,
-              }
-            end,
-          })
+          current_picker:refresh(make_finder())
         end
       end, { desc = "Disable the system message and refresh the picker" })
 
