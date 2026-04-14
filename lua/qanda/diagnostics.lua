@@ -4,10 +4,12 @@ local utils = require "qanda.utils"
 
 local M = {}
 
+--- Clear the diagnostics and add timestamped heading.
 function M.start()
   vim.fn.setreg(Config.diagnostics_register, "# Qanda Diagnostics\n\n" .. tostring(os.date(Config.TIME_STAMP_FORMAT)) .. "\n\n")
 end
 
+--- Display the diagnostics in an ephemeral floating window.
 function M.open()
   local reg = vim.fn.getreg(Config.diagnostics_register)
   local lines = vim.split(reg, "\n")
@@ -15,6 +17,7 @@ function M.open()
 end
 
 --- Append diagnostic text for `diagnostic` to the diagnostic register.
+--- JSON diagnostics are pretty-printed with jq(1) if it is installed in the system.
 --- @param diagnostic Diagnostic
 --- @param title string
 --- @param content string?

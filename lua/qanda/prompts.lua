@@ -447,7 +447,7 @@ function M.open_prompt(prompt)
 
 - %s - Submit the prompt to the current chat
 - %s - Submit the prompt to a new chat
-- %s - Submit the prompt replacing the latest turn
+- %s - Submit the prompt to the current chat replacing the latest turn
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to Chat window †
 - %s - Close Prompt window †

@@ -105,9 +105,9 @@
 
 ---@class ChatTurn A model user request and response (called a turn or a turn-about)
 ---@field chat string? The chat name (if a custom value is set it is stored in the first turn)
----@field request string Model prompt (expanded)
+---@field request string Model user prompt (expanded)
 ---@field response string Model response (extracted)
----@field system string? System message (expanded)
+---@field system string? Model system message (expanded)
 ---@field provider string The provider name
 ---@field model string The model name
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
