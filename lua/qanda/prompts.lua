@@ -24,12 +24,12 @@ function M.setup()
   M.load_user_prompts()
   M.load_system_messages()
 
-  -- Set default system message template
+  -- Set global system message
   local system_message_name = State.saved_state.system_message_name or Config.system_message_name
   if system_message_name then
-    local prompt = M.get_prompt(M.system_messages, system_message_name)
-    if prompt then
-      M.set_system_message(prompt)
+    local template = M.get_prompt(M.system_messages, system_message_name)
+    if template then
+      M.set_system_message(template)
     end
   end
 
@@ -51,10 +51,15 @@ end
 --- Sets the active system message.
 --- If `system_message` is `nil`, the system message is disabled.
 --- Expands placeholders in the system message content.
---- @param system_message Prompt|nil The system message to set, or `nil` to disable.
-function M.set_system_message(system_message)
-  if system_message ~= nil then
-    system_message = vim.tbl_deep_extend("force", {}, system_message)
+--- @param system_message_template Prompt|nil The system message template, or `nil` to disable.
+--- @param opts? { update_chat: boolean } If `update_chat=true` then update the current chat's system message.
+function M.set_system_message(system_message_template, opts)
+  opts = opts or {}
+
+  if system_message_template ~= nil then
+
+    -- Clone and expand the template and assign to State.system_message
+    local system_message = vim.tbl_deep_extend("force", {}, system_message_template)
     local expanded = M.substitute_placeholders(system_message.content)
     if not expanded then -- Substitution error
       return
@@ -62,10 +67,27 @@ function M.set_system_message(system_message)
     system_message.content = expanded
     State.system_message = system_message
     State.saved_state.system_message_name = system_message.name
+    if opts.update_chat then
+      -- Update it in the current chat
+      local current_chat = State.chat_window.chat
+      if current_chat and #current_chat.turns > 0 then
+        current_chat.turns[1].system = expanded
+      end
+    end
+
   else
+
     -- Disable system message
     State.system_message = nil
     State.saved_state.system_message_name = nil
+    if opts.update_chat then
+      -- Delete it from the current chat
+      local current_chat = State.chat_window.chat
+      if current_chat and #current_chat.turns > 0 then
+        current_chat.turns[1].system = nil
+      end
+    end
+
   end
   State.save_state()
 end
@@ -640,19 +662,19 @@ function M.system_message_picker()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
-          M.set_system_message(selection.value)
+          M.set_system_message(selection.value, { update_chat = true })
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end
-      end, { desc = "Close the picker window; execute callback" })
+      end, { desc = "Close the picker and set the system message" })
 
       map({ "n", "i" }, Config.system_picker_disable_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
-          M.set_system_message(nil)
+          M.set_system_message(nil, { update_chat = true })
         end
-      end, { desc = "Close the picker window; execute callback" })
+      end, { desc = "Close the picker and disable the system message" })
 
       map({ "n", "i" }, Config.system_picker_edit_key, function()
         local selection = action_state.get_selected_entry()
