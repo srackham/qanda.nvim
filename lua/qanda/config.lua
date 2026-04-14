@@ -40,7 +40,7 @@ local default = {
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
 
-  diagnostics_register = "q", -- Diagnostics written to this register
+  diagnostics_register = "u", -- Diagnostics written to this register
 
   confirm_chat_file_deletion = true,
 
