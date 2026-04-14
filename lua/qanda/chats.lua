@@ -22,27 +22,8 @@ function M.setup()
     if #chats == 1 then
       State.chats = chats -- The full chats list is lazy-loaded later when the Chat picker is opened
       State.chat_window.chat = chats[1]
-      if State.system_message then
-        if M.chat_has_system_message(chats[1], State.system_message.content) then
-          State.system_message.consumed = true
-        end
-      end
     end
   end
-end
-
---- Checks if any turn in the chat has a system message matching the given string.
----@param chat Chat The chat object to search.
----@param message string The system message string to look for.
----@return boolean found Returns true if a match is found, otherwise false.
-function M.chat_has_system_message(chat, message)
-  for _, turn in ipairs(chat.turns) do
-    -- Check if the system field exists and matches the target prompt
-    if turn.system == message then
-      return true
-    end
-  end
-  return false
 end
 
 --- Parse JSONL lines into chat turns.
@@ -422,11 +403,6 @@ function M.new_chat()
   local win = State.chat_window
   win.chat = new_chat
   win.current_turn = nil
-
-  -- Include the system message in the first turn
-  if State.system_message then
-    State.system_message.consumed = false
-  end
 
 end
 

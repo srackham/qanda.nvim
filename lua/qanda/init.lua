@@ -219,9 +219,6 @@ function M.execute_prompt(prompt)
     if prompt.model_options then
       turn.model_options = utils.shallow_clone_table(prompt.model_options)
     end
-    if State.system_message and not State.system_message.consumed then
-      turn.system = State.system_message.content
-    end
 
     -- Delete the most recent chat turn if did not complete.
     if #turns > 0 and not turns[#turns].response then
@@ -230,6 +227,11 @@ function M.execute_prompt(prompt)
 
     -- Append the new turn to current chat.
     table.insert(turns, turn)
+
+    -- Set the system message if we're executing the first chat turn
+    if #turns == 1 and State.system_message then
+      turn.system = State.system_message.content
+    end
 
     -- Create the model Request object
     local request_data = {
@@ -264,22 +266,25 @@ function M.execute_prompt(prompt)
     -- Clear diagnostics
     diagnostics.start()
 
-    -- Add model messages
     local messages = {}
-    local system_message = nil -- The conversation's most recent system message
+
+    -- Add the system message
+    local system_message = turns[1].system
+    if system_message then
+      table.insert(messages, { role = "system", content = system_message })
+    end
+
+    diagnostics.append("system_message", "## System", system_message)
+
+    -- Add user and assistant messages
     for _, t in ipairs(turns) do
-      if t.system then
-        table.insert(messages, { role = "system", content = t.system })
-        system_message = t.system
-      end
       table.insert(messages, { role = "user", content = t.request })
       if t.response then
         table.insert(messages, { role = "assistant", content = t.response })
       end
     end
-    request_data.messages = messages
 
-    diagnostics.append("system_message", "## System", system_message)
+    request_data.messages = messages
 
     -- Build the curl command
     local request = {
@@ -293,8 +298,9 @@ function M.execute_prompt(prompt)
 
     -- Clear the Chat window and write the header.
     Chats.open_chat(chat, turn)
+
     -- TODO: Why do we sometimes get here with the Chat window in insert mode
-    -- Ensure it's not in insert mode
+    -- Workaround: ensure it's not in insert mode
     vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<Esc>", true, false, true), "n", false)
 
     -- Encode the request data as JSON and assign to diagnostics register
@@ -324,11 +330,6 @@ function M.execute_prompt(prompt)
         turns[#turns].duration = response.duration
 
         diagnostics.append("response", "## Extracted response", data)
-
-        -- Consume the system message
-        if State.system_message then
-          State.system_message.consumed = true
-        end
 
         -- Save chat file
         vim.schedule(function() -- Defer because we're in a Neovim "fast event" context

@@ -60,7 +60,6 @@ function M.set_system_message(system_message)
       return
     end
     system_message.content = expanded
-    system_message.consumed = false
     State.system_message = system_message
     State.saved_state.system_message_name = system_message.name
   else

@@ -98,8 +98,7 @@
 ---@field provider? string The provider name
 ---@field model? string The model name
 ---@field model_options table? Additional model request fields
----@field filename string? The prompt definition's source file
----@field consumed boolean? Flag the prompt as having been appended to the model messages array
+---@field filename string? The definition's source file
 
 ---@alias Prompts Prompt[]
 

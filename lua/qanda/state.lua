@@ -29,7 +29,6 @@ local M = {
 ---Saves the saved state JSON file.
 function M.save_state()
   -- Assemble the saved state object
-  -- TODO: do we need the M.saved_state global?
   if M.provider then
     M.saved_state.model = M.provider.model
     M.saved_state.provider = M.provider.name
