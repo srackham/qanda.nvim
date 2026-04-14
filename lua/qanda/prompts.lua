@@ -369,9 +369,9 @@ function M.load_system_messages()
   M.system_messages = load_prompts "system"
   -- Sync the State.system_message prompt because loading creates new objects
   if State.system_message then
-    for _, p in ipairs(M.system_messages) do
-      if p.name == State.system_message.name then
-        State.system_message = p
+    for _, t in ipairs(M.system_messages) do
+      if t.name == State.system_message.name then
+        M.set_system_message(t)
         return
       end
     end
