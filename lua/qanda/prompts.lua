@@ -56,6 +56,15 @@ end
 function M.set_system_message(system_message_template, opts)
   opts = opts or {}
 
+  local win = State.chat_window
+
+  local refresh_chat_window = function()
+    if win.current_turn and win.current_turn == win.chat.turns[1] then
+      local lines = require("qanda.chats").turn_to_lines(win.chat, win.current_turn)
+      win:set_lines(lines)
+    end
+  end
+
   if system_message_template ~= nil then
 
     -- Clone and expand the template and assign to State.system_message
@@ -67,12 +76,13 @@ function M.set_system_message(system_message_template, opts)
     system_message.content = expanded
     State.system_message = system_message
     State.saved_state.system_message_template = system_message.name
+
     if opts.update_chat then
       -- Update it in the current chat
-      local current_chat = State.chat_window.chat
-      if current_chat and #current_chat.turns > 0 then
-        current_chat.turns[1].system = expanded
+      if win.chat and #win.chat.turns > 0 then
+        win.chat.turns[1].system = expanded
       end
+      refresh_chat_window()
     end
 
   else
@@ -80,14 +90,14 @@ function M.set_system_message(system_message_template, opts)
     -- Disable system message
     State.system_message = nil
     State.saved_state.system_message_template = nil
+
     if opts.update_chat then
       -- Delete it from the current chat
-      local current_chat = State.chat_window.chat
-      if current_chat and #current_chat.turns > 0 then
-        current_chat.turns[1].system = nil
+      if win.chat and #win.chat.turns > 0 then
+        win.chat.turns[1].system = nil
       end
+      refresh_chat_window()
     end
-
   end
   State.save_state()
 end
