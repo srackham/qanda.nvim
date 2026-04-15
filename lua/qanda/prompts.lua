@@ -304,7 +304,7 @@ function M.prompt_to_lines(prompt)
 end
 
 --- Loads prompt templates from files in the configured prompts directory.
---- @param role "user"|"system" The role of the prompts to load (e.g., "user" or "system").
+--- @param role "user"|"system" The role of the prompts to load.
 --- @return Prompts An array of loaded prompt objects.
 local function load_prompts(role)
   assert(role == "user" or role == "system")
@@ -726,9 +726,10 @@ function M.system_message_picker()
       map({ "n", "i" }, Config.help_key, function()
         local help_message = ([[-- System Message Template Picker Commands --
 
-- %s - Select system message
+- %s - Enable system message
 - %s - Disable system message
 - %s - Edit system message templates file
+- <Esc> - Close picker
 
 ]]):format(Config.system_picker_select_key, Config.system_picker_disable_key, Config.system_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)

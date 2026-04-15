@@ -189,9 +189,17 @@ function M.select_recent_model()
     return
   end
 
+  local current_provider_name = State.provider and State.provider.name or nil
+  local current_model_name = State.provider and State.provider.model or nil
+
   local display_items = {}
   for _, recent_model in ipairs(State.recent_models) do
     local display_string = recent_model.provider_name .. "/" .. recent_model.model_name
+    if recent_model.provider_name == current_provider_name and recent_model.model_name == current_model_name then
+      display_string = "* " .. display_string
+    else
+      display_string = "  " .. display_string
+    end
     table.insert(display_items, display_string)
   end
   display_items = utils.reverse_table(display_items)
@@ -205,6 +213,7 @@ function M.select_recent_model()
       return -- User cancelled
     end
 
+    selection = string.sub(selection, 3)
     local provider_name, model_name = string.match(selection, "([^/]+)/(.+)")
     if M.is_valid_provider_model(provider_name, model_name) then
       M.set_provider(provider_name, model_name)
