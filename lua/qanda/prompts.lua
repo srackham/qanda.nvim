@@ -744,7 +744,7 @@ end
 ---
 --- - If the file name has no directory component, it is assumed to reside in configuration `prompts` directory
 --- - If the file name is relative (e.g., "my/path/file.txt"), it is resolved relative
----   to the current Neovim working directory (`vim.fn.cwd()`).
+---   to `Config.ROOT_DIR`.
 --- - If the file name is already absolute (e.g., "/home/user/file.txt"), it is returned as is.
 ---
 --- @param file_path string The file path to convert.
@@ -757,13 +757,13 @@ function M.resolve_prompt_path(file_path)
     -- If it's just a filename, prepend prompts_dir and then resolve to an absolute path.
     local full_path = Config.prompts_dir .. "/" .. file_path
     return vim.fn.fnamemodify(full_path, ":p")
-  else
-    -- Otherwise, the path either has directory components (relative to cwd) or is already absolute.
-    -- The ':p' modifier handles both cases correctly:
-    -- - For relative paths, it makes them absolute relative to vim.fn.cwd().
-    -- - For already absolute paths (including those starting with '~'), it returns them as is,
-    --   with '~' expanded.
+  elseif vim.fn.fnamemodify(file_path, ":p") == file_path or file_path:sub(1, 1) == "~" then
+    -- Already absolute or starts with '~'; expand and return as is.
     return vim.fn.fnamemodify(file_path, ":p")
+  else
+    -- Relative path with directory components: resolve relative to Config.ROOT_DIR.
+    local full_path = Config.ROOT_DIR .. "/" .. file_path
+    return vim.fn.fnamemodify(full_path, ":p")
   end
 end
 

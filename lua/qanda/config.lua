@@ -5,6 +5,7 @@ M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 M.SESSION_FILE = "session.json"
+M.ROOT_DIR = vim.fn.getcwd() -- Lock the root directory to the Neovim's startup working directory.
 
 -- Default configuration options --
 local default = {
@@ -117,7 +118,7 @@ function M.setup(opts)
 
   -- Set configuration file locations
   local global_data_dir = vim.fn.expand(M.data_dir) -- Global data directory
-  local local_data_dir = vim.fn.getcwd() .. "/.qanda_nvim" -- Local project directory
+  local local_data_dir = M.ROOT_DIR .. "/.qanda_nvim" -- Local project directory
 
   if vim.fn.isdirectory(local_data_dir) == 1 then
     M.data_dir = local_data_dir
