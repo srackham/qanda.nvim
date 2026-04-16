@@ -582,8 +582,8 @@ function M.user_prompt_picker()
   local action_state = require "telescope.actions.state"
 
   prompt_picker(M.user_prompts, nil, {
-    results_title = "User Prompts",
-    preview_title = "User Prompt Template",
+    results_title = "Prompt Templates",
+    preview_title = "Preview",
     prompt_title = "[" .. Config.help_key .. " help]",
     attach_mappings = function(picker_bufnr, map)
 
@@ -686,8 +686,8 @@ function M.system_message_picker()
   end
 
   prompt_picker(M.system_messages, display_entry, {
-    results_title = "System Messages",
-    preview_title = "System Message Template",
+    results_title = "System Templates",
+    preview_title = "Preview",
     prompt_title = "[" .. Config.help_key .. " help]",
     attach_mappings = function(picker_bufnr, map)
 

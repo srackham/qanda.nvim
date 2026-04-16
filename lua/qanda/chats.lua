@@ -817,7 +817,7 @@ function M.turns_picker()
   pickers
     .new({}, {
       results_title = "Turns",
-      preview_title = "Turn",
+      preview_title = "Preview",
       prompt_title = "[" .. Config.help_key .. " help]",
       finder = finders.new_table {
         results = picker_entries,
