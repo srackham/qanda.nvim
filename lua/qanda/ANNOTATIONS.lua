@@ -8,7 +8,7 @@
 
 --- Display mode for opening a window.
 ---@alias WindowMode
----| '"normal"'  # Open in the current window (default)
+---| '"normal"'  # Open in the current window
 ---| '"float"'   # Open in a floating window
 ---| '"top"'     # Horizontal split above
 ---| '"bottom"'  # Horizontal split below
