@@ -63,4 +63,67 @@ function M.normaliser(raw_json)
   return decoded
 end
 
+--- Checks that the Ollama server is reachable and responding.
+--- @param opts table User configuration options with `host` and `port` fields.
+--- @return string|nil # `nil` if all checks pass, or a Markdown string describing the problem and how to fix it.
+function M.health_check(opts)
+  local ok, response
+  ok = pcall(function()
+    response = vim.fn.systemlist(
+      "curl -q --silent --max-time 5 http://" .. opts.host .. ":" .. opts.port .. "/api/tags"
+    )
+  end)
+
+  if not ok or vim.v.shell_error ~= 0 then
+    return [[
+## Ollama server unreachable
+
+Could not connect to `http://]] .. opts.host .. ":" .. opts.port .. [[`.
+
+### How to fix
+
+- Make sure Ollama is installed: <https://ollama.com/download>
+- Start the server with `ollama serve`
+- Verify the `host` and `port` values in your qanda.nvim configuration match the running server
+- Check that no firewall or proxy is blocking the connection]]
+  end
+
+  local raw = table.concat(response, "")
+  local decoded_ok, data = pcall(vim.json.decode, raw)
+
+  if not decoded_ok or type(data) ~= "table" then
+    return [[
+## Ollama server returned an invalid response
+
+The server at `http://]] .. opts.host .. ":" .. opts.port .. [[` responded, but the reply was not valid JSON.
+
+### Raw response
+
+```
+]] .. raw .. [[
+
+```
+
+### How to fix
+
+- Ensure nothing else (e.g. a reverse proxy) is listening on that port
+- Restart Ollama with `ollama serve` and try again]]
+  end
+
+  if data.error then
+    return [[
+## Ollama authentication error
+
+The server returned an error: **]] .. tostring(data.error) .. [[**
+
+### How to fix
+
+- If you are using an Ollama proxy that requires an API key, make sure the key is set correctly
+- Check the `OLLAMA_API_KEY` environment variable or any relevant auth configuration
+- Verify your Ollama server logs for more details]]
+  end
+
+  return nil
+end
+
 return M

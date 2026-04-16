@@ -132,4 +132,87 @@ function M.normaliser(raw_json)
   return resp
 end
 
+--- Checks that the Gemini API is reachable and the API key is valid.
+--- @return string|nil # `nil` if all checks pass, or a Markdown string describing the problem and how to fix it.
+function M.health_check()
+  if not api_key or api_key == "" then
+    return [[
+## Gemini API key not set
+
+No API key was found. The key is required to authenticate with the Google Gemini API.
+
+### How to fix
+
+- Set the `GEMINI_API_KEY` environment variable to your Gemini API key
+- Alternatively, set `api_key` in your qanda.nvim `provider_options.gemini` configuration
+- You can obtain an API key at <https://aistudio.google.com/apikey>]]
+  end
+
+  -- The models endpoint requires a valid API key, so this single request tests both connectivity and auth.
+  local ok, response
+  ok = pcall(function()
+    response = vim.fn.systemlist(
+      "curl -q --silent --max-time 10 "
+        .. "-H 'Content-Type: application/json' "
+        .. string.format("'https://generativelanguage.googleapis.com/v1beta/models?key=%s'", api_key)
+    )
+  end)
+
+  if not ok or vim.v.shell_error ~= 0 then
+    return [[
+## Gemini API unreachable
+
+Could not connect to `https://generativelanguage.googleapis.com`.
+
+### How to fix
+
+- Check your internet connection
+- Verify that `https://generativelanguage.googleapis.com` is not blocked by a firewall or proxy
+- Try running the following in a terminal to confirm connectivity:
+  ```
+  curl -s 'https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY'
+  ```]]
+  end
+
+  local raw = table.concat(response, "")
+  local decoded_ok, data = pcall(vim.json.decode, raw)
+
+  if not decoded_ok or type(data) ~= "table" then
+    return [[
+## Gemini returned an invalid response
+
+The server responded, but the reply was not valid JSON.
+
+### Raw response
+
+```
+]] .. raw .. [[
+
+```
+
+### How to fix
+
+- This may indicate a temporary server issue; try again later
+- Ensure no proxy is intercepting or modifying the response]]
+  end
+
+  if data.error then
+    local message = (type(data.error) == "table" and data.error.message) or (type(data.error) == "string" and data.error) or "unknown error"
+
+    return [[
+## Gemini authentication failed
+
+The API returned an error: _]] .. tostring(message) .. [[_
+
+### How to fix
+
+- Verify your API key is correct and has not been revoked
+- Generate a new key at <https://aistudio.google.com/apikey> if necessary
+- Ensure the key is set via the `GEMINI_API_KEY` environment variable or in your qanda.nvim configuration
+- Check that the Gemini API is enabled for your Google Cloud project]]
+  end
+
+  return nil
+end
+
 return M

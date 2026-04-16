@@ -1,6 +1,7 @@
 local Config = require "qanda.config"
 local State = require "qanda.state"
 local utils = require "qanda.utils"
+local ui = require "qanda.ui"
 
 local M = {
   providers = {}, ---@type Provider[]
@@ -138,7 +139,16 @@ function M.select_provider(current_provider, callback)
   vim.ui.select(items, { prompt = "Providers" }, function(item)
     if item then
       item = string.sub(item, 3)
-      callback(item)
+      -- Perform provider health check before calling callback
+      local provider = M.get_provider(item)
+      assert(provider)
+      local diagnostic_message = provider.module.health_check(Config)
+      if diagnostic_message then
+        local lines = vim.split(utils.trim_string(diagnostic_message), "\n")
+        ui.open_foreground_float(lines, { width = 120, height = 999 })
+      else
+        callback(item)
+      end
     end
   end)
 end
