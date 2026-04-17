@@ -6,6 +6,7 @@ local Config = require "qanda.config"
 local M = {}
 
 local api_key = nil
+local BASE_URL = "https://generativelanguage.googleapis.com/v1beta"
 
 ---Local model provider initialisation.
 function M.setup()
@@ -27,7 +28,6 @@ end
 --- Returns a list of the names of available models or `nil` if an error occurred.
 function M.models(opts)
   local _ = opts -- Suppress unused variable warning
-  local url = "https://generativelanguage.googleapis.com/v1beta/models"
   local curl_cmd = {
     "curl",
     "-q",
@@ -35,7 +35,7 @@ function M.models(opts)
     "--no-buffer",
     "-H",
     "'Content-Type: application/json'",
-    string.format("'%s?key=%s'", url, api_key),
+    string.format("'%s/models?key=%s'", BASE_URL, api_key),
   }
 
   local data
@@ -76,7 +76,7 @@ function M.command(request)
     "--no-buffer",
     "-X",
     "POST",
-    "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+    BASE_URL .. "/openai/chat/completions",
     "-H",
     "Authorization: Bearer " .. api_key,
     "-H",
@@ -152,9 +152,7 @@ No API key was found. The key is required to authenticate with the Google Gemini
   local ok, response
   ok = pcall(function()
     response = vim.fn.systemlist(
-      "curl -q --silent --max-time 10 "
-        .. "-H 'Content-Type: application/json' "
-        .. string.format("'https://generativelanguage.googleapis.com/v1beta/models?key=%s'", api_key)
+      "curl -q --silent --max-time 10 " .. "-H 'Content-Type: application/json' " .. string.format("'%s/models?key=%s'", BASE_URL, api_key)
     )
   end)
 
@@ -162,15 +160,15 @@ No API key was found. The key is required to authenticate with the Google Gemini
     return [[
 ## Gemini API unreachable
 
-Could not connect to `https://generativelanguage.googleapis.com`.
+Could not connect to `]] .. BASE_URL .. [[`.
 
 ### How to fix
 
 - Check your internet connection
-- Verify that `https://generativelanguage.googleapis.com` is not blocked by a firewall or proxy
+- Verify that `]] .. BASE_URL .. [[` is not blocked by a firewall or proxy
 - Try running the following in a terminal to confirm connectivity:
   ```
-  curl -s 'https://generativelanguage.googleapis.com/v1beta/models?key=YOUR_KEY'
+  curl -s ']] .. BASE_URL .. [[/models?key=YOUR_KEY'
   ```]]
   end
 

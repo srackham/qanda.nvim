@@ -6,6 +6,7 @@ local Config = require "qanda.config"
 local M = {}
 
 local api_key = nil
+local BASE_URL = "https://openrouter.ai/api/v1"
 
 ---Local model provider initialisation.
 function M.setup()
@@ -37,9 +38,8 @@ function M.models(opts)
   local response
 
   local ok, err = pcall(function()
-    response = vim.fn.systemlist(
-      "curl -q --silent --no-buffer " .. "-H 'Authorization: Bearer " .. api_key .. "' " .. "'https://openrouter.ai/api/v1/models'"
-    )
+    response =
+      vim.fn.systemlist("curl -q --silent --no-buffer " .. "-H 'Authorization: Bearer " .. api_key .. "' " .. "'" .. BASE_URL .. "/models'")
     data = vim.json.decode(table.concat(response, ""))
   end)
   if not ok then
@@ -67,7 +67,7 @@ function M.command(request)
     "--no-buffer",
     "-X",
     "POST",
-    "https://openrouter.ai/api/v1/chat/completions",
+    BASE_URL .. "/chat/completions",
     "-H",
     "Authorization: Bearer " .. api_key,
     "-H",
@@ -142,14 +142,14 @@ No API key was found. The key is required to authenticate with the OpenRouter AP
   -- First check: connectivity (this endpoint does not require auth)
   local ok, response
   ok = pcall(function()
-    response = vim.fn.systemlist "curl -q --silent --max-time 10 'https://openrouter.ai/api/v1/models'"
+    response = vim.fn.systemlist("curl -q --silent --max-time 10 '" .. BASE_URL .. "/models'")
   end)
 
   if not ok or vim.v.shell_error ~= 0 then
     return [[
 ## OpenRouter API unreachable
 
-Could not connect to `https://openrouter.ai/api/v1/models`.
+Could not connect to `]] .. BASE_URL .. [[/models`.
 
 ### How to fix
 
@@ -157,7 +157,7 @@ Could not connect to `https://openrouter.ai/api/v1/models`.
 - Verify that `https://openrouter.ai` is not blocked by a firewall or proxy
 - Try running the following in a terminal to confirm connectivity:
   ```
-  curl -s https://openrouter.ai/api/v1/models
+  curl -s ]] .. BASE_URL .. [[/models
   ```]]
   end
 
@@ -187,7 +187,7 @@ The server responded, but the reply was not valid JSON.
   local auth_ok, auth_response
   auth_ok = pcall(function()
     auth_response = vim.fn.systemlist(
-      "curl -q --silent --max-time 10 " .. "-H 'Authorization: Bearer " .. api_key .. "' " .. "'https://openrouter.ai/api/v1/auth/key'"
+      "curl -q --silent --max-time 10 " .. "-H 'Authorization: Bearer " .. api_key .. "' " .. "'" .. BASE_URL .. "/auth/key'"
     )
   end)
 
