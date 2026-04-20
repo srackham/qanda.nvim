@@ -93,7 +93,6 @@
 ---@class Prompt An immutable prompt template loaded from user prompt template files or previously executed prompt extracted from chat history
 ---@field name? string The prompt name
 ---@field content string The prompt message string
----@field extract string? A regex pattern to extract content from the model's response
 ---@field system string? Name of system message template -- TODO: why is this necessary?
 ---@field provider? string The provider name
 ---@field model? string The model name
@@ -110,7 +109,6 @@
 ---@field provider string The provider name
 ---@field model string The model name
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
----@field extract string? A regex pattern to extract content from the model's response.
 ---@field timestamp string The time/date the request was sent
 ---@field duration number The time taken for the request in seconds
 

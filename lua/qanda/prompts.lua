@@ -103,12 +103,9 @@ function M.set_system_message(system_message_template, opts)
 end
 
 --- Parses markdown-style prompt template file into a Prompts array.
----Each prompt section starts and ends with either `---` or `___`.
+---Each prompt section starts and ends with `___`.
 ---The header envelopes prompt fields formatted like `<name>: <value>`.
----Names not matching `name`, `extract` are added to the `model_options` table.
----| - name (string, required): Unique identifier for the prompt.
----| - extract (string): A regex pattern to extract content from input.
----
+---The `name` field (template name) is mandatory, all other fields are model options.
 ---@param lines string[] The full content of the markdown prompt file as an array of strings.
 ---@return Prompts|nil Returns a Prompts array or nil if parsing fails due to formatting errors.
 local function parse_prompt_templates(lines)
@@ -142,16 +139,7 @@ local function parse_prompt_templates(lines)
           end
 
           -- Process prompt header fields
-          if key == "extract" then
-            value = utils.unescape_string(value) -- Translate escaped characters
-            local success, _ = pcall(string.match, "", value) -- Validate regex by attempting to compile it
-            if not success then
-              utils.notify("Invalid regex in extract option at line " .. i .. ": " .. value, vim.log.levels.ERROR)
-              return nil
-            end
-            ---@diagnostic disable-next-line: assign-type-mismatch
-            prompt[key] = value
-          elseif key == "name" then
+          if key == "name" then
             prompt[key] = value
           elseif key == "stream" then
             prompt.model_options[key] = value ~= "false"
@@ -168,6 +156,12 @@ local function parse_prompt_templates(lines)
         return nil
       end
 
+      -- Name is mandatory
+      if not prompt.name or utils.trim_string(prompt.name) == "" then
+        utils.notify("Missing mandatory template name in header starting at line " .. header_start_line, vim.log.levels.ERROR)
+        return nil
+      end
+
       -- Skip the ending delimiter
       i = i + 1
 
@@ -181,8 +175,14 @@ local function parse_prompt_templates(lines)
         i = i + 1
       end
 
+      -- Check we have a prompt
+      prompt.content = table.concat(utils.trim_table(prompt_lines), "\n")
+      if utils.trim_string(prompt.content) == "" then
+        utils.notify("Missing prompt after header starting at line " .. header_start_line, vim.log.levels.ERROR)
+        return nil
+      end
+
       -- Create the prompt entry
-      prompt.content = table.concat(prompt_lines, "\n")
       table.insert(result, prompt)
     else
       i = i + 1
@@ -196,6 +196,11 @@ end
 --- @param lines string[] The lines from the prompt buffer.
 --- @return Prompt|nil The parsed prompt object, or `nil` if parsing fails.
 local function parse_prompt(lines)
+  if utils.trim_string(table.concat(lines, "\n")) == "" then
+    utils.notify("Blank prompt", vim.log.levels.ERROR)
+    return nil
+  end
+
   local prompt = { model_options = {} }
   local i = 1
 
@@ -236,16 +241,7 @@ local function parse_prompt(lines)
         end
 
         -- Process prompt header fields
-        if key == "extract" then
-          value = utils.unescape_string(value) -- Translate escaped characters
-          local success, _ = pcall(string.match, "", value) -- Validate regex by attempting to compile it
-          if not success then
-            utils.notify("Invalid regex in extract option at line " .. i .. ": " .. value, vim.log.levels.ERROR)
-            return nil
-          end
-          ---@diagnostic disable-next-line: assign-type-mismatch
-          prompt[key] = value
-        elseif key == "stream" then
+        if key == "stream" then
           prompt.model_options[key] = value ~= "false"
         else
           prompt.model_options[key] = value
@@ -270,7 +266,13 @@ local function parse_prompt(lines)
   end
 
   -- Add content to prompt
-  prompt.content = table.concat(content_lines, "\n")
+  prompt.content = table.concat(utils.trim_table(content_lines), "\n")
+
+  -- Check we have a prompt
+  if utils.trim_string(prompt.content) == "" then
+    utils.notify("Blank prompt", vim.log.levels.ERROR)
+    return nil
+  end
 
   return prompt
 end
@@ -284,9 +286,6 @@ function M.prompt_to_lines(prompt)
 
   if prompt.name then
     table.insert(lines, "name: " .. prompt.name)
-  end
-  if prompt.extract then
-    table.insert(lines, "extract: " .. utils.escape_string(prompt.extract))
   end
   if prompt.model_options then
     for k, v in pairs(prompt.model_options) do
@@ -500,7 +499,7 @@ function M.open_prompt(prompt)
 end
 
 local prompt_syntax_rules = {
-  QandaPromptProperty = [[\v^(name|extract|prompt|temperature|top_p|max_tokens|stream):]],
+  QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
   QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|filetype|register_.|register)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
 }
 

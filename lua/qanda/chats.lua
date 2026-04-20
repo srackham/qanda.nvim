@@ -268,7 +268,6 @@ function M.open_chat(chat, turn)
       name = nil,
       content = current_turn.request,
       model_options = current_turn.model_options,
-      extract = current_turn.extract,
     }
   end, { buffer = win.bufnr })
 
@@ -347,7 +346,6 @@ function M.open_chat(chat, turn)
     require("qanda.prompts").open_prompt {
       content = most_recent_turn.request,
       model_options = most_recent_turn.model_options,
-      extract = most_recent_turn.extract,
     }
   end, { buffer = win.bufnr })
 
@@ -470,9 +468,6 @@ function M.turn_to_lines(chat, turn, opts)
   if turn.duration then
     table.insert(lines, "duration: " .. string.format("%.2fs", turn.duration))
   end
-  if turn.extract then
-    table.insert(lines, "extract: " .. utils.escape_string(turn.extract))
-  end
   if turn.model_options then
     for k, v in pairs(turn.model_options) do
       table.insert(lines, k .. ": " .. v)
@@ -501,7 +496,7 @@ function M.turn_to_lines(chat, turn, opts)
 end
 
 local chat_syntax_rules = {
-  QandaChatProperty = [[\v^(provider|timestamp|duration|prompt|system|model|provider|extract|turn|temperature|top_p|max_tokens|stream):]],
+  QandaChatProperty = [[\v^(provider|timestamp|duration|prompt|system|model|provider|turn|temperature|top_p|max_tokens|stream):]],
 }
 
 -- Define highlight groups once (link to existing groups)
