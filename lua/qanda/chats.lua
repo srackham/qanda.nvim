@@ -441,12 +441,12 @@ function M.turn_to_lines(chat, turn, opts)
       if line:match "^```" then
         in_code_block = not in_code_block
       end
-      table.insert(processed, "> " .. line)
+      table.insert(processed, line)
     end
 
     if truncated then
       if in_code_block then
-        table.insert(processed, "> ```")
+        table.insert(processed, "```")
       end
       table.insert(processed, "")
       table.insert(processed, "_...truncated..._")
