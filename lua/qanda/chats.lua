@@ -350,11 +350,14 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   -- Toggle chat display fields
+  local no_truncation = false
+
   vim.keymap.set({ "n", "v", "i" }, Config.chat_truncate_key, function()
     if curl.is_active_job() then
       return
     end
-    local lines = M.turn_to_lines(win.chat, win.current_turn, { no_truncation = true })
+    no_truncation = not no_truncation
+    local lines = M.turn_to_lines(win.chat, win.current_turn, { no_truncation = no_truncation })
     win:set_lines(lines)
   end, { buffer = win.bufnr })
 
@@ -375,7 +378,7 @@ Normal mode commands:
 - %s - Delete then rerun the latest turn
 - %s - Abort the current request
 - %s - Close Chat window
-- %s - Show truncated fields
+- %s - Toggle truncated fields
 
 ]]):format(
       Config.chat_prompt_key,
