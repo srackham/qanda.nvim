@@ -4,7 +4,9 @@ local utils = require "qanda.utils"
 local curl = require "qanda.curl"
 -- local debug = require "qanda.debug"
 
-local M = {}
+local M = {
+  turn_truncation = true, -- Chat window truncation state
+}
 
 --- Initialize the chats module.
 function M.setup()
@@ -350,14 +352,12 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   -- Toggle chat display fields
-  local no_truncation = false
-
   vim.keymap.set({ "n", "v", "i" }, Config.chat_truncate_key, function()
     if curl.is_active_job() then
       return
     end
-    no_truncation = not no_truncation
-    local lines = M.turn_to_lines(win.chat, win.current_turn, { no_truncation = no_truncation })
+    M.turn_truncation = not M.turn_truncation
+    local lines = M.turn_to_lines(win.chat, win.current_turn)
     win:set_lines(lines)
   end, { buffer = win.bufnr })
 
@@ -409,20 +409,19 @@ end
 
 ---@param chat Chat
 ---@param turn ChatTurn
----@param opts? {no_truncation: boolean}
 ---@return string[]
-function M.turn_to_lines(chat, turn, opts)
+function M.turn_to_lines(chat, turn)
   assert(turn)
 
-  opts = opts or {}
   local lines = {}
   local rule = string.rep("_", 3)
 
   ---Helper to limit lines, handle Markdown integrity, and add truncation marker
+  ---@param label string
   ---@param content string|nil
   ---@param max_lines number
   ---@return string[]
-  local get_limited_prompt = function(label, content, max_lines)
+  local get_limited_lines = function(label, content, max_lines)
 
     if max_lines == 0 then
       return {}
@@ -480,14 +479,14 @@ function M.turn_to_lines(chat, turn, opts)
 
   local max_lines
   if turn.system then
-    max_lines = opts.no_truncation and 999 or Config.system_message_lines
-    local system_lines = get_limited_prompt("system", turn.system, max_lines)
+    max_lines = not M.turn_truncation and 999 or Config.system_message_lines
+    local system_lines = get_limited_lines("system", turn.system, max_lines)
     vim.list_extend(lines, system_lines)
     table.insert(lines, "")
   end
 
-  max_lines = opts.no_truncation and 999 or Config.user_prompt_lines
-  local request_lines = get_limited_prompt("prompt", turn.request, max_lines)
+  max_lines = not M.turn_truncation and 999 or Config.user_prompt_lines
+  local request_lines = get_limited_lines("prompt", turn.request, max_lines)
   vim.list_extend(lines, request_lines)
   table.insert(lines, "")
 
