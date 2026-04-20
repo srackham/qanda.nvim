@@ -256,6 +256,7 @@ end
 --- Closes the window associated with this UIWindow instance. The buffer is not deleted.
 function M.UIWindow:close()
   if self.winid and vim.api.nvim_win_is_valid(self.winid) then
+    vim.cmd "stopinsert" -- Ensures the insert mode is not carried back to the parent window (Neovim default behaviour)
     vim.api.nvim_win_close(self.winid, true)
     self.winid = nil
   end
