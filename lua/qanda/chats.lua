@@ -446,6 +446,8 @@ function M.turn_to_lines(chat, turn)
       table.insert(processed, line)
     end
 
+    utils.trim_table(processed)
+
     if truncated then
       if in_code_block then
         table.insert(processed, "```")
