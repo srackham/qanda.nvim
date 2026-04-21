@@ -99,7 +99,7 @@ end
 --- @return Provider|nil The restored provider if successful, otherwise `nil` (if a selection was scheduled).
 function M.set_provider(provider_name, model_name)
   if not provider_name then
-    vim.cmd "Qanda /provider_selector"
+    vim.cmd "Qanda /provider_picker"
   else
     local provider = M.get_provider(provider_name)
     if not provider then
@@ -107,7 +107,7 @@ function M.set_provider(provider_name, model_name)
     end
     State.provider = provider
     if not model_name or not M.is_valid_provider_model(provider.name, model_name) then
-      vim.cmd "Qanda /model_selector"
+      vim.cmd "Qanda /model_picker"
     else
       State.provider.model = model_name
       State.saved_state.model = model_name

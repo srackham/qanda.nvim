@@ -97,10 +97,10 @@ function M.create_user_command()
       Prompts.load_system_messages()
       Prompts.system_message_picker()
       return
-    elseif args == "/model_selector" then
+    elseif args == "/model_picker" then
       Providers.select_model()
       return
-    elseif args == "/provider_selector" then
+    elseif args == "/provider_picker" then
       Providers.select_provider(State.provider, function(provider_name)
         Providers.select_model(provider_name)
       end)
@@ -152,8 +152,8 @@ function M.create_user_command()
       table.insert(args, "/prompt_window")
       table.insert(args, "/new_prompt")
       table.insert(args, "/prompt_picker")
-      table.insert(args, "/model_selector")
-      table.insert(args, "/provider_selector")
+      table.insert(args, "/model_picker")
+      table.insert(args, "/provider_picker")
       table.insert(args, "/recent_models")
       table.insert(args, "/abort")
       table.insert(args, "/system_message_picker")
