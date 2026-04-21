@@ -93,7 +93,6 @@
 ---@class Prompt An immutable prompt template loaded from user prompt template files or previously executed prompt extracted from chat history
 ---@field name? string The prompt name
 ---@field content string The prompt message string
----@field system string? Name of system message template -- TODO: why is this necessary?
 ---@field provider? string The provider name
 ---@field model? string The model name
 ---@field model_options table? Additional model request fields

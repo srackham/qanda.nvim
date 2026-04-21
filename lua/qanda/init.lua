@@ -30,14 +30,6 @@ function M.setup(opts)
   M.create_user_command()
 end
 
----Opens the main Qanda chat window.
----
----This function creates or focuses the chat buffer window.
-function M.open_qanda()
-  ---@todo
-  utils.create_window(Config.CHAT_BUFFER_NAME, { window_mode = "right" })
-end
-
 local initialised = false
 
 ---Creates the Neovim user command `:Qanda`.
