@@ -1,6 +1,13 @@
 # qanda.nvim
 
-## Table of Contents
+Qanda is an AI chatbot for Neovim.
+
+An easy-to-use Neovim plugin for conversing with AI models.
+
+> [!IMPORTANT]
+> This is the 1.0 release, I use it daily on NixOS Linux with Neovim v0.11.6, but haven't tested on other systems.
+
+## Table of contents
 
 - [Features](#features)
 - [Overview](#overview)
@@ -25,38 +32,23 @@
 - [Configuration](#configuration)
 - [Tips](#tips)
 
-Qanda is an AI chatbot for Neovim.
+## Overview
 
-An easy-to-use Neovim plugin for conversing with AI models.
+Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way.
 
-> [!IMPORTANT]
-> This is the 1.0 release, I use it daily on NixOS Linux with Neovim v0.11.6, but haven't tested on other systems.
-
-## Features
+There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Many are task specific and most impose a significant cognitive load.
 
 - Familiar turn-about chatbot UI.
 - Chats are persistent, resumable and editable.
-- Reusable named [prompt templates](#prompt-and-system-templates) for customisable user messages (prompts) and [system messages](#system-messages).
 - Ollama, OpenRouter and Google Gemini model providers.
 - Models and providers can be switched at any time.
-
-## Overview
-
+- Reusable named [prompt templates](#prompt-and-system-templates) for customisable user messages (prompts) and [system templates](#prompt-and-system-templates) for [system messages](#system-messages).
 - The user engages in interactive turn-about _chats_ (conversations) with the selected AI model.
 - _Chats_ are contextual, persistent, resumable and editable.
 - The chat comprises one or more _turns_ (model request + model response).
 - A turn is initiated with a user _prompt_ (a question or an instruction)
 - Chats can include an optional _[system message](#system-messages)_
-
-## Rationale
-
-Qanda is for getting answers interactively from an AI, not for automated workflow execution.
-
-It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way.
-
-There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Many are task specific and most impose a significant cognitive load.
-
-Qanda is light on token consumption: model requests are explicit (there are no hidden contexts or model requests).
+- Qanda is light on token consumption: model requests are explicit (there are no hidden contexts or model requests).
 
 ## Glossary of terms
 
@@ -70,29 +62,60 @@ Qanda is light on token consumption: model requests are explicit (there are no h
 > [!NOTE]
 > A user prompt is not the same as a model request; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous requests and responses) and [model options](#model-options).
 
-## Qanda quick start
+## Configuration
 
-TODO:
+Minimal [lazy.nvim](https://github.com/folke/lazy.nvim) plugin configuration (typically located in `~/.config/nvim/lua/plugins`):
+
+```lua
+return {
+  "srackham/qanda.nvim",
+  dependencies = {
+    "nvim-telescope/telescope.nvim",
+  },
+  config = function()
+    qanda.setup {
+    -- Override default options here --
+    }
+  end,
+}
+```
+
+- Default configuration options can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
+- Here's an [example plugin configuration file](examples/example-qanda-configuration.lua) with some custom key mappings.
+
+### Authentication
+
+Provider API keys are imported from exported shell environment variables, the variable name is specified in a provider specific `api_key` configuration option e.g.
+
+```lua
+-- Provider specific options
+provider_options = {
+  openrouter = { api_key = "$OPENROUTER_API_KEY" },
+  gemini = { api_key = "$GEMINI_API_KEY" },
+},
+```
+
+You can set the `api_key` with the actual key value (but not recommended for security reasons).
 
 ## Qanda commands
 
-| Command                         | Description                                        |
-| ------------------------------- | -------------------------------------------------- |
+| Command                         | Description                                                     |
+| ------------------------------- | --------------------------------------------------------------- |
 | `:Qanda Prompt template name`   | Execute a named [prompt template](#prompt-and-system-templates) |
-| `:Qanda /abort`                 | Abort the current model request                    |
-| `:Qanda /chat_picker`           | Open the [Chat picker](#chat-picker)               |
-| `:Qanda /chat_window`           | Open the [Chat window](#chat-window)               |
-| `:Qanda /dump_diagnostics`      | Display diagnostics for the previous model request |
-| `:Qanda /model_picker`          | Select a model from the current provider           |
-| `:Qanda /new_chat`              | Start a new Chat                                   |
-| `:Qanda /new_prompt`            | Open a new Prompt                                  |
-| `:Qanda /prompt_picker`         | Open the [Prompt picker](#prompt-template-picker)  |
-| `:Qanda /prompt_window`         | Open the [Prompt window](#prompt-window)           |
-| `:Qanda /provider_picker`       | Select a provider and a model                      |
-| `:Qanda /recent_models`         | Select from the list of recent models              |
-| `:Qanda /status`                | Print Qanda status information                     |
-| `:Qanda /system_message_picker` | Open the [System Message picker](#system-template-picker) |
-| `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)          |
+| `:Qanda /abort`                 | Abort the current model request                                 |
+| `:Qanda /chat_picker`           | Open the [Chat picker](#chat-picker)                            |
+| `:Qanda /chat_window`           | Open the [Chat window](#chat-window)                            |
+| `:Qanda /dump_diagnostics`      | Display diagnostics for the previous model request              |
+| `:Qanda /model_picker`          | Select a model from the current provider                        |
+| `:Qanda /new_chat`              | Start a new Chat                                                |
+| `:Qanda /new_prompt`            | Open a new Prompt                                               |
+| `:Qanda /prompt_picker`         | Open the [Prompt picker](#prompt-template-picker)               |
+| `:Qanda /prompt_window`         | Open the [Prompt window](#prompt-window)                        |
+| `:Qanda /provider_picker`       | Select a provider and a model                                   |
+| `:Qanda /recent_models`         | Select from the list of recent models                           |
+| `:Qanda /status`                | Print Qanda status information                                  |
+| `:Qanda /system_message_picker` | Open the [System Message picker](#system-template-picker)       |
+| `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)                       |
 
 - Qanda commands respond to tabbed command completion.
 - See the [Example plugin configuration file](examples/example-qanda-configuration.lua) for example command key-mappings.
@@ -349,46 +372,6 @@ Model options from [prompt and system message](#prompt-and-system-templates) hea
 - Provider-specific [configuration](#configuration) `model_options` (lowest priority)
 - [System message](#system-messages) model options
 - User prompt model options (highest priority)
-
-## Configuration
-
-### Authentication
-
-Provider API keys are imported from exported shell environment variables, the variable name is specified in a provider specific `api_key` configuration option e.g.
-
-```lua
--- Provider specific options
-provider_options = {
-  openrouter = { api_key = "$OPENROUTER_API_KEY" },
-  gemini = { api_key = "$GEMINI_API_KEY" },
-},
-```
-
-You can set the `api_key` with the actual key value (but not recommended for security reasons).
-
-### Configuration options
-
-Default configuration options can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
-
-### Example plugin configuration
-
-Minimal plugin configuration:
-
-```lua
-return {
-  "srackham/qanda.nvim",
-  dependencies = {
-    "nvim-telescope/telescope.nvim",
-  },
-  config = function()
-    qanda.setup {
-    -- Override default options here --
-    }
-  end,
-}
-```
-
-Here's an [example plugin configuration file](examples/example-qanda-configuration.lua) with some key mappings.
 
 ## Tips
 
