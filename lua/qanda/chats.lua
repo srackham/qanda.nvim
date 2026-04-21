@@ -760,13 +760,48 @@ function M.turns_picker()
       delete_entry(picker_bufnr)
     end, { desc = "Close the picker and delete the selected chat file" })
 
+    map({ "n", "i" }, Config.turn_truncate_key, function()
+      -- Toggle the shared truncation flag
+      M.turn_truncation = not M.turn_truncation
+
+      -- Get current picker + selection
+      local picker = action_state.get_current_picker(picker_bufnr)
+      local selection = action_state.get_selected_entry()
+      if not selection then
+        return
+      end
+
+      -- Re-render preview
+      local previewer = picker.previewer
+      if previewer and previewer.state and previewer.state.bufnr then
+        local lines = M.turn_to_lines(current_chat, selection.value)
+
+        if #lines == 0 then
+          lines = { "**[No content available for this turn]**" }
+        end
+
+        vim.api.nvim_buf_set_lines(previewer.state.bufnr, 0, -1, false, lines)
+        vim.api.nvim_set_option_value("filetype", "markdown", { buf = previewer.state.bufnr })
+        M.add_chat_syntax_highlighting(previewer.state.bufnr)
+      end
+
+      -- Refresh chat window if open
+      local win = State.chat_window
+      if win and win:is_open() and win.current_turn then
+        local lines = M.turn_to_lines(win.chat, win.current_turn)
+        win:set_lines(lines)
+      end
+
+    end, { desc = "Toggle truncated fields in preview" })
+
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Turn Picker Commands --
 
 - %s - Open turn in Chat window
 - %s - Delete selected turn
+- %s - Toggle truncated fields in preview
 
-]]):format(Config.chat_picker_open_key, Config.turn_picker_delete_key)
+]]):format(Config.chat_picker_open_key, Config.turn_picker_delete_key, Config.turn_truncate_key)
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
 
