@@ -1,6 +1,5 @@
 return {
-  -- "srackham/qanda.nvim",
-  dir = "/home/srackham/projects/qanda.nvim",
+  "srackham/qanda.nvim",
   dependencies = {
     "nvim-telescope/telescope.nvim",
   },
@@ -9,9 +8,8 @@ return {
 
     local qanda = require "qanda"
 
-    -- Override default options --
+    -- Override default options here --
     qanda.setup {
-      data_dir = "~/projects/qanda.nvim/data",
       user_prompt_lines = 5,
       system_prompt_lines = 5,
       model_options = {
@@ -44,7 +42,7 @@ return {
     )
     vim.keymap.set({ "n", "v" }, "<leader>lt", "<Cmd>Qanda /turn_picker<CR>", { desc = "Qanda.nvim open turn picker" })
 
-    -- Key mappings for commonly used custom prompts --
+    -- Key mappings for commonly used custom prompt templates --
     -- Convention: 2nd letter in uppercase
     vim.keymap.set({ "n", "v" }, "<Leader>lD", "<Cmd>Qanda Dictionary definition<CR>", { desc = "Qanda.nvim dictionary definition" })
     vim.keymap.set({ "n", "v" }, "<Leader>lL", "<Cmd>Qanda Latin word meaning<CR>", { desc = "Qanda.nvim Latin word to English" })
