@@ -446,7 +446,7 @@ function M.open_prompt(prompt)
     vim.cmd "startinsert"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set("n", Config.prompt_inject_key, utils.inject_file, { buffer = win.bufnr })
+  vim.keymap.set("n", Config.prompt_inject_key, utils.inject_files, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_redo_key, function()
     local chat_window = State.chat_window
@@ -500,7 +500,7 @@ end
 
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
-  QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|filetype|register_.|register)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
+  QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|filetype|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
 }
 
 -- Define highlight groups once (link to existing groups)
@@ -793,7 +793,12 @@ function M.substitute_placeholders(prompt_string, opts)
   opts = opts or {}
 
   if not opts.allow_user_inputs then
-    if prompt_string:find("$input", 1, true) or prompt_string:find("${input:", 1, true) or prompt_string:find("$select", 1, true) then
+    if
+      prompt_string:find("$input", 1, true)
+      or prompt_string:find("${input:", 1, true)
+      or prompt_string:find("$select", 1, true)
+      or prompt_string:find("$files", 1, true)
+    then
       utils.notify("User input placeholders not allowed in system messages", vim.log.levels.ERROR)
       return nil
     end
@@ -837,7 +842,8 @@ function M.substitute_placeholders(prompt_string, opts)
     if answer == "" then
       cancelled = true
     end
-    return (answer:gsub("%$", "\27"))
+    -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
+    return (answer:gsub("%%", "%%%%"):gsub("%$", "\27"))
   end)
 
   if cancelled then
@@ -850,7 +856,7 @@ function M.substitute_placeholders(prompt_string, opts)
     if answer == "" then
       return nil
     end
-    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%$", "\27")))
+    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%%", "%%%%"):gsub("%$", "\27")))
   end
 
   if cancelled then
@@ -865,8 +871,20 @@ function M.substitute_placeholders(prompt_string, opts)
       utils.notify("Error: " .. err, vim.log.levels.ERROR)
       return file_content
     end
-    return (file_content:gsub("%$", "\27"))
+    return (file_content:gsub("%%", "%%%%"):gsub("%$", "\27"))
   end)
+
+  -- Handle the $files syntax
+  -- NOTE: Cannot use gsub with a callback here because concat_files_as_markdown_sync
+  -- yields (via coroutine), and gsub is a C function that cannot be yielded across.
+  if string.find(prompt_string, "%$files") then
+    local lines = utils.concat_files_as_markdown_sync()
+    if #lines == 0 then
+      return nil
+    end
+    local text = table.concat(lines, "\n")
+    prompt_string = prompt_string:gsub("%$files", (text:gsub("%%", "%%%%"):gsub("%$", "\27")))
+  end
 
   prompt_string = prompt_string:gsub("%$clipboard", "$register_+")
   prompt_string = prompt_string:gsub("%$yanked", "$register_0")
@@ -885,13 +903,13 @@ function M.substitute_placeholders(prompt_string, opts)
       register_error = true
       return ""
     end
-    return (register:gsub("%$", "\27"))
+    return (register:gsub("%%", "%%%%"):gsub("%$", "\27"))
   end)
   if register_error then
     return nil
   end
 
-  prompt_string = prompt_string:gsub("%$filetype", (vim.bo.filetype:gsub("%$", "\27")))
+  prompt_string = prompt_string:gsub("%$filetype", (vim.bo.filetype:gsub("%%", "%%%%"):gsub("%$", "\27")))
 
   prompt_string = prompt_string:gsub("\27", "$") -- Restore the $'s
 

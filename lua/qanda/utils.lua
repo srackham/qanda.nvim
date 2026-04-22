@@ -513,7 +513,9 @@ function M.concat_files_as_markdown_sync()
   end
 
   M.concat_files_as_markdown(function(lines)
-    coroutine.resume(co, lines)
+    vim.schedule(function()
+      coroutine.resume(co, lines)
+    end)
   end)
 
   return coroutine.yield()
