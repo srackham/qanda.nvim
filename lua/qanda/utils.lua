@@ -439,19 +439,16 @@ function M.is_binary(path)
   return bytes:find "\0" ~= nil
 end
 
---- Prompts user via Telescope to select text files and injects their
---- content into the current buffer as Markdown blocks.
-function M.inject_file()
+--- Prompts user via Telescope to select text files and returns their
+--- content as an array of Markdown-formatted lines via a callback.
+--- @param callback fun(lines: string[]): nil Called with the concatenated injection lines once files are selected.
+function M.concat_files_as_markdown(callback)
   local builtin = require "telescope.builtin"
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  -- Lock in the current buffer and window BEFORE opening Telescope
-  local target_buf = vim.api.nvim_get_current_buf()
-  local target_win = vim.api.nvim_get_current_win()
-
   builtin.find_files {
-    prompt_title = "Inject Text File(s)",
+    prompt_title = "Select Text File(s)",
     attach_mappings = function(picker_bufnr, map)
       map({ "n", "i" }, "<Tab>", actions.toggle_selection + actions.move_selection_next)
 
@@ -468,12 +465,14 @@ function M.inject_file()
         -- Close the picker first
         actions.close(picker_bufnr)
 
-        if #selections == 0 then
+        if #selections == 0 then -- User cancelled
+          callback {}
           return
         end
 
+        local result = {}
+
         for _, entry in ipairs(selections) do
-          local injection = {}
           local file_path = entry.value
 
           if M.is_binary(file_path) then
@@ -482,30 +481,62 @@ function M.inject_file()
             local file_ext = vim.fn.fnamemodify(file_path, ":e")
             local lines = vim.fn.readfile(file_path)
 
-            table.insert(injection, "")
-            table.insert(injection, "`" .. file_path .. "`")
-            table.insert(injection, "")
-            table.insert(injection, "```" .. file_ext)
+            table.insert(result, "")
+            table.insert(result, "`" .. file_path .. "`")
+            table.insert(result, "")
+            table.insert(result, "```" .. file_ext)
 
             for _, line in ipairs(lines) do
-              table.insert(injection, line)
+              table.insert(result, line)
             end
 
-            table.insert(injection, "```")
-            table.insert(injection, "")
-
-            local row, _ = unpack(vim.api.nvim_win_get_cursor(target_win))
-            vim.api.nvim_buf_set_lines(target_buf, row, row, false, injection)
-
-            local new_row = row + #injection
-            vim.api.nvim_win_set_cursor(target_win, { new_row, 0 })
+            table.insert(result, "```")
+            table.insert(result, "")
           end
         end
+
+        callback(result)
       end)
 
       return true
     end,
   }
+end
+
+--- Synchronous version of `M.concat_files_as_markdown` that returns the result table directly.
+--- Must be called from within a coroutine.
+--- @return string[] The concatenated Markdown-formatted lines.
+function M.concat_files_as_markdown_sync()
+  local co = coroutine.running()
+  if not co then
+    error "concat_files_as_markdown_sync must be called from a coroutine"
+  end
+
+  M.concat_files_as_markdown(function(lines)
+    coroutine.resume(co, lines)
+  end)
+
+  return coroutine.yield()
+end
+
+--- Prompts user via Telescope to select text files and injects their
+--- content into the current buffer as Markdown blocks.
+function M.inject_files()
+  -- Lock in the current buffer and window BEFORE opening Telescope
+  local target_buf = vim.api.nvim_get_current_buf()
+  local target_win = vim.api.nvim_get_current_win()
+
+  M.concat_files_as_markdown(function(injection)
+    if #injection == 0 then
+      return
+    end
+
+    local row, _ = unpack(vim.api.nvim_win_get_cursor(target_win))
+    vim.api.nvim_buf_set_lines(target_buf, row, row, false, injection)
+
+    local new_row = row + #injection
+    vim.api.nvim_win_set_cursor(target_win, { new_row, 0 })
+  end)
 end
 
 --- Sanitizes strings for Telescope picker display by removing newlines and truncating.
