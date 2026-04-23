@@ -4,8 +4,25 @@ Qanda is an AI chatbot for Neovim.
 
 An easy-to-use Neovim plugin for conversing with AI models.
 
-> [!IMPORTANT]
-> This is the 1.0 release, I use it daily on NixOS Linux with Neovim v0.11.6, but haven't tested on other systems.
+## Overview
+
+Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way.
+
+There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Most are coding oriented, opinionated, and come with a significant cognitive load.
+
+Qanda features:
+
+- Familiar turn-about chatbot UI.
+- Chats are persistent, resumable and editable.
+- Ollama, OpenRouter and Google Gemini model providers.
+- Models and providers can be switched at any time.
+- Reusable named [prompt templates](#prompt-and-system-templates) canned prompts and [system templates](#prompt-and-system-templates) for custom [system messages](#system-messages).
+- The user engages in interactive turn-about _chats_ (conversations) with the selected AI model.
+- _Chats_ are contextual, persistent, resumable and editable.
+- The chat comprises one or more _turns_ (model request + model response).
+- A turn is initiated with a user _prompt_ (a question or an instruction)
+- Chats can include an optional _[system message](#system-messages)_
+- Qanda is light on token consumption: model requests are explicit (there are no hidden contexts or model requests).
 
 ## Table of contents
 
@@ -28,26 +45,6 @@ An easy-to-use Neovim plugin for conversing with AI models.
 - [System messages](#system-messages)
 - [Model options](#model-options)
 - [Tips](#tips)
-
-## Overview
-
-Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way.
-
-There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Most are coding oriented, opinionated, and come with a significant cognitive load.
-
-Qanda features:
-
-- Familiar turn-about chatbot UI.
-- Chats are persistent, resumable and editable.
-- Ollama, OpenRouter and Google Gemini model providers.
-- Models and providers can be switched at any time.
-- Reusable named [prompt templates](#prompt-and-system-templates) canned prompts and [system templates](#prompt-and-system-templates) for custom [system messages](#system-messages).
-- The user engages in interactive turn-about _chats_ (conversations) with the selected AI model.
-- _Chats_ are contextual, persistent, resumable and editable.
-- The chat comprises one or more _turns_ (model request + model response).
-- A turn is initiated with a user _prompt_ (a question or an instruction)
-- Chats can include an optional _[system message](#system-messages)_
-- Qanda is light on token consumption: model requests are explicit (there are no hidden contexts or model requests).
 
 ## Glossary of terms
 
@@ -82,6 +79,9 @@ return {
 - You'll also want to set up some key mappings, you'll find examples in this [example plugin configuration file](examples/example-qanda-configuration.lua).
 - The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
+> [!NOTE]
+> The current release has been tested on NixOS Linux with Neovim v0.11.6.
+
 ### Authentication
 
 Provider API keys are imported from exported shell environment variables, the variable name is specified in a provider specific `api_key` configuration option. Here are the default provider options:
@@ -97,6 +97,9 @@ provider_options = {
 You could set the `api_key` with the actual key value, but this is not recommended for security reasons.
 
 ## Qanda commands
+
+- Qanda commands respond to tabbed command completion.
+- See the [Example plugin configuration file](examples/example-qanda-configuration.lua) for example command key-mappings.
 
 | Command                         | Description                                                     |
 | ------------------------------- | --------------------------------------------------------------- |
@@ -116,10 +119,10 @@ You could set the `api_key` with the actual key value, but this is not recommend
 | `:Qanda /system_message_picker` | Open the [System Message picker](#system-template-picker)       |
 | `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)                       |
 
-- Qanda commands respond to tabbed command completion.
-- See the [Example plugin configuration file](examples/example-qanda-configuration.lua) for example command key-mappings.
-
 ## Prompt window
+
+> [!NOTE]
+> The documentation lists the default key bindings for Qanda window commands; all mappings are [configurable](lua/qanda/config.lua).
 
 ![Alt text](screenshots/prompt-window.png)
 
@@ -309,11 +312,11 @@ The following placeholders can be used in [prompt and system templates](#prompt-
 | Syntax                          | Description                                                       |
 | ------------------------------- | ----------------------------------------------------------------- |
 | `$input`, `${input:<prompt>}` † | Prompts user for input and substitutes the input                  |
+| `$files` †                      | Prompts the user with a file picker and inject the file(s)        |
+| `${file:<file name>}`           | Inject text file                                                  |
 | `$clipboard`                    | Substitutes content of system clipboard (alias for `$register_+`) |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 | `$register_<register name>`     | Substitutes content of specified register                         |
-| `${file:<file name>}`           | Inject text file                                                  |
-| `$files` †                      | Inject text file(s) interactively with a file picker              |
 
 † Prompt templates only
 
