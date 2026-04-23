@@ -888,25 +888,20 @@ function M.substitute_placeholders(prompt_string, opts)
   prompt_string = prompt_string:gsub("%$clipboard", "$register_+")
   prompt_string = prompt_string:gsub("%$yanked", "$register_0")
 
-  local register_error = false
   prompt_string = prompt_string:gsub('%$register_([%w*+:/"])', function(r_name)
     local register = vim.fn.getreg(r_name)
-    if not register or register:match "^%s*$" then
+    if not register or utils.trim_string(register) == "" then
       local msg = "Register" .. r_name
       if r_name == "+" then
         msg = "Clipboard"
       elseif r_name == "0" then
         msg = "Yanked text"
       end
-      utils.notify(msg .. " is empty", vim.log.levels.ERROR)
-      register_error = true
+      utils.notify(msg .. " is empty", vim.log.levels.WARN)
       return ""
     end
     return (register:gsub("%%", "%%%%"):gsub("%$", "\27"))
   end)
-  if register_error then
-    return nil
-  end
 
   prompt_string = prompt_string:gsub("\27", "$") -- Restore the $'s
 
