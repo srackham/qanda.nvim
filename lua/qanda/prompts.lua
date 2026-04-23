@@ -500,7 +500,7 @@ end
 
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
-  QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|filetype|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
+  QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
 }
 
 -- Define highlight groups once (link to existing groups)
@@ -778,7 +778,6 @@ end
 --- - `$input`: Prompts user for input and substitutes the value
 --- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
 --- - `$yanked`: Substitutes most recently yanked text (alias for `$register_0`)
---- - `$filetype`: Substitutes current buffer's filetype
 --- - `$register_<name>`: Substitutes content of specified register
 --- -  ${file:<filename>}: Inject text file
 ---
@@ -908,8 +907,6 @@ function M.substitute_placeholders(prompt_string, opts)
   if register_error then
     return nil
   end
-
-  prompt_string = prompt_string:gsub("%$filetype", (vim.bo.filetype:gsub("%%", "%%%%"):gsub("%$", "\27")))
 
   prompt_string = prompt_string:gsub("\27", "$") -- Restore the $'s
 

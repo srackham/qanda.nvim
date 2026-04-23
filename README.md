@@ -33,7 +33,9 @@ An easy-to-use Neovim plugin for conversing with AI models.
 
 Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way.
 
-There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Many are task specific and most impose a significant cognitive load.
+There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Most are coding oriented, opinionated, and come with a significant cognitive load.
+
+Qanda features:
 
 - Familiar turn-about chatbot UI.
 - Chats are persistent, resumable and editable.
@@ -312,7 +314,6 @@ The following placeholders can be used in [prompt and system templates](#prompt-
 | `$clipboard`                    | Substitutes content of system clipboard (alias for `$register_+`) |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 | `$select` †                     | Prompts the user for an input source                              |
-| `$filetype`                     | Substitutes current buffer's filetype                             |
 | `$register_<register name>`     | Substitutes content of specified register                         |
 | `${file:<file name>}`           | Inject text file                                                  |
 | `$files` †                      | Inject text file(s) interactively with a file picker              |
