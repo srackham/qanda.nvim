@@ -313,14 +313,12 @@ The following placeholders can be used in [prompt and system templates](#prompt-
 | `$input`, `${input:<prompt>}` † | Prompts user for input and substitutes the input                  |
 | `$clipboard`                    | Substitutes content of system clipboard (alias for `$register_+`) |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
-| `$select` †                     | Prompts the user for an input source                              |
 | `$register_<register name>`     | Substitutes content of specified register                         |
 | `${file:<file name>}`           | Inject text file                                                  |
 | `$files` †                      | Inject text file(s) interactively with a file picker              |
 
 † Prompt templates only
 
-- The `$select` placeholder allows the user to select from the `$clipboard`, `$text`, `$input` or `$yanked` inputs at the time of template substitution.
 - The `$file` placeholder file location is determined by the file name directory prefix:
   - No directory prefix defaults to the Qanda `prompts` [data directory](#data-directories) e.g. `${file:RULES.md}`
   - A relative directory prefix is relative to the current working directory (reported by the `:pwd` command) e.g. `${file:./README.md}`
@@ -338,12 +336,9 @@ Example prompt template:
 
 ```
 ___
-name: Latin: Latin to English
-temperature: 0.2
+name: Synonyms
 ___
-Translate the following Latin text to English:
-
-$select
+List synonyms for "${input:Enter word}"
 ```
 
 System templates can use the same [placeholders](#template-placeholders) as prompt templates (with the exception of interactive placeholders). Here are a couple of examples of system templates:

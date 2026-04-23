@@ -774,15 +774,15 @@ end
 ---NOTE: If the `allow_user_input` option is `true` then this function must be called from a coroutine.
 ---
 ---Placeholders processed:
---- - `$select`: Prompt the user with a choice of inputs
 --- - `$input`: Prompts user for input and substitutes the value
 --- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
 --- - `$yanked`: Substitutes most recently yanked text (alias for `$register_0`)
 --- - `$register_<name>`: Substitutes content of specified register
 --- -  ${file:<filename>}: Inject text file
+--- -  $files: Inject text file(s) selected with file picker
 ---
 ---@param prompt_string string The prompt string containing placeholders to substitute
----@param opts? { allow_user_inputs?: boolean } Options: `allow_user_inputs` when set to `true` `$input` and `$select` placeholders are allowed, in which case this function must be called from a coroutine.
+---@param opts? { allow_user_inputs?: boolean } Options: `allow_user_inputs` when set to `true` then `$input` and `$files` placeholders are allowed, in which case this function must be called from a coroutine.
 ---@return string|nil The prompt with placeholders substituted, or `nil` if processing should abort i.e. user cancelled or substitution error.
 function M.substitute_placeholders(prompt_string, opts)
   if not prompt_string or prompt_string:match "^%s*$" ~= nil then
@@ -795,43 +795,11 @@ function M.substitute_placeholders(prompt_string, opts)
     if
       prompt_string:find("$input", 1, true)
       or prompt_string:find("${input:", 1, true)
-      or prompt_string:find("$select", 1, true)
       or prompt_string:find("$files", 1, true)
     then
       utils.notify("User input placeholders not allowed in system messages", vim.log.levels.ERROR)
       return nil
     end
-  end
-
-  -- Handle the $select placeholder first
-  if string.find(prompt_string, "%$select") then
-
-    local items_map = {
-      ["$clipboard"] = "Clipboard",
-      ["$input"] = "User input",
-      ["$yanked"] = "Yanked text",
-      ["__CANCEL__"] = "Cancel (or press Esc)",
-    }
-
-    local choice
-    choice, _ = utils.ui_select_sync({
-      "$clipboard",
-      "$input",
-      "$yanked",
-      string.rep("─", 100), -- Full-width visual break
-      "__CANCEL__",
-    }, {
-      prompt = "Select input source",
-      format_item = function(item)
-        return items_map[item]
-      end,
-    })
-
-    -- Arrive here after the user selection.
-    if not choice or choice == "__CANCEL__" then
-      return nil
-    end
-    prompt_string = prompt_string:gsub("%$select", choice)
   end
 
   -- Handle the ${input:<prompt>} syntax
