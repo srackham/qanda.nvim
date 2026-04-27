@@ -23,7 +23,7 @@ local default = {
   -- Options included in every model request
   model_options = {
     ollama = { think = false, stream = true },
-    openrouter = { stream = true },
+    openrouter = { stream = true, stream_options = { include_usage = true } },
     gemini = { stream = true },
   },
 

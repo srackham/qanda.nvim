@@ -299,23 +299,27 @@ function M.execute_prompt(prompt)
     curl.execute_command(
       curl_args,
       payload,
-      State.provider.module.normaliser,
+      State.provider.module.data_normaliser,
+      State.provider.module.get_turn_stats,
       State.chat_window.winid,
-      function(response) ---@type CurlResponse
+      function(curl_response) ---@type CurlResponse
         if curl.get_job_status() ~= "stopped" then
           -- Turn did not complete
           return
         end
 
-        if response.error then
+        if curl_response.error then
           return
         end
 
         -- Update completed turn
-        local data = table.concat(response.data, "\n")
+        local data = table.concat(curl_response.data, "\n")
         turns[#turns].response = data
         turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
-        turns[#turns].duration = response.duration
+        turns[#turns].duration = curl_response.duration
+        turns[#turns].request_tokens = curl_response.request_tokens
+        turns[#turns].response_tokens = curl_response.response_tokens
+        turns[#turns].total_tokens = curl_response.total_tokens
 
         diagnostics.append("response", "## Extracted response", data)
 

@@ -110,6 +110,9 @@
 ---@field model_options table? Additional model request fields inherited from a parent prompt and configuration
 ---@field timestamp string The time/date the request was sent
 ---@field duration number The time taken for the request in seconds
+---@field request_tokens number The number of tokens in the model request
+---@field response_tokens number The number of tokens in the model response
+---@field total_tokens number Request plus response tokens
 
 ---@class Chat
 ---@field turns ChatTurn[] A list of conversation request/response pairs
@@ -129,6 +132,9 @@
 ---@field data? string[] The aggregated response body data
 ---@field error? string Error message if the request failed
 ---@field duration? number Request duration in seconds
+---@field request_tokens? number The number of tokens in the model request
+---@field response_tokens? number The number of tokens in the model response
+---@field total_tokens? number Request plus response tokens
 
 --- Diagnostic types
 ---@alias Diagnostic

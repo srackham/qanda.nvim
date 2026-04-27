@@ -54,7 +54,7 @@ end
 ---Parse and reshape model response to conform to Ollama api/chat API
 ---@param raw_json string
 ---@return table|nil
-function M.normaliser(raw_json)
+function M.data_normaliser(raw_json)
   -- No reshaping necessary (this is an Ollama response)
   local ok, decoded = pcall(vim.json.decode, raw_json)
   if not ok or type(decoded) ~= "table" then
@@ -63,15 +63,21 @@ function M.normaliser(raw_json)
   return decoded
 end
 
+---Extract request and response tokens from raw `decoded` response object to `curl_response`.
+---@param response table
+---@param curl_response CurlResponse
+function M.get_turn_stats(response, curl_response)
+  curl_response.request_tokens = response.prompt_eval_count
+  curl_response.response_tokens = response.eval_count
+end
+
 --- Checks that the Ollama server is reachable and responding.
 --- @param opts table User configuration options with `host` and `port` fields.
 --- @return string|nil # `nil` if all checks pass, or a Markdown string describing the problem and how to fix it.
 function M.health_check(opts)
   local ok, response
   ok = pcall(function()
-    response = vim.fn.systemlist(
-      "curl -q --silent --max-time 5 http://" .. opts.host .. ":" .. opts.port .. "/api/tags"
-    )
+    response = vim.fn.systemlist("curl -q --silent --max-time 5 http://" .. opts.host .. ":" .. opts.port .. "/api/tags")
   end)
 
   if not ok or vim.v.shell_error ~= 0 then

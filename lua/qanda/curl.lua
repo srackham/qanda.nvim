@@ -102,9 +102,10 @@ end
 ---@param cmd table The command array (e.g., `{'curl', ...}`).
 ---@param stdin string|string[]|nil If non-nil, this content is written to the process's stdin.
 ---@param data_normaliser fun(raw_json: string): table | nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
+---@param get_turn_stats fun(response: table,curl_response: CurlResponse) A function that extracts request and response tokens from raw decoded `response` object to the `curl_response` object.
 ---@param winid number The Neovim window ID to target for streaming output.
 ---@param on_exit_callback fun(response: CurlResponse): nil Function to call when the job finishes.
-function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
+function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
     return
@@ -120,6 +121,7 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
 
   local start_ms = utils.get_time_ms()
   local duration = nil -- Turn duration in seconds
+  local curl_response = {} ---@type CurlResponse
 
   local log_error = function(msg)
     error_message = msg
@@ -185,6 +187,7 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
 
         local chunk = nil
         local duration_msg = nil
+        local tokens_msg = nil
 
         if decoded.message and decoded.message.content then
           chunk = decoded.message.content
@@ -194,8 +197,20 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
           -- Compute elapsed time in ms, convert to seconds for display
           local now_ms = utils.get_time_ms()
           duration = (now_ms - start_ms) / 1000.0
-
           duration_msg = string.format("\n\n___\n**Time taken**: %.2fs", duration)
+
+          -- Extract usage statistics
+          get_turn_stats(decoded, curl_response)
+          curl_response.request_tokens = curl_response.request_tokens or 0
+          curl_response.response_tokens = curl_response.response_tokens or 0
+          curl_response.total_tokens = curl_response.request_tokens + curl_response.response_tokens
+          tokens_msg = string.format(
+            "\n**Tokens used**: request: %d, response: %d, total: %d",
+            curl_response.request_tokens,
+            curl_response.response_tokens,
+            curl_response.total_tokens
+          )
+
           done = true
         end
 
@@ -204,6 +219,12 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
         end
         if duration_msg then
           append_to_win(winid, duration_msg, { window_only = true })
+        end
+        if tokens_msg then
+          append_to_win(winid, tokens_msg, { window_only = true })
+        end
+        if done then
+          append_to_win(winid, "\n", { window_only = true })  -- Advance the cursor to a blank line
         end
 
         ::continue::
@@ -224,12 +245,10 @@ function M.execute_command(cmd, stdin, data_normaliser, winid, on_exit_callback)
     end
     active_job = nil
     if on_exit_callback then
-      local response = { ---@type CurlResponse
-        data = model_response,
-        error = error_message,
-        duration = duration,
-      }
-      on_exit_callback(response)
+      curl_response.data = model_response
+      curl_response.error = error_message
+      curl_response.duration = duration
+      on_exit_callback(curl_response)
     end
   end)
 end

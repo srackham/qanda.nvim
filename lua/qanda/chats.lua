@@ -472,6 +472,12 @@ function M.turn_to_lines(chat, turn)
   if turn.duration then
     table.insert(lines, "duration: " .. string.format("%.2fs", turn.duration))
   end
+  if turn.total_tokens then
+    table.insert(
+      lines,
+      string.format("tokens: request: %d, response: %d, total: %d", turn.request_tokens, turn.response_tokens, turn.total_tokens)
+    )
+  end
   if turn.model_options then
     for k, v in pairs(turn.model_options) do
       table.insert(lines, k .. ": " .. v)
@@ -500,7 +506,7 @@ function M.turn_to_lines(chat, turn)
 end
 
 local chat_syntax_rules = {
-  QandaChatProperty = [[\v^(provider|timestamp|duration|prompt|system|model|provider|turn|temperature|top_p|max_tokens|stream):]],
+  QandaChatProperty = [[\v^(provider|timestamp|duration|tokens|prompt|system|model|provider|turn|temperature|top_p|max_tokens|stream):]],
 }
 
 -- Define highlight groups once (link to existing groups)

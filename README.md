@@ -137,7 +137,7 @@ The Prompt window is a floating window into which the user enters questions and 
   - `<C-Del>` - Clear the prompt window and enter insert mode
   - `<Tab>` - Switch to the [chat window](#chat-window) †
   - `<Esc>` - Close the prompt window †
-  - `<Leader>fi` - Inject file(s) into the prompt †
+  - `<Leader>fi` - Inject file(s) into the prompt as Markdown (the file path followed by the fenced contents)†
   - `<C-h>` - List key-mapped commands
 
 † Normal mode commands
@@ -312,15 +312,16 @@ The following placeholders can be used in [prompt and system templates](#prompt-
 | Syntax                          | Description                                                       |
 | ------------------------------- | ----------------------------------------------------------------- |
 | `$input`, `${input:<prompt>}` † | Prompts user for input and substitutes the input                  |
-| `$files` †                      | Prompts the user with a file picker and inject the file(s)        |
 | `${file:<file name>}`           | Inject text file                                                  |
+| `$files` †                      | Prompts the user with a file picker and inject the file(s)        |
 | `$clipboard`                    | Substitutes content of system clipboard (alias for `$register_+`) |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 | `$register_<register name>`     | Substitutes content of specified register                         |
 
 † Prompt templates only
 
-- The `$file` placeholder file location is determined by the file name directory prefix:
+- The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects the file as Markdown (the file path followed by the fenced contents).
+- The `${file:<file name>}` placeholder file location is determined by the file name directory prefix:
   - No directory prefix defaults to the Qanda `prompts` [data directory](#data-directories) e.g. `${file:RULES.md}`
   - A relative directory prefix is relative to the current working directory (reported by the `:pwd` command) e.g. `${file:./README.md}`
   - An absolute directory prefix can be used to specify any location e.g. `${file:~/.config/nvim/stylua.toml}`

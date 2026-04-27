@@ -89,7 +89,7 @@ end
 ---Parse and reshape model response to conform to Ollama api/chat API
 ---@param raw_json string
 ---@return table|nil
-function M.normaliser(raw_json)
+function M.data_normaliser(raw_json)
   -- Strip "data:" prefix, if present
   local trimmed = vim.trim(raw_json)
   if trimmed:sub(1, 5) == "data:" then
