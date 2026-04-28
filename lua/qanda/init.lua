@@ -319,9 +319,7 @@ function M.execute_prompt(prompt)
         turns[#turns].total_tokens = curl_response.total_tokens
 
         diagnostics.append("response", "## Extracted response", data)
-
         diagnostics.append("request_data", "## Request data", payload)
-
         payload = vim.json.encode(curl_response.response_data)
         diagnostics.append("response_data", "## Response data\nAn array of streamed response chunks.", payload)
 
