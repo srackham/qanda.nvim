@@ -121,7 +121,7 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
 
   local start_ms = utils.get_time_ms()
   local duration = nil -- Turn duration in seconds
-  local curl_response = {} ---@type CurlResponse
+  local curl_response = { response_data = {} } ---@type CurlResponse
 
   local log_error = function(msg)
     error_message = msg
@@ -183,6 +183,7 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
         if not normalised then
           goto continue
         end
+        table.insert(curl_response.response_data, raw)
 
         -- If we already emitted the done message, skip all further processing for that line
         if done then

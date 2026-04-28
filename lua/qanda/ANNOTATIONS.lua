@@ -135,11 +135,13 @@
 ---@field request_tokens? number The number of tokens in the model request
 ---@field response_tokens? number The number of tokens in the model response
 ---@field total_tokens? number Request plus response tokens
+---@field response_data? table The response data object returned by the model
 
 --- Diagnostic types
 ---@alias Diagnostic
 ---| '"curl_command"'
 ---| '"system_message"'
----| '"request"'
+---| '"request_data"'
+---| '"response_data"'
 ---| '"response"'
 

@@ -291,11 +291,8 @@ function M.execute_prompt(prompt)
     -- Clear the Chat window and write the header.
     Chats.open_chat(chat, turn)
 
-    -- Encode the request data as JSON and assign to diagnostics register
-    local payload = vim.json.encode(request.data)
-    diagnostics.append("request", "## Request data", payload)
-
     -- Execute the curl command streaming the output to the Chat window.
+    local payload = vim.json.encode(request.data)
     curl.execute_command(
       curl_args,
       payload,
@@ -322,6 +319,11 @@ function M.execute_prompt(prompt)
         turns[#turns].total_tokens = curl_response.total_tokens
 
         diagnostics.append("response", "## Extracted response", data)
+
+        diagnostics.append("request_data", "## Request data", payload)
+
+        payload = vim.json.encode(curl_response.response_data)
+        diagnostics.append("response_data", "## Response data\nAn array of streamed response chunks.", payload)
 
         -- Save chat file
         vim.schedule(function() -- Defer because we're in a Neovim "fast event" context

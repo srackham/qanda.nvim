@@ -33,7 +33,7 @@ function M.append(diagnostic, title, content)
 
       if diagnostic == "curl_command" then
         reg = reg .. "```\n" .. content .. "\n```\n\n"
-      elseif diagnostic == "request" then
+      elseif diagnostic == "request_data" or diagnostic == "response_data" then
         local formatted = content
         if vim.fn.executable "jq" == 1 then
           local result = vim.fn.system("jq '.'", content)
