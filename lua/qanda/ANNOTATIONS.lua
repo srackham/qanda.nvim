@@ -129,7 +129,7 @@
 ---| "aborted"
 
 ---@class CurlResponse
----@field data? string[] The aggregated response body data
+---@field response_lines? string[] The readable aggregation of the response body data
 ---@field error? string Error message if the request failed
 ---@field duration? number Request duration in seconds
 ---@field request_tokens? number The number of tokens in the model request

@@ -266,8 +266,6 @@ function M.execute_prompt(prompt)
       table.insert(messages, { role = "system", content = system_message })
     end
 
-    diagnostics.append("system_message", "## System", system_message)
-
     -- Add user and assistant messages
     for _, t in ipairs(turns) do
       table.insert(messages, { role = "user", content = t.request })
@@ -310,15 +308,13 @@ function M.execute_prompt(prompt)
         end
 
         -- Update completed turn
-        local data = table.concat(curl_response.data, "\n")
-        turns[#turns].response = data
+        turns[#turns].response = table.concat(curl_response.response_lines, "\n")
         turns[#turns].timestamp = tostring(os.date(Config.TIME_STAMP_FORMAT))
         turns[#turns].duration = curl_response.duration
         turns[#turns].request_tokens = curl_response.request_tokens
         turns[#turns].response_tokens = curl_response.response_tokens
         turns[#turns].total_tokens = curl_response.total_tokens
 
-        diagnostics.append("response", "## Extracted response", data)
         diagnostics.append("request_data", "## Request data", payload)
         payload = vim.json.encode(curl_response.response_data)
         diagnostics.append("response_data", "## Response data\nAn array of streamed response chunks.", payload)

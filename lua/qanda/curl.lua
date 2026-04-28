@@ -251,7 +251,7 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
     end
     active_job = nil
     if on_exit_callback then
-      curl_response.data = model_response
+      curl_response.response_lines = model_response
       curl_response.error = error_message
       curl_response.duration = duration
       on_exit_callback(curl_response)
