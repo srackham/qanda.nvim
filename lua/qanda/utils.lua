@@ -752,10 +752,10 @@ function M.curl_args_to_shell_command(args)
   return table.concat(lines, "\n")
 end
 
--- Recursive function to ensure numeric strings are converted in-place to numbers in a table.
--- Targets common Ollama/OpenRouter params like temperature, top_p, max_tokens, etc.
--- Preserves other types unchanged.
 function M.normalize_numerics(tbl)
+  if type(tbl) ~= "table" then
+    return tbl
+  end
   for k, v in pairs(tbl) do
     if type(v) == "string" then
       local num = tonumber(v)
@@ -763,9 +763,11 @@ function M.normalize_numerics(tbl)
         tbl[k] = num
       end
     elseif type(v) == "table" then
-      tbl[k] = M.normalize_numerics(v) -- Recurse into nested tables (e.g., options)
+      -- Ensure the recursive call has a value to assign back
+      M.normalize_numerics(v)
     end
   end
+  return tbl -- Return the modified table
 end
 
 -- Delete the first matching item from table `tbl`
