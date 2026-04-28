@@ -101,10 +101,10 @@ end
 ---The `data_normaliser` should convert raw_json response data into Ollama‑shape response data.
 ---@param cmd table The command array (e.g., `{'curl', ...}`).
 ---@param stdin string|string[]|nil If non-nil, this content is written to the process's stdin.
----@param data_normaliser fun(raw_json: string): table | nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
----@param get_turn_stats fun(response: table,curl_response: CurlResponse) A function that extracts request and response tokens from raw decoded `response` object to the `curl_response` object.
+---@param data_normaliser fun(raw_json: string): table|nil, table|nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
+---@param get_turn_stats fun(raw_decoded: table, curl_response: CurlResponse) A function that extracts request and response tokens from raw decoded `response` object to the `curl_response` object.
 ---@param winid number The Neovim window ID to target for streaming output.
----@param on_exit_callback fun(response: CurlResponse): nil Function to call when the job finishes.
+---@param on_exit_callback fun(curl_response: CurlResponse): nil Function to call when the job finishes.
 function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
@@ -152,9 +152,13 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
       -- If the buffer starts like a JSON object and contains "error", try to parse it immediately.
       -- NOTE: This match is valid for all providers.
       if line_buffer:match "^%s*{" and line_buffer:match '"error"%s*:' then
-        local ok, decoded = pcall(data_normaliser, line_buffer)
-        if ok and decoded and decoded.error then
-          log_error(decoded.error)
+        local normalised, _ = data_normaliser(line_buffer)
+        if not normalised then
+          log_error "Failed to normalise response object"
+          return
+        end
+        if normalised.error then
+          log_error(normalised.error)
           return
         end
       end
@@ -175,8 +179,8 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
         end
 
         -- Let the data_normaliser convert raw_json to Ollama‑shape
-        local ok, decoded = pcall(data_normaliser, raw_json)
-        if not ok or type(decoded) ~= "table" then
+        local normalised, raw = data_normaliser(raw_json)
+        if not normalised then
           goto continue
         end
 
@@ -189,18 +193,19 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
         local duration_msg = nil
         local tokens_msg = nil
 
-        if decoded.message and decoded.message.content then
-          chunk = decoded.message.content
+        if normalised.message and normalised.message.content then
+          chunk = normalised.message.content
         end
 
-        if decoded.done then
+        if normalised.done then
           -- Compute elapsed time in ms, convert to seconds for display
           local now_ms = utils.get_time_ms()
           duration = (now_ms - start_ms) / 1000.0
           duration_msg = string.format("\n\n___\n**Time taken**: %.2fs", duration)
 
           -- Extract usage statistics
-          get_turn_stats(decoded, curl_response)
+          assert(raw)
+          get_turn_stats(raw, curl_response)
           curl_response.request_tokens = curl_response.request_tokens or 0
           curl_response.response_tokens = curl_response.response_tokens or 0
           curl_response.total_tokens = curl_response.request_tokens + curl_response.response_tokens
@@ -224,7 +229,7 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
           append_to_win(winid, tokens_msg, { window_only = true })
         end
         if done then
-          append_to_win(winid, "\n", { window_only = true })  -- Advance the cursor to a blank line
+          append_to_win(winid, "\n", { window_only = true }) -- Advance the cursor to a blank line
         end
 
         ::continue::
