@@ -53,22 +53,22 @@ end
 
 ---Parse and reshape model response to conform to Ollama api/chat API
 ---@param raw_json string
----@return table|nil
+---@return table|nil, table|nil Return normalised and raw_decoded model responses.
 function M.data_normaliser(raw_json)
   -- No reshaping necessary (this is an Ollama response)
   local ok, decoded = pcall(vim.json.decode, raw_json)
   if not ok or type(decoded) ~= "table" then
-    return nil
+    return nil,nil
   end
-  return decoded
+  return decoded,decoded
 end
 
----Extract request and response tokens from raw `decoded` response object to `curl_response`.
----@param response table
+---Extract request and response tokens from `raw_decoded` response object to `curl_response`.
+---@param raw_decoded table
 ---@param curl_response CurlResponse
-function M.get_turn_stats(response, curl_response)
-  curl_response.request_tokens = response.prompt_eval_count
-  curl_response.response_tokens = response.eval_count
+function M.get_turn_stats(raw_decoded, curl_response)
+  curl_response.request_tokens = raw_decoded.prompt_eval_count
+  curl_response.response_tokens = raw_decoded.eval_count
 end
 
 --- Checks that the Ollama server is reachable and responding.

@@ -24,7 +24,7 @@ local default = {
   model_options = {
     ollama = { think = false, stream = true },
     openrouter = { stream = true, stream_options = { include_usage = true } },
-    gemini = { stream = true },
+    gemini = { stream = true, stream_options = { include_usage = true } },
   },
 
   -- Provider specific options

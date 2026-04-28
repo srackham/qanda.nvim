@@ -96,7 +96,7 @@ end
 
 ---Parse and reshape model response to conform to Ollama api/chat API
 ---@param raw_json string
----@return table|nil, table|nil
+---@return table|nil, table|nil Return normalised and raw_decoded model responses.
 function M.data_normaliser(raw_json)
   local raw_decoded = decode_raw_json(raw_json)
   if not raw_decoded then
@@ -124,9 +124,6 @@ function M.data_normaliser(raw_json)
   end
 
   -- Map finish_reason to Ollama‑style done flag
-  -- if type(choices) == "table" and #choices > 0 and choices[1].finish_reason == "stop" then
-  --   resp.done = true
-  -- end
   if raw_decoded.usage then
     normalised.done = true
   end
@@ -134,12 +131,11 @@ function M.data_normaliser(raw_json)
   return normalised, raw_decoded
 end
 
----Extract request and response tokens from raw `decoded` response object to `curl_response`.
+---Extract request and response tokens from `raw_decoded` response object to `curl_response`.
 ---@param raw_decoded table
 ---@param curl_response CurlResponse
 function M.get_turn_stats(raw_decoded, curl_response)
   if raw_decoded.usage then
-    print(vim.inspect(raw_decoded))
     curl_response.request_tokens = raw_decoded.usage.prompt_tokens
     curl_response.response_tokens = raw_decoded.usage.completion_tokens
   end

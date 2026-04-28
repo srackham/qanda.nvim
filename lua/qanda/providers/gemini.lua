@@ -86,10 +86,7 @@ function M.command(request)
   }
 end
 
----Parse and reshape model response to conform to Ollama api/chat API
----@param raw_json string
----@return table|nil
-function M.data_normaliser(raw_json)
+local function decode_raw_json(raw_json)
   -- Strip "data:" prefix, if present
   local trimmed = vim.trim(raw_json)
   if trimmed:sub(1, 5) == "data:" then
@@ -103,33 +100,54 @@ function M.data_normaliser(raw_json)
   if not ok or type(decoded) ~= "table" then
     return nil
   end
+  return decoded
+end
+
+---Parse and reshape model response to conform to Ollama api/chat API
+---@param raw_json string
+---@return table|nil, table|nil Return normalised and raw_decoded model responses.
+function M.data_normaliser(raw_json)
+  local raw_decoded = decode_raw_json(raw_json)
+  if not raw_decoded then
+    return nil, nil
+  end
 
   -- Reshape error response
-  if decoded.error then
+  if raw_decoded.error then
     return {
-      error = decoded.error.message or decoded.error.code or "Gemini API error",
+      error = raw_decoded.error.message or raw_decoded.error.code or "Gemini API error",
     }
   end
 
-  local resp = {}
+  local normalised = {}
 
   -- Map delta content into Ollama‑style message.content
-  local choices = decoded.choices
+  local choices = raw_decoded.choices
   if type(choices) == "table" and #choices > 0 and type(choices[1].delta) == "table" then
     local content = choices[1].delta.content
     if type(content) == "string" then
-      resp.message = {
+      normalised.message = {
         content = content,
       }
     end
   end
 
   -- Map finish_reason to Ollama‑style done flag
-  if type(choices) == "table" and #choices > 0 and type(choices[1].finish_reason) == "string" then
-    resp.done = true
+  if raw_decoded.usage then
+    normalised.done = true
   end
 
-  return resp
+  return normalised, raw_decoded
+end
+
+---Extract request and response tokens from `raw_decoded` response object to `curl_response`.
+---@param raw_decoded table
+---@param curl_response CurlResponse
+function M.get_turn_stats(raw_decoded, curl_response)
+  if raw_decoded.usage then
+    curl_response.request_tokens = raw_decoded.usage.prompt_tokens
+    curl_response.response_tokens = raw_decoded.usage.completion_tokens
+  end
 end
 
 --- Checks that the Gemini API is reachable and the API key is valid.
