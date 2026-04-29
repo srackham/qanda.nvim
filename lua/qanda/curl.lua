@@ -207,12 +207,7 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
           -- Extract usage statistics
           assert(raw)
           set_turn_stats(raw, curl_response)
-          tokens_msg = string.format(
-            "\n**Tokens used**: request: %d, response: %d, total: %d",
-            curl_response.request_tokens,
-            curl_response.response_tokens,
-            curl_response.total_tokens
-          )
+          tokens_msg = string.format("\n**Tokens used**: %d", curl_response.total_tokens)
 
           done = true
         end

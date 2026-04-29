@@ -473,10 +473,7 @@ function M.turn_to_lines(chat, turn)
     table.insert(lines, "duration: " .. string.format("%.2fs", turn.duration))
   end
   if turn.total_tokens then
-    table.insert(
-      lines,
-      string.format("tokens: request: %d, response: %d, total: %d", turn.request_tokens, turn.response_tokens, turn.total_tokens)
-    )
+    table.insert(lines, string.format("tokens: %d", turn.total_tokens))
   end
   if turn.model_options then
     for k, v in pairs(turn.model_options) do
