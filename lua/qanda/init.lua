@@ -292,7 +292,7 @@ function M.execute_prompt(prompt)
       curl_args,
       payload,
       State.provider.module.data_normaliser,
-      State.provider.module.get_turn_stats,
+      State.provider.module.set_turn_stats,
       State.chat_window.winid,
       function(curl_response) ---@type CurlResponse
         if curl.get_job_status() ~= "stopped" then

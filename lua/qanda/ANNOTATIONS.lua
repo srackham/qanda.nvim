@@ -90,7 +90,7 @@
 ---@field data RequestData
 
 ---@readonly
----@class Prompt An immutable prompt template loaded from user prompt template files or previously executed prompt extracted from chat history
+---@class Prompt User prompt template or previously executed prompt extracted
 ---@field name? string The prompt name
 ---@field content string The prompt message string
 ---@field provider? string The provider name

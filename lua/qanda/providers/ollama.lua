@@ -58,17 +58,18 @@ function M.data_normaliser(raw_json)
   -- No reshaping necessary (this is an Ollama response)
   local ok, decoded = pcall(vim.json.decode, raw_json)
   if not ok or type(decoded) ~= "table" then
-    return nil,nil
+    return nil, nil
   end
-  return decoded,decoded
+  return decoded, decoded
 end
 
 ---Extract request and response tokens from `raw_decoded` response object to `curl_response`.
 ---@param raw_decoded table
 ---@param curl_response CurlResponse
-function M.get_turn_stats(raw_decoded, curl_response)
-  curl_response.request_tokens = raw_decoded.prompt_eval_count
-  curl_response.response_tokens = raw_decoded.eval_count
+function M.set_turn_stats(raw_decoded, curl_response)
+  curl_response.request_tokens = raw_decoded.prompt_eval_count or 0
+  curl_response.response_tokens = raw_decoded.eval_count or 0
+  curl_response.total_tokens = curl_response.request_tokens + curl_response.response_tokens
 end
 
 --- Checks that the Ollama server is reachable and responding.

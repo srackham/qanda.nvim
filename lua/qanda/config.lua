@@ -20,7 +20,7 @@ local default = {
   host = "localhost",
   port = "11434",
 
-  -- Options included in every model request
+  -- Model specific options
   model_options = {
     -- ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },
   },

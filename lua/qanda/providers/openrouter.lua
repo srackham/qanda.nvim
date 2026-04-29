@@ -134,10 +134,11 @@ end
 ---Extract request and response tokens from `raw_decoded` response object to `curl_response`.
 ---@param raw_decoded table
 ---@param curl_response CurlResponse
-function M.get_turn_stats(raw_decoded, curl_response)
+function M.set_turn_stats(raw_decoded, curl_response)
   if raw_decoded.usage then
-    curl_response.request_tokens = raw_decoded.usage.prompt_tokens
-    curl_response.response_tokens = raw_decoded.usage.completion_tokens
+    curl_response.request_tokens = raw_decoded.usage.prompt_tokens or 0
+    curl_response.response_tokens = raw_decoded.usage.completion_tokens or 0
+    curl_response.total_tokens = raw_decoded.usage.total_tokens or 0
   end
 end
 

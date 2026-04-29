@@ -102,10 +102,10 @@ end
 ---@param cmd table The command array (e.g., `{'curl', ...}`).
 ---@param stdin string|string[]|nil If non-nil, this content is written to the process's stdin.
 ---@param data_normaliser fun(raw_json: string): table|nil, table|nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
----@param get_turn_stats fun(raw_decoded: table, curl_response: CurlResponse) A function that extracts request and response tokens from raw decoded `response` object to the `curl_response` object.
+---@param set_turn_stats fun(raw_decoded: table, curl_response: CurlResponse) A function that extracts request and response tokens from raw decoded `response` object to the `curl_response` object.
 ---@param winid number The Neovim window ID to target for streaming output.
 ---@param on_exit_callback fun(curl_response: CurlResponse): nil Function to call when the job finishes.
-function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, on_exit_callback)
+function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, on_exit_callback)
   if not vim.api.nvim_win_is_valid(winid) then
     utils.notify("Invalid Chat window ID: " .. winid, vim.log.levels.ERROR)
     return
@@ -206,10 +206,7 @@ function M.execute_command(cmd, stdin, data_normaliser, get_turn_stats, winid, o
 
           -- Extract usage statistics
           assert(raw)
-          get_turn_stats(raw, curl_response)
-          curl_response.request_tokens = curl_response.request_tokens or 0
-          curl_response.response_tokens = curl_response.response_tokens or 0
-          curl_response.total_tokens = curl_response.request_tokens + curl_response.response_tokens
+          set_turn_stats(raw, curl_response)
           tokens_msg = string.format(
             "\n**Tokens used**: request: %d, response: %d, total: %d",
             curl_response.request_tokens,
