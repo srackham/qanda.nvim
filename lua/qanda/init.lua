@@ -231,21 +231,18 @@ function M.execute_prompt(prompt)
       model_options = turn.model_option,
     }
 
-    -- Add configuration model options (lowest priority)
-    local model_options = Config.model_options[turn.provider]
+    -- Merge configuration model options (lowest priority)
+    Providers.merge_config_model_options(turn.provider, turn.model, request_data)
+
+    -- Merge system message model options
+    local model_options = State.system_message and State.system_message.model_options
     if model_options then
       for k, v in pairs(model_options) do
         request_data[k] = v
       end
     end
-    -- Add system message model options
-    model_options = State.system_message and State.system_message.model_options
-    if model_options then
-      for k, v in pairs(model_options) do
-        request_data[k] = v
-      end
-    end
-    -- Add user prompt model options (highest priority)
+
+    -- Merge user prompt model options (highest priority)
     if turn.model_options then
       for k, v in pairs(turn.model_options) do
         request_data[k] = v

@@ -12,10 +12,8 @@ return {
     qanda.setup {
       user_prompt_lines = 5,
       system_prompt_lines = 5,
-      model_options = {
+      provider_options = {
         ollama = { temperature = 0.4 },
-        openrouter = {},
-        gemini = {},
       },
       confirm_chat_file_deletion = false,
     }

@@ -22,15 +22,15 @@ local default = {
 
   -- Options included in every model request
   model_options = {
-    ollama = { think = false, stream = true },
-    openrouter = { stream = true, stream_options = { include_usage = true } },
-    gemini = { stream = true, stream_options = { include_usage = true } },
+    -- ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },
   },
 
   -- Provider specific options
+  -- All options except `api_key` are passed through as AI model request options.
   provider_options = {
-    openrouter = { api_key = "$OPENROUTER_API_KEY" },
-    gemini = { api_key = "$GEMINI_API_KEY" },
+    ollama = { think = false, stream = true },
+    openrouter = { api_key = "$OPENROUTER_API_KEY", stream = true, stream_options = { include_usage = true } },
+    gemini = { api_key = "$GEMINI_API_KEY", stream = true, stream_options = { include_usage = true } },
   },
 
   -- Global configuration data files root directory
@@ -110,7 +110,7 @@ function M.setup(opts)
 
   opts = opts or {}
   for k, v in pairs(opts) do
-    if k == "model_options" then
+    if k == "provider_options" then
       M[k] = vim.tbl_deep_extend("force", M[k] or {}, v) -- Merge setup model_options rather than replace
     else
       M[k] = v

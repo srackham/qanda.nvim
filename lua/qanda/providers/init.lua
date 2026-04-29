@@ -236,4 +236,28 @@ function M.select_recent_model()
   end)
 end
 
+---Merge model options from `provider` configuration `model_options` and `provider_options` into `request_data.model_options`
+---@param provider string
+---@param model string
+---@param request_data RequestData
+function M.merge_config_model_options(provider, model, request_data)
+  -- Merge configuration provider_options (lowest priority)
+  local model_options = Config.provider_options[provider]
+  if model_options then
+    for k, v in pairs(model_options) do
+      if k ~= "api_key" then -- Don't pass the `api_key` option through to the model.
+        request_data[k] = v
+      end
+    end
+  end
+
+  -- Merge configuration model_options
+  model_options = Config.model_options[provider .. "/" .. model]
+  if model_options then
+    for k, v in pairs(model_options) do
+      request_data[k] = v
+    end
+  end
+end
+
 return M
