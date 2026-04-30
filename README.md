@@ -381,11 +381,27 @@ Qanda provides control and customisation of system messages with the _[system te
 
 ## Model options
 
-Model options from [prompt and system templates](#prompt-and-system-templates) headers are passed through to the model, they include the likes of `temperature`, `max_tokens` etc. Model options are often provider or model specific. Options are **merged** from:
+Model options are named parameters that are passed to the model in the request data sent to the mode. They include the likes of `temperature`, `max_tokens` etc. Model options are often provider or model specific.
 
-- Provider-specific [configuration](#configuration) `model_options` (lowest priority)
-- [System message](#system-messages) model options
-- User prompt model options (highest priority)
+A Qanda request merges model options from:
+
+- The provider specific `provider_options` [configuration](#configuration) option (**lowest precedence**). All options except `api_key` are passed through as AI model request options. Example:
+```lua
+provider_options = {
+  ollama = { think = true, stream = true },
+},
+```
+
+- The model specific `model_options` [configuration](#configuration) option. Model names are formatted like `<provider>/<model>`. Example:
+```lua
+model_options = {
+  ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },
+},
+```
+
+- [System template](#prompt-and-system-templates) headers.
+- [Prompt template](#prompt-and-system-templates) headers.
+- [User prompt](#prompt-window) header (**highest precedence**).
 
 ## Tips
 

@@ -21,6 +21,7 @@ local default = {
   port = "11434",
 
   -- Model specific options
+  -- Model names are formatted like `<provider>/<model>`.
   model_options = {
     -- ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },
   },
