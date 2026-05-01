@@ -13,7 +13,11 @@ function M.setup()
   -- Close existing Chat window
   vim.api.nvim_create_autocmd("SessionLoadPost", {
     callback = function()
-      utils.close_ephemeral_window(Config.CHAT_BUFFER_NAME)
+      -- vim.schedule waits until the current main loop finishes
+      -- This ensures the session is 100% loaded before we touch windows
+      vim.schedule(function()
+        pcall(utils.close_ephemeral_window, Config.CHAT_BUFFER_NAME)
+      end)
     end,
   })
 

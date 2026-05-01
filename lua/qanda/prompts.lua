@@ -16,7 +16,11 @@ function M.setup()
   -- Close existing Prompt window
   vim.api.nvim_create_autocmd("SessionLoadPost", {
     callback = function()
-      utils.close_ephemeral_window(Config.PROMPT_BUFFER_NAME)
+      -- vim.schedule waits until the current main loop finishes
+      -- This ensures the session is 100% loaded before we touch windows
+      vim.schedule(function()
+        pcall(utils.close_ephemeral_window, Config.PROMPT_BUFFER_NAME)
+      end)
     end,
   })
 
@@ -792,11 +796,7 @@ function M.substitute_placeholders(prompt_string, opts)
   opts = opts or {}
 
   if not opts.allow_user_inputs then
-    if
-      prompt_string:find("$input", 1, true)
-      or prompt_string:find("${input:", 1, true)
-      or prompt_string:find("$files", 1, true)
-    then
+    if prompt_string:find("$input", 1, true) or prompt_string:find("${input:", 1, true) or prompt_string:find("$files", 1, true) then
       utils.notify("User input placeholders not allowed in system messages", vim.log.levels.ERROR)
       return nil
     end
