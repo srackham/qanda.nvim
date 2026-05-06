@@ -877,4 +877,132 @@ function M.turns_picker()
     :find()
 end
 
+--- Parse a timestamp string into a time table.
+---@param timestamp string Timestamp in format "YYYY-MM-DD HH:MM:SS"
+---@return os_time_table|nil time table or nil if invalid
+local function parse_timestamp(timestamp)
+  local pattern = "(%d+)-(%d+)-(%d+) (%d+):(%d+):(%d+)"
+  local year, month, day, hour, min, sec = timestamp:match(pattern)
+  if year then
+    return os.time {
+      year = tonumber(year),
+      month = tonumber(month),
+      day = tonumber(day),
+      hour = tonumber(hour),
+      min = tonumber(min),
+      sec = tonumber(sec),
+    }
+  end
+  return nil
+end
+
+--- Get the most recent turn timestamp from a chat file.
+---@param file_path string Path to the chat file
+---@return number|nil Unix timestamp of the most recent turn, or nil if error
+local function get_most_recent_turn_time(file_path)
+  local lines = vim.fn.readfile(file_path)
+  -- Read backwards to find the last non-empty line with a valid timestamp
+  for i = #lines, 1, -1 do
+    local line = vim.trim(lines[i])
+    if #line > 0 then
+      local ok, parsed = pcall(vim.json.decode, line)
+      if ok and type(parsed) == "table" and parsed.timestamp then
+        local ts = parse_timestamp(parsed.timestamp)
+        if ts then
+          return ts
+        end
+      end
+    end
+  end
+  return nil
+end
+
+--- Delete chat files older than the specified maximum age.
+--- Prompts for the maximum age if not provided, then asks for confirmation before deletion.
+---@param max_age_days number? Maximum age in days (uses config default if nil)
+function M.prune_chats(max_age_days)
+  if curl.is_active_job() then
+    utils.notify("Cannot prune chats while a request is in progress", vim.log.levels.ERROR)
+    return
+  end
+
+  -- Prompt for max age if called with no argument
+  if max_age_days == nil then
+    local input = vim.fn.input {
+      prompt = "Delete all chats older than (days): ",
+      default = tostring(Config.prune_chats_maximum_age),
+    }
+    if input == "" then
+      return  -- User cancelled
+    else
+      max_age_days = tonumber(input)
+      if not max_age_days or max_age_days < 1 then
+        utils.notify("Invalid maximum age: " .. tostring(input), vim.log.levels.ERROR)
+        return
+      end
+    end
+  end
+
+  -- Find all chat files
+  local glob_pattern = Config.chats_dir .. "/*.chat.jsonl"
+  local chat_files = vim.fn.glob(glob_pattern, false, true)
+
+  if #chat_files == 0 then
+    utils.notify("No chat files found", vim.log.levels.INFO)
+    return
+  end
+
+  local cutoff_time = os.time() - (max_age_days * 24 * 60 * 60)
+  local files_to_delete = {}
+
+  for _, file_path in ipairs(chat_files) do
+    local most_recent = get_most_recent_turn_time(file_path)
+    if most_recent and most_recent < cutoff_time then
+      table.insert(files_to_delete, file_path)
+    end
+  end
+
+  if #files_to_delete == 0 then
+    utils.notify(string.format("No chat files older than %d days", max_age_days), vim.log.levels.INFO)
+    return
+  end
+
+  -- Confirm before deletion
+  local confirm_msg = string.format("About to delete %d chat files older than %d days. Continue? [y/N] ", #files_to_delete, max_age_days)
+  local confirm = vim.fn.input(confirm_msg)
+  if confirm:lower() ~= "y" then
+    utils.notify("Prune cancelled", vim.log.levels.INFO)
+    return
+  end
+
+  -- Delete the files
+  local deleted_count = 0
+  for _, file_path in ipairs(files_to_delete) do
+    local ok = os.remove(file_path)
+    if ok then
+      deleted_count = deleted_count + 1
+    end
+  end
+
+  utils.notify(string.format("Deleted %d chat files", deleted_count), vim.log.levels.INFO)
+
+  -- If the current chat was deleted, create a new chat
+  local current_chat = State.chat_window.chat
+  if current_chat and current_chat.filename then
+    local current_exists = false
+    for _, f in ipairs(files_to_delete) do
+      if f == current_chat.filename then
+        current_exists = true
+        break
+      end
+    end
+    if current_exists or not vim.fn.filereadable(current_chat.filename) == 1 then
+      M.new_chat()
+      if State.chat_window:is_open() then
+        M.open_chat()
+      end
+    end
+  end
+end
+
 return M

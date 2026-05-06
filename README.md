@@ -115,6 +115,7 @@ You could set the `api_key` with the actual key value, but this is not recommend
 | `:Qanda /prompt_picker`         | Open the [Prompt picker](#prompt-template-picker)               |
 | `:Qanda /prompt_window`         | Open the [Prompt window](#prompt-window)                        |
 | `:Qanda /provider_picker`       | Select a provider and a model                                   |
+| `:Qanda /prune_chats`           | Delete old chat files                                           |
 | `:Qanda /recent_models`         | Select from the list of recent models                           |
 | `:Qanda /status`                | Print Qanda status information                                  |
 | `:Qanda /system_message_picker` | Open the [System Message picker](#system-template-picker)       |
@@ -386,6 +387,7 @@ Model options are named parameters that are passed to the model in the request d
 A Qanda request merges model options from:
 
 - The provider specific `provider_options` [configuration](#configuration) option (**lowest precedence**). All options except `api_key` are passed through as AI model request options. Example:
+
 ```lua
 provider_options = {
   ollama = { think = true, stream = true },
@@ -393,6 +395,7 @@ provider_options = {
 ```
 
 - The model specific `model_options` [configuration](#configuration) option. Model names are formatted like `<provider>/<model>`. Example:
+
 ```lua
 model_options = {
   ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },

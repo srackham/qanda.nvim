@@ -127,6 +127,9 @@ function M.create_user_command()
     elseif args == "/dump_diagnostics" then
       diagnostics.open()
       return
+    elseif args == "/prune_chats" then
+      Chats.prune_chats()
+      return
     else
       local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
       if not prompt then
@@ -159,6 +162,7 @@ function M.create_user_command()
       table.insert(args, "/system_message_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")
+      table.insert(args, "/prune_chats")
 
       local completion_candidates = {}
       for _, arg in ipairs(args) do

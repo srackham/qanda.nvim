@@ -44,6 +44,7 @@ local default = {
   diagnostics_register = "u", -- Diagnostics written to this register
 
   confirm_chat_file_deletion = true,
+  prune_chats_maximum_age = 90,
 
   -- Pickers, Chat and Prompt windows help key --
   help_key = "<C-h>", -- Display a list of picker commands
