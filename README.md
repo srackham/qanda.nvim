@@ -77,7 +77,7 @@ return {
 }
 ```
 
-- You'll also want to set up some key mappings, you'll find examples in this [example plugin configuration file](examples/example-qanda-configuration.lua).
+- You'll also want to set up some [key mappings](#key-mappings).
 - The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
 > [!NOTE]
@@ -97,14 +97,19 @@ provider_options = {
 
 You could set the `api_key` with the actual key value, but this is not recommended for security reasons.
 
+### Key mappings
+
+Key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
+
+Use `:` instead of `<Cmd>` in key mappings which invoke interactive prompt templates, this ensures the template executes immediately following interactive user input.
+
 ## Qanda commands
 
-- Qanda commands respond to tabbed command completion.
-- See the [Example plugin configuration file](examples/example-qanda-configuration.lua) for example command key-mappings.
+There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) and _prompt template commands_ (`:Qanda <prompt-template-name>`).
 
 | Command                         | Description                                                     |
 | ------------------------------- | --------------------------------------------------------------- |
-| `:Qanda <prompt template name>` | Execute a named [prompt template](#prompt-and-system-templates) |
+| `:Qanda <prompt-template-name>` | Execute a named [prompt template](#prompt-and-system-templates) |
 | `:Qanda /abort`                 | Abort the current model request                                 |
 | `:Qanda /chat_picker`           | Open the [Chat picker](#chat-picker)                            |
 | `:Qanda /chat_window`           | Open the [Chat window](#chat-window)                            |
@@ -120,10 +125,10 @@ You could set the `api_key` with the actual key value, but this is not recommend
 | `:Qanda /system_message_picker` | Open the [System Message picker](#system-template-picker)       |
 | `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)                       |
 
-## Prompt window
+- Prompt template commands execute immediately, whereas executing with the [prompt template picker](#prompt-template-picker) will pause at the prompt window and await user confirmation before proceeding.
+- Qanda commands respond to tabbed command completion.
 
-> [!NOTE]
-> The documentation lists the default key bindings for Qanda window commands; all mappings are [configurable](lua/qanda/config.lua).
+## Prompt window
 
 ![Alt text](screenshots/prompt-window.png)
 
@@ -131,7 +136,7 @@ The Prompt window is a floating window into which the user enters questions and 
 
 - A prompt is submitted for execution from the prompt window or directly with a `:Qanda <prompt template name>` command.
 - A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
-- The Prompt window implements the following key-mapped commands:
+- The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
   - `<S-Enter>` - Submit the prompt to the current chat
   - `<C-s>` - Submit the prompt to a new chat
   - `<C-r>` - Submit the prompt, replacing the latest turn in the current chat
@@ -386,6 +391,7 @@ Model options are named parameters that are passed to the model in the request d
 A Qanda request merges model options from:
 
 - The provider specific `provider_options` [configuration](#configuration) option (**lowest precedence**). All options except `api_key` are passed through as AI model request options. Example:
+
 ```lua
 provider_options = {
   ollama = { think = true, stream = true },
@@ -393,6 +399,7 @@ provider_options = {
 ```
 
 - The model specific `model_options` [configuration](#configuration) option. Model names are formatted like `<provider>/<model>`. Example:
+
 ```lua
 model_options = {
   ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },
