@@ -228,6 +228,7 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
 The _turn picker_ displays the turns in the current chat, it implements the following key-mapped commands and is opened with the `:Qanda /turn_picker` command:
 
 - `<Enter>` - Open selected turn in the [chat window](#chat-window)
+- `<S-Enter>` - Open Prompt window with selected turn's prompt
 - `<C-d>` - Delete the selected turn
 - `<C-z>` - Toggle truncated fields in the preview window
 - `<Esc>` - Close the picker

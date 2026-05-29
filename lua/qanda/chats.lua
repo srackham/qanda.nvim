@@ -763,6 +763,19 @@ function M.turns_picker()
       end
     end, { desc = "Close the picker and open the selected turn in the chat window" })
 
+    map({ "n", "i" }, Config.turn_prompt_key, function()
+      local selection = action_state.get_selected_entry()
+      actions.close(picker_bufnr)
+      if selection then
+        local selected_turn = selection.value
+        require("qanda.prompts").open_prompt {
+          name = nil,
+          content = selected_turn.request,
+          model_options = selected_turn.model_options,
+        }
+      end
+    end, { desc = "Close the picker and open the selected turn's prompt in the prompt window" })
+
     map({ "n", "i" }, Config.turn_picker_delete_key, function()
       delete_entry(picker_bufnr)
     end, { desc = "Close the picker and delete the selected chat file" })
@@ -805,10 +818,16 @@ function M.turns_picker()
       local help_message = ([[-- Turn Picker Commands --
 
 - %s - Open turn in Chat window
+- %s - Open Prompt window with selected turn's prompt
 - %s - Delete selected turn
 - %s - Toggle truncated fields in preview
 
-]]):format(Config.chat_picker_open_key, Config.turn_picker_delete_key, Config.turn_truncate_key)
+]]):format(
+        Config.turn_picker_open_key,
+        Config.turn_prompt_key,
+        Config.turn_picker_delete_key,
+        Config.turn_truncate_key
+      )
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
 
