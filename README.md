@@ -220,6 +220,11 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
   - `<C-s>` - Rename selected chat
   - `<C-e>` - Edit the chat file
   - `<Esc>` - Close the picker
+  - `<C-f>` - Toggle filter mode
+
+### Filter mode
+
+The _toggle filter mode_ command (`<C-f>`) toggles the Chat picker filter mode between chat names (with fuzzy matching) and chat content (with substring matching). Substring matching matches multiple white-space separated substrings (all substrings must match). Substring matching respects Vim's `smartcase` option.
 
 ## Turn picker
 

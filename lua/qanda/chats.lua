@@ -531,11 +531,22 @@ function M.chat_picker()
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
+  local sorters = require "telescope.sorters"
   local conf = require("telescope.config").values
 
   local current_chat = State.chat_window.chat
   assert(current_chat)
   local current_chat_deleted = false
+  local filter_by_content = false
+
+  -- Use fuzzy matching for chat names, substring matching for content search
+  local function get_sorter()
+    if filter_by_content then
+      return sorters.get_substr_matcher()
+    else
+      return conf.generic_sorter {}
+    end
+  end
 
   -- Display entry function
   local display_entry = function(chat)
@@ -560,10 +571,23 @@ function M.chat_picker()
 
   local function entry_maker(chat)
     local displayed_name = display_entry(chat)
+    local ordinal = displayed_name
+    if filter_by_content then
+      local parts = {}
+      for _, turn in ipairs(chat.turns) do
+        if turn.request then
+          table.insert(parts, turn.request)
+        end
+        if turn.response then
+          table.insert(parts, turn.response)
+        end
+      end
+      ordinal = displayed_name .. " " .. table.concat(parts, " ")
+    end
     return {
       value = chat,
       display = displayed_name,
-      ordinal = displayed_name,
+      ordinal = ordinal,
     }
   end
 
@@ -657,6 +681,29 @@ function M.chat_picker()
       end
     end, { desc = "Close the picker and edit chats file containing the selected chat" })
 
+    map({ "n", "i" }, Config.chat_filter_key, function()
+      filter_by_content = not filter_by_content
+
+      -- Refresh picker with appropriate sorter for the filtering mode
+      local picker = action_state.get_current_picker(picker_bufnr)
+      picker:refresh(
+        finders.new_table {
+          results = get_picker_entries(),
+          entry_maker = entry_maker,
+        },
+        { reset_prompt = false }
+      )
+      picker.sorter = get_sorter()
+
+      -- Update prompt title to give visual feedback on active mode
+      local mode_str = filter_by_content and "Content" or "Name"
+      local prompt_title = "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
+      if picker.prompt_border and picker.prompt_border.change_title then
+        pcall(picker.prompt_border.change_title, picker.prompt_border, prompt_title)
+      end
+      utils.notify("Filtering by: " .. mode_str, vim.log.levels.INFO)
+    end, { desc = "Toggle filter mode between chat names and chat content" })
+
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Chat Picker Commands --
 
@@ -664,8 +711,15 @@ function M.chat_picker()
 - %s - Delete selected chat
 - %s - Rename selected chat
 - %s - Edit the chat file
+- %s - Toggle filter mode between chat names (with fuzzy matching) and chat content (with substring matching)
 
-]]):format(Config.chat_picker_open_key, Config.chat_picker_delete_key, Config.chat_picker_rename_key, Config.chat_picker_edit_key)
+]]):format(
+        Config.chat_picker_open_key,
+        Config.chat_picker_delete_key,
+        Config.chat_picker_rename_key,
+        Config.chat_picker_edit_key,
+        Config.chat_filter_key
+      )
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Chat picker help" })
 
@@ -694,12 +748,12 @@ function M.chat_picker()
     .new({}, {
       results_title = "Chats",
       preview_title = "Turns",
-      prompt_title = "[" .. Config.help_key .. " help]",
+      prompt_title = "Filter: Name [" .. Config.help_key .. " help]",
       finder = finders.new_table {
         results = get_picker_entries(),
         entry_maker = entry_maker,
       },
-      sorter = conf.generic_sorter {},
+      sorter = get_sorter(),
       previewer = turns_list_previewer,
       attach_mappings = mappings,
       layout_config = Config.chat_picker_layout,
@@ -822,12 +876,7 @@ function M.turns_picker()
 - %s - Delete selected turn
 - %s - Toggle truncated fields in preview
 
-]]):format(
-        Config.turn_picker_open_key,
-        Config.turn_prompt_key,
-        Config.turn_picker_delete_key,
-        Config.turn_truncate_key
-      )
+]]):format(Config.turn_picker_open_key, Config.turn_prompt_key, Config.turn_picker_delete_key, Config.turn_truncate_key)
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
 
