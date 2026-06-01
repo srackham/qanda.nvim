@@ -73,6 +73,7 @@ local default = {
   turn_picker_delete_key = "<C-d>",
   turn_truncate_key = "<C-z>",
   turn_prompt_key = "<S-Enter>",
+  turn_filter_key = "<C-f>",
 
   -- Prompt window key commands --
   prompt_abort_key = "<C-k>",
