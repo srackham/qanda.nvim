@@ -122,11 +122,7 @@
 
 -- Model command execution --
 
----@alias JobStatus
----| "running"
----| "stopped"
----| "error"
----| "aborted"
+---@alias JobStatus "running" | "stopped" | "error" | "aborted"
 
 ---@class CurlResponse
 ---@field response_lines? string[] The readable aggregation of the response body data
@@ -138,10 +134,4 @@
 ---@field response_data? table The response data object returned by the model
 
 --- Diagnostic types
----@alias Diagnostic
----| '"curl_command"'
----| '"system_message"'
----| '"request_data"'
----| '"response_data"'
----| '"response"'
-
+---@alias Diagnostic "curl_command" | "system_message" | "request_data" | "response_data" | "response"
