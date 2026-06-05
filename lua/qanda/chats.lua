@@ -537,7 +537,11 @@ function M.chat_picker()
   local current_chat = State.chat_window.chat
   assert(current_chat)
   local current_chat_deleted = false
-  local filter_by_content = false
+  local filter_by_content = Config.filter_mode == "substring"
+
+  local function get_prompt_title(mode_str)
+    return "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
+  end
 
   -- Use fuzzy matching for chat names, substring matching for content search
   local function get_sorter()
@@ -697,9 +701,9 @@ function M.chat_picker()
 
       -- Update prompt title to give visual feedback on active mode
       local mode_str = filter_by_content and "Content" or "Name"
-      local prompt_title = "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
+      local title = get_prompt_title(mode_str)
       if picker.prompt_border and picker.prompt_border.change_title then
-        pcall(picker.prompt_border.change_title, picker.prompt_border, prompt_title)
+        pcall(picker.prompt_border.change_title, picker.prompt_border, title)
       end
       utils.notify("Filtering by: " .. mode_str, vim.log.levels.INFO)
     end, { desc = "Toggle filter mode" })
@@ -748,7 +752,7 @@ function M.chat_picker()
     .new({}, {
       results_title = "Chats",
       preview_title = "Turns",
-      prompt_title = "Filter: Name [" .. Config.help_key .. " help]",
+      prompt_title = get_prompt_title(filter_by_content and "Content" or "Name"),
       finder = finders.new_table {
         results = get_picker_entries(),
         entry_maker = entry_maker,
@@ -782,7 +786,11 @@ function M.turns_picker()
   local current_chat = State.chat_window.chat
   assert(current_chat)
   local current_turn = State.chat_window.current_turn
-  local filter_by_content = false
+  local filter_by_content = Config.filter_mode == "substring"
+
+  local function get_prompt_title(mode_str)
+    return "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
+  end
 
   -- Use fuzzy matching for turn names, substring matching for content search
   local function get_sorter()
@@ -938,9 +946,9 @@ function M.turns_picker()
 
       -- Update prompt title to give visual feedback on active mode
       local mode_str = filter_by_content and "Content" or "Name"
-      local prompt_title = "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
+      local title = get_prompt_title(mode_str)
       if picker.prompt_border and picker.prompt_border.change_title then
-        pcall(picker.prompt_border.change_title, picker.prompt_border, prompt_title)
+        pcall(picker.prompt_border.change_title, picker.prompt_border, title)
       end
       utils.notify("Filtering by: " .. mode_str, vim.log.levels.INFO)
     end, { desc = "Toggle filter mode" })
@@ -987,7 +995,7 @@ function M.turns_picker()
     .new({}, {
       results_title = "Turns",
       preview_title = "Preview",
-      prompt_title = "Filter: Name [" .. Config.help_key .. " help]",
+      prompt_title = get_prompt_title(filter_by_content and "Content" or "Name"),
       finder = finders.new_table {
         results = get_picker_entries(),
         entry_maker = entry_maker,
