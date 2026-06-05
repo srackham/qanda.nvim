@@ -40,9 +40,10 @@ local default = {
   -- Miscellaneous --
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
+
   diagnostics_register = "u", -- Diagnostics written to this register
+
   confirm_chat_file_deletion = true,
-  filter_mode = "fuzzy", ---@type FilterMode -- Picker default filter mode
 
   -- Pickers, Chat and Prompt windows help key --
   help_key = "<C-h>", -- Display a list of picker commands
@@ -65,14 +66,12 @@ local default = {
   chat_picker_rename_key = "<C-s>",
   chat_picker_edit_key = "<C-e>",
   chat_picker_open_key = "<Enter>",
-  chat_filter_key = "<C-f>",
 
   -- Turn picker key commands --
   turn_picker_open_key = "<Enter>",
   turn_picker_delete_key = "<C-d>",
   turn_truncate_key = "<C-z>",
   turn_prompt_key = "<S-Enter>",
-  turn_filter_key = "<C-f>",
 
   -- Prompt window key commands --
   prompt_abort_key = "<C-k>",

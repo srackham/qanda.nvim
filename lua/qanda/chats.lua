@@ -531,26 +531,11 @@ function M.chat_picker()
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
-  local sorters = require "telescope.sorters"
   local conf = require("telescope.config").values
 
   local current_chat = State.chat_window.chat
   assert(current_chat)
   local current_chat_deleted = false
-  local filter_by_content = Config.filter_mode == "substring"
-
-  local function get_prompt_title(mode_str)
-    return "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
-  end
-
-  -- Use fuzzy matching for chat names, substring matching for content search
-  local function get_sorter()
-    if filter_by_content then
-      return sorters.get_substr_matcher()
-    else
-      return conf.generic_sorter {}
-    end
-  end
 
   -- Display entry function
   local display_entry = function(chat)
@@ -575,23 +560,10 @@ function M.chat_picker()
 
   local function entry_maker(chat)
     local displayed_name = display_entry(chat)
-    local ordinal = displayed_name
-    if filter_by_content then
-      local parts = {}
-      for _, turn in ipairs(chat.turns) do
-        if turn.request then
-          table.insert(parts, turn.request)
-        end
-        if turn.response then
-          table.insert(parts, turn.response)
-        end
-      end
-      ordinal = displayed_name .. " " .. table.concat(parts, " ")
-    end
     return {
       value = chat,
       display = displayed_name,
-      ordinal = ordinal,
+      ordinal = displayed_name,
     }
   end
 
@@ -685,29 +657,6 @@ function M.chat_picker()
       end
     end, { desc = "Close the picker and edit chats file containing the selected chat" })
 
-    map({ "n", "i" }, Config.chat_filter_key, function()
-      filter_by_content = not filter_by_content
-
-      -- Refresh picker with appropriate sorter for the filtering mode
-      local picker = action_state.get_current_picker(picker_bufnr)
-      picker:refresh(
-        finders.new_table {
-          results = get_picker_entries(),
-          entry_maker = entry_maker,
-        },
-        { reset_prompt = false }
-      )
-      picker.sorter = get_sorter()
-
-      -- Update prompt title to give visual feedback on active mode
-      local mode_str = filter_by_content and "Content" or "Name"
-      local title = get_prompt_title(mode_str)
-      if picker.prompt_border and picker.prompt_border.change_title then
-        pcall(picker.prompt_border.change_title, picker.prompt_border, title)
-      end
-      utils.notify("Filtering by: " .. mode_str, vim.log.levels.INFO)
-    end, { desc = "Toggle filter mode" })
-
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Chat Picker Commands --
 
@@ -715,15 +664,8 @@ function M.chat_picker()
 - %s - Delete selected chat
 - %s - Rename selected chat
 - %s - Edit the chat file
-- %s - Toggle filter mode between chat names (fuzzy matching) and chat content (substring matching)
 
-]]):format(
-        Config.chat_picker_open_key,
-        Config.chat_picker_delete_key,
-        Config.chat_picker_rename_key,
-        Config.chat_picker_edit_key,
-        Config.chat_filter_key
-      )
+]]):format(Config.chat_picker_open_key, Config.chat_picker_delete_key, Config.chat_picker_rename_key, Config.chat_picker_edit_key)
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Chat picker help" })
 
@@ -752,12 +694,12 @@ function M.chat_picker()
     .new({}, {
       results_title = "Chats",
       preview_title = "Turns",
-      prompt_title = get_prompt_title(filter_by_content and "Content" or "Name"),
+      prompt_title = "[" .. Config.help_key .. " help]",
       finder = finders.new_table {
         results = get_picker_entries(),
         entry_maker = entry_maker,
       },
-      sorter = get_sorter(),
+      sorter = conf.generic_sorter {},
       previewer = turns_list_previewer,
       attach_mappings = mappings,
       layout_config = Config.chat_picker_layout,
@@ -780,69 +722,11 @@ function M.turns_picker()
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
-  local sorters = require "telescope.sorters"
   local conf = require("telescope.config").values
 
   local current_chat = State.chat_window.chat
   assert(current_chat)
   local current_turn = State.chat_window.current_turn
-  local filter_by_content = Config.filter_mode == "substring"
-
-  local function get_prompt_title(mode_str)
-    return "Filter: " .. mode_str .. " [" .. Config.help_key .. " help]"
-  end
-
-  -- Use fuzzy matching for turn names, substring matching for content search
-  local function get_sorter()
-    if filter_by_content then
-      return sorters.get_substr_matcher()
-    else
-      return conf.generic_sorter {}
-    end
-  end
-
-  -- Display entry function
-  local display_entry = function(turn)
-    local display = utils.sanitize_display_entry(turn.request, 60)
-    if current_turn and turn == current_turn then
-      return "* " .. display
-    else
-      return "  " .. display
-    end
-  end
-
-  local function get_picker_entries()
-    local picker_entries = {}
-    for _, turn in ipairs(current_chat.turns) do
-      table.insert(picker_entries, turn)
-    end
-    -- The original order is the chronological turn order which makes the most sense.
-    -- This sort puts the oldest turn at the top of the displayed list; the latest is at the bottom.
-    table.sort(picker_entries, function(a, b)
-      return get_turn_index(current_chat, a) > get_turn_index(current_chat, b)
-    end)
-    return picker_entries
-  end
-
-  local function entry_maker(turn)
-    local displayed_name = display_entry(turn)
-    local ordinal = displayed_name
-    if filter_by_content then
-      local parts = {}
-      if turn.request then
-        table.insert(parts, turn.request)
-      end
-      if turn.response then
-        table.insert(parts, turn.response)
-      end
-      ordinal = displayed_name .. " " .. table.concat(parts, " ")
-    end
-    return {
-      value = turn,
-      display = displayed_name,
-      ordinal = ordinal,
-    }
-  end
 
   local delete_entry = function(picker_bufnr)
     local current_picker = action_state.get_current_picker(picker_bufnr)
@@ -930,29 +814,6 @@ function M.turns_picker()
 
     end, { desc = "Toggle truncated fields in preview" })
 
-    map({ "n", "i" }, Config.turn_filter_key, function()
-      filter_by_content = not filter_by_content
-
-      -- Refresh picker with appropriate sorter for the filtering mode
-      local picker = action_state.get_current_picker(picker_bufnr)
-      picker:refresh(
-        finders.new_table {
-          results = get_picker_entries(),
-          entry_maker = entry_maker,
-        },
-        { reset_prompt = false }
-      )
-      picker.sorter = get_sorter()
-
-      -- Update prompt title to give visual feedback on active mode
-      local mode_str = filter_by_content and "Content" or "Name"
-      local title = get_prompt_title(mode_str)
-      if picker.prompt_border and picker.prompt_border.change_title then
-        pcall(picker.prompt_border.change_title, picker.prompt_border, title)
-      end
-      utils.notify("Filtering by: " .. mode_str, vim.log.levels.INFO)
-    end, { desc = "Toggle filter mode" })
-
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Turn Picker Commands --
 
@@ -960,20 +821,40 @@ function M.turns_picker()
 - %s - Open Prompt window with selected turn's prompt
 - %s - Delete selected turn
 - %s - Toggle truncated fields in preview
-- %s - Toggle filter mode between user prompts (fuzzy matching) and prompts plus responses (substring matching)
 
 ]]):format(
         Config.turn_picker_open_key,
         Config.turn_prompt_key,
         Config.turn_picker_delete_key,
-        Config.turn_truncate_key,
-        Config.turn_filter_key
+        Config.turn_truncate_key
       )
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
 
     return true
   end
+
+  -- Display entry function
+  local display_entry = function(turn)
+    local display = utils.sanitize_display_entry(turn.request, 60)
+    if current_turn and turn == current_turn then
+      return "* " .. display
+    else
+      return "  " .. display
+    end
+  end
+
+  -- Prepare data for telescope
+  local picker_entries = {}
+  for _, turn in ipairs(current_chat.turns) do
+    table.insert(picker_entries, turn)
+  end
+
+  -- The original order is the chronological turn order which makes the most sense.
+  -- This sort puts the oldest turn at the top of the displayed list; the latest is at the bottom.
+  table.sort(picker_entries, function(a, b)
+    return get_turn_index(current_chat, a) > get_turn_index(current_chat, b)
+  end)
 
   -- Create previewer that shows the chat value
   local turn_previewer = previewers.new_buffer_previewer {
@@ -995,12 +876,19 @@ function M.turns_picker()
     .new({}, {
       results_title = "Turns",
       preview_title = "Preview",
-      prompt_title = get_prompt_title(filter_by_content and "Content" or "Name"),
+      prompt_title = "[" .. Config.help_key .. " help]",
       finder = finders.new_table {
-        results = get_picker_entries(),
-        entry_maker = entry_maker,
+        results = picker_entries,
+        entry_maker = function(entry)
+          local displayed_name = display_entry(entry)
+          return {
+            value = entry,
+            display = displayed_name,
+            ordinal = displayed_name,
+          }
+        end,
       },
-      sorter = get_sorter(),
+      sorter = conf.generic_sorter {},
       previewer = turn_previewer,
       attach_mappings = mappings,
       layout_config = Config.turn_picker_layout,

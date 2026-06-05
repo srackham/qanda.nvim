@@ -220,7 +220,6 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
   - `<C-s>` - Rename selected chat
   - `<C-e>` - Edit the chat file
   - `<Esc>` - Close the picker
-  - `<C-f>` - Toggle [filter mode](#filter-mode)
 
 ## Turn picker
 
@@ -233,7 +232,6 @@ The _turn picker_ displays the turns in the current chat, it implements the foll
 - `<C-d>` - Delete the selected turn
 - `<C-z>` - Toggle truncated fields in the preview window
 - `<Esc>` - Close the picker
-  - `<C-f>` - Toggle [filter mode](#filter-mode)
 
 ## Provider picker
 
@@ -412,19 +410,6 @@ model_options = {
 - [System template](#prompt-and-system-templates) headers.
 - [Prompt template](#prompt-and-system-templates) headers.
 - [User prompt](#prompt-window) header (**highest precedence**).
-
-## Filter mode
-
-The [Chat](#chat-picker) and the [Turn](#turn-picker) pickers have a _toggle filter mode_ command (`<C-f>`) which toggles the picker filter mode between _Names_ (with fuzzy matching) and _Content_ (with substring matching).
-
-| Picker | Filter mode | Search type | Search in             |
-| ------ | ----------- | ----------- | --------------------- |
-| Chat   | Name        | Fuzzy       | Chat names            |
-| Chat   | Content     | Substring   | Prompts and responses |
-| Turn   | Name        | Fuzzy       | Prompts               |
-| Turn   | Content     | Substring   | Prompts and responses |
-
-_Substring matching_ matches multiple white-space separated substrings (all substrings must match). Substring matching respects Vim's `smartcase` option.
 
 ## Tips
 

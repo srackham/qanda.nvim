@@ -2,10 +2,6 @@
 
 -- UI definitions --
 
----@alias FilterMode # Pickers filter modes
----| '"fuzzy"'       # Use fuzzy matching (default)
----| '"substring"'   # Use substring matching
-
 ---@alias UIMode
 ---| "linked"     # Linked floating Prompt and Chat windows
 ---| "separate"   # Floating Prompt window and normal Chat window
