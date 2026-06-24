@@ -101,6 +101,7 @@ You could set the `api_key` with the actual key value, but this is not recommend
 
 Key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
 
+TODO: 26-Jun-2026: The behaviour has changed (nvim 0.12?), it now always executes immediately.
 Use `:` instead of `<Cmd>` in key mappings which invoke interactive prompt templates, this ensures the template executes immediately following interactive user input.
 
 ## Qanda commands
@@ -328,7 +329,7 @@ Both template types share the same text file format; they generate model request
 
 ### Template placeholders
 
-The following placeholders can be used in [prompt and system templates](#prompt-and-system-templates).
+The following placeholders are used in [prompt and system templates](#prompt-and-system-templates).
 
 | Syntax                          | Description                                                       |
 | ------------------------------- | ----------------------------------------------------------------- |

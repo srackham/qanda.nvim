@@ -284,6 +284,9 @@ function M.is_insert_mode()
   return vim.api.nvim_get_mode().mode == "i"
 end
 
+--- Displays a numbered menu in the command-line area, prompts the user to select an option by
+--- typing a number, and returns the selected index safely. It acts as a wrapper around the built-in
+--- Neovim function `vim.fn.inputlist()`, adding validation to handle invalid inputs or cancellations.
 ---@param prompt string
 ---@param items string[]
 ---@return number|nil
