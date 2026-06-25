@@ -80,7 +80,6 @@ function M.create_user_command()
     elseif args == "/new_prompt" then
       Prompts.open_prompt { content = "" } -- Open a blank Prompt window
       vim.cmd "startinsert" -- Go to insert mode
-      Prompts.open_prompt(nil)
       return
     elseif args == "/chat_picker" then
       State.chats = Chats.load_chats()
