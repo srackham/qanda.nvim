@@ -409,9 +409,40 @@ function M.open_prompt(prompt)
   win:set_title("Prompt [" .. Config.help_key .. " help]")
   vim.api.nvim_set_option_value("filetype", "markdown", { buf = win.bufnr })
   M.add_prompt_syntax_highlighting(win.bufnr)
+
   if prompt then
     local lines = M.prompt_to_lines(prompt)
     win:set_lines(lines)
+
+    -- Process cursor placeholder
+    for i, line in ipairs(lines) do
+      local s, e = line:find(Config.CURSOR_PLACEHOLDER_PATTERN)
+      if s then
+        local cursor_prompt = line:match(Config.CURSOR_PLACEHOLDER_PATTERN)
+        local new_line = line:sub(1, s - 1) .. line:sub(e + 1)
+        vim.api.nvim_buf_set_lines(win.bufnr, i - 1, i, false, { new_line })
+        vim.api.nvim_win_set_cursor(win.winid, { i, s - 1 })
+        vim.schedule(function()
+          vim.api.nvim_feedkeys("a", "n", false) -- Switch to insert mode
+          if cursor_prompt ~= nil and not cursor_prompt:match "^%s*$" then
+            local original_showmode = vim.o.showmode
+
+            -- Restore showmode when the user leaves Insert mode
+            vim.api.nvim_create_autocmd("InsertLeave", {
+              once = true,
+              callback = function()
+                vim.o.showmode = original_showmode
+              end,
+            })
+
+            vim.o.showmode = false -- So the notification is not overridden by status line "-- INSERT --"
+            vim.notify(cursor_prompt, vim.log.levels.INFO)
+          end
+        end)
+        break
+      end
+    end
+
   end
 
   -- Attach key commands.
@@ -775,7 +806,7 @@ end
 ---with their corresponding values.
 ---Placeholders within placeholder values are not replaced.
 ---
----NOTE: If the `allow_user_input` option is `true` then this function must be called from a coroutine.
+---NOTE: If the `allow_user_inputs` option is `true` then this function must be called from a coroutine.
 ---
 ---Placeholders processed:
 --- - `$input`: Prompts user for input and substitutes the value
@@ -792,6 +823,13 @@ function M.substitute_placeholders(prompt_string, opts)
   if not prompt_string or prompt_string:match "^%s*$" ~= nil then
     return nil
   end
+
+  -- Convert degenerate no-prompt syntaxes to canonical form
+  prompt_string = prompt_string:gsub("%$cursor", "${cursor:}")
+  prompt_string = prompt_string:gsub("%${cursor}", "${cursor:}")
+
+  -- The Esc character is used to escape placeholders that occur in placeholder text so that are not mistaken for placeholders.
+  local ESC_PLACEHOLDER = "\27"
 
   opts = opts or {}
 
@@ -810,7 +848,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
-    return (answer:gsub("%%", "%%%%"):gsub("%$", "\27"))
+    return (answer:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER))
   end)
 
   if cancelled then
@@ -823,7 +861,7 @@ function M.substitute_placeholders(prompt_string, opts)
     if answer == "" then
       return nil
     end
-    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%%", "%%%%"):gsub("%$", "\27")))
+    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER)))
   end
 
   if cancelled then
@@ -838,7 +876,7 @@ function M.substitute_placeholders(prompt_string, opts)
       utils.notify("Error: " .. err, vim.log.levels.ERROR)
       return file_content
     end
-    return (file_content:gsub("%%", "%%%%"):gsub("%$", "\27"))
+    return (file_content:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER))
   end)
 
   -- Handle the $files syntax
@@ -850,7 +888,7 @@ function M.substitute_placeholders(prompt_string, opts)
       return nil
     end
     local text = table.concat(lines, "\n")
-    prompt_string = prompt_string:gsub("%$files", (text:gsub("%%", "%%%%"):gsub("%$", "\27")))
+    prompt_string = prompt_string:gsub("%$files", (text:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER)))
   end
 
   prompt_string = prompt_string:gsub("%$clipboard", "$register_+")
@@ -868,10 +906,10 @@ function M.substitute_placeholders(prompt_string, opts)
       utils.notify(msg .. " is empty", vim.log.levels.WARN)
       return ""
     end
-    return (register:gsub("%%", "%%%%"):gsub("%$", "\27"))
+    return (register:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER))
   end)
 
-  prompt_string = prompt_string:gsub("\27", "$") -- Restore the $'s
+  prompt_string = prompt_string:gsub(ESC_PLACEHOLDER, "$") -- Restore the $'s
 
   return prompt_string
 end
