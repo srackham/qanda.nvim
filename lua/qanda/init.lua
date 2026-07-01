@@ -183,7 +183,7 @@ function M.execute_prompt(prompt)
   -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
   if prompt.name then
     prompt = vim.tbl_deep_extend("force", {}, prompt)
-    local expanded = Prompts.substitute_placeholders(prompt.content, { allow_user_inputs = true })
+    local expanded = Prompts.substitute_placeholders(prompt.content)
     if not expanded then
       utils.notify("User cancelled", vim.log.levels.INFO)
       return

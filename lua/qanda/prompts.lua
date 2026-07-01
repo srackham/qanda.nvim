@@ -619,6 +619,7 @@ function M.user_prompt_picker()
     results_title = "Prompt Templates",
     preview_title = "Preview",
     prompt_title = "[" .. Config.help_key .. " help]",
+
     attach_mappings = function(picker_bufnr, map)
 
       map({ "n", "i" }, Config.user_picker_open_key, function()
@@ -628,17 +629,15 @@ function M.user_prompt_picker()
           local prompt = selection.value
           assert(prompt)
           -- Expand prompt template and open in Prompt window
-          coroutine.wrap(function()
-            prompt = vim.tbl_deep_extend("force", {}, prompt)
-            local expanded = M.substitute_placeholders(prompt.content, { allow_user_inputs = true })
-            if expanded then
-              prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
-              prompt.content = expanded
-              M.open_prompt(prompt)
-            else
-              utils.notify("User cancelled", vim.log.levels.INFO)
-            end
-          end)()
+          prompt = vim.tbl_deep_extend("force", {}, prompt)
+          local expanded = M.substitute_placeholders(prompt.content)
+          if expanded then
+            prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
+            prompt.content = expanded
+            M.open_prompt(prompt)
+          else
+            utils.notify("User cancelled", vim.log.levels.INFO)
+          end
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end
@@ -806,8 +805,6 @@ end
 ---with their corresponding values.
 ---Placeholders within placeholder values are not replaced.
 ---
----NOTE: If the `allow_user_inputs` option is `true` then this function must be called from a coroutine.
----
 ---Placeholders processed:
 --- - `$input`: Prompts user for input and substitutes the value
 --- - `$clipboard`: Substitutes content of system clipboard (alias for `$register_+`)
@@ -815,9 +812,9 @@ end
 --- - `$register_<name>`: Substitutes content of specified register
 --- -  ${file:<filename>}: Inject text file
 --- -  $files: Inject text file(s) selected with file picker
+--- -  $cursor, ${cursor}, ${cursor:<prompt>}: Marks Prompt window insert cursor position
 ---
 ---@param prompt_string string The prompt string containing placeholders to substitute
----@param opts? { allow_user_inputs?: boolean } Options: `allow_user_inputs` when set to `true` then `$input` and `$files` placeholders are allowed, in which case this function must be called from a coroutine.
 ---@return string|nil The prompt with placeholders substituted, or `nil` if processing should abort i.e. user cancelled or substitution error.
 function M.substitute_placeholders(prompt_string, opts)
   if not prompt_string or prompt_string:match "^%s*$" ~= nil then
@@ -832,13 +829,6 @@ function M.substitute_placeholders(prompt_string, opts)
   local ESC_PLACEHOLDER = "\27"
 
   opts = opts or {}
-
-  if not opts.allow_user_inputs then
-    if prompt_string:find("$input", 1, true) or prompt_string:find("${input:", 1, true) or prompt_string:find("$files", 1, true) then
-      utils.notify("User input placeholders not allowed in system messages", vim.log.levels.ERROR)
-      return nil
-    end
-  end
 
   -- Handle the ${input:<prompt>} syntax
   local cancelled = false
