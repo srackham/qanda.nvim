@@ -538,7 +538,7 @@ end
 
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
-  QandaPromptPlaceholder = [[\v\$(input|select|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}]],
+  QandaPromptPlaceholder = [[\v\$(cursor|input|select|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}|\$\{cursor:.{-}\}]],
 }
 
 -- Define highlight groups once (link to existing groups)
@@ -826,9 +826,8 @@ function M.substitute_placeholders(prompt_string, opts)
     return nil
   end
 
-  -- Convert degenerate no-prompt syntaxes to canonical form
+  -- Convert degenerate no-prompt syntax to canonical form
   prompt_string = prompt_string:gsub("%$cursor", "${cursor:}")
-  prompt_string = prompt_string:gsub("%${cursor}", "${cursor:}")
 
   -- The Esc character is used to escape placeholders that occur in placeholder text so that are not mistaken for placeholders.
   local ESC_PLACEHOLDER = "\27"
