@@ -421,9 +421,11 @@ function M.open_prompt(prompt)
         local cursor_prompt = line:match(Config.CURSOR_PLACEHOLDER_PATTERN)
         local new_line = line:sub(1, s - 1) .. line:sub(e + 1)
         vim.api.nvim_buf_set_lines(win.bufnr, i - 1, i, false, { new_line })
-        vim.api.nvim_win_set_cursor(win.winid, { i, s - 1 })
+        local col = s - 1
+        vim.api.nvim_win_set_cursor(win.winid, { i, col })
+        local insert_cmd = (col == #new_line) and "a" or "i" -- Append if at end of line
         vim.schedule(function()
-          vim.api.nvim_feedkeys("i", "n", false) -- Switch to insert mode
+          vim.api.nvim_feedkeys(insert_cmd, "n", false)
           if cursor_prompt ~= nil and not cursor_prompt:match "^%s*$" then
             local original_showmode = vim.o.showmode
 
@@ -439,6 +441,7 @@ function M.open_prompt(prompt)
             vim.notify(cursor_prompt, vim.log.levels.INFO)
           end
         end)
+
         break
       end
     end
