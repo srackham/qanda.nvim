@@ -423,7 +423,7 @@ function M.open_prompt(prompt)
         vim.api.nvim_buf_set_lines(win.bufnr, i - 1, i, false, { new_line })
         vim.api.nvim_win_set_cursor(win.winid, { i, s - 1 })
         vim.schedule(function()
-          vim.api.nvim_feedkeys("a", "n", false) -- Switch to insert mode
+          vim.api.nvim_feedkeys("i", "n", false) -- Switch to insert mode
           if cursor_prompt ~= nil and not cursor_prompt:match "^%s*$" then
             local original_showmode = vim.o.showmode
 
@@ -634,7 +634,9 @@ function M.user_prompt_picker()
           if expanded then
             prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
             prompt.content = expanded
-            M.open_prompt(prompt)
+            vim.schedule(function()
+              M.open_prompt(prompt)
+            end)
           else
             utils.notify("User cancelled", vim.log.levels.INFO)
           end
