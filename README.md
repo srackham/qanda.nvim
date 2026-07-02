@@ -83,6 +83,18 @@ return {
 > [!NOTE]
 > The current release has been tested on NixOS Linux with Neovim v0.11.6.
 
+### Providers
+
+Qanda.nvim supports the following model providers:
+
+| Name         | Provider             |
+| ------------ | -------------------- |
+| `gemini`     | Google Gemini models |
+| `ollama`     | Ollama models        |
+| `openrouter` | OpenRouter models    |
+
+Use the `:Qanda /provider_picker` command to select a provider and the `:Qanda /model_picker` command to select a provider model.
+
 ### Authentication
 
 Provider API keys are imported from exported shell environment variables, the variable name is specified in a provider specific `api_key` configuration option. Here are the default provider options:
@@ -100,9 +112,6 @@ You could set the `api_key` with the actual key value, but this is not recommend
 ### Key mappings
 
 Key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
-
-TODO: 26-Jun-2026: The behaviour has changed (nvim 0.12?), it now always executes immediately.
-Use `:` instead of `<Cmd>` in key mappings which invoke interactive prompt templates, this ensures the template executes immediately following interactive user input.
 
 ## Qanda commands
 
@@ -333,20 +342,34 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 | Syntax                          | Description                                                       |
 | ------------------------------- | ----------------------------------------------------------------- |
-| `$input`, `${input:<prompt>}` † | Prompts user for input and substitutes the input                  |
+| `$cursor`, `${cursor:<prompt>}` | Positions the cursor in the Prompt window                         |
+| `$input`, `${input:<prompt>}`   | Prompts user for input and substitutes the input                  |
+| `$files`                        | Prompts the user with a file picker and injects the file(s)       |
 | `${file:<file name>}`           | Inject text file                                                  |
-| `$files` †                      | Prompts the user with a file picker and inject the file(s)        |
 | `$clipboard`                    | Substitutes content of system clipboard (alias for `$register_+`) |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 | `$register_<register name>`     | Substitutes content of specified register                         |
 
-† Prompt templates only
+- The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
-- The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects the file as Markdown (the file path followed by the fenced contents).
 - The `${file:<file name>}` placeholder file location is determined by the file name directory prefix:
   - No directory prefix defaults to the Qanda `prompts` [data directory](#data-directories) e.g. `${file:RULES.md}`
   - A relative directory prefix is relative to the current working directory (reported by the `:pwd` command) e.g. `${file:./README.md}`
   - An absolute directory prefix can be used to specify any location e.g. `${file:~/.config/nvim/stylua.toml}`
+
+- The `$cursor` placeholder marks the position of the cursor when a prompt template is loaded into the Prompt window. For example, the following prompt template is loads `List antonyms for ""` into the prompt window, positions the cursor inside the double-quotes then switches to insert mode:
+
+      ```
+      ___
+      name: Antonyms
+      ___
+      List antonyms for "$cursor"
+      ```
+
+- The `${cursor:<prompt>}` syntax displays a prompt message on the status line e.g. `${cursor:Enter a word to find antonyms}`, in all other respects it behaves the same as the `$cursor` syntax.
+- Templates containing the `$cursor` placeholder are always opened in the Prompt window.
+- Templates opened with the `:Qanda /prompt_picker` command are opened in the Prompt window.
+- Templates opened with a `:Qanda <template-name>` command are only opened in the Prompt window if they contain a _cursor_ placeholder.
 
 ### Template format
 
