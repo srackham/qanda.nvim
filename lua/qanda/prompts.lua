@@ -538,7 +538,7 @@ end
 
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
-  QandaPromptPlaceholder = [[\v\$(cursor|input|select|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}|\$\{cursor:.{-}\}]],
+  QandaPromptPlaceholder = [[\v\$(cursor|input|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}|\$\{cursor:.{-}\}]],
 }
 
 -- Define highlight groups once (link to existing groups)
