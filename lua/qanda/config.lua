@@ -6,7 +6,7 @@ M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 M.SESSION_FILE = "session.json"
 M.ROOT_DIR = vim.fn.getcwd() -- Lock the root directory to the Neovim's startup working directory.
-M.CURSOR_PLACEHOLDER_PATTERN = "%${cursor:(.-)}"
+M.CURSOR_PLACEHOLDER_PATTERN = "\t(.-)\t"
 
 -- Default configuration options --
 local default = {

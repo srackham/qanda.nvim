@@ -831,7 +831,11 @@ function M.substitute_placeholders(prompt_string, opts)
   -- Convert degenerate no-prompt syntax to canonical form
   prompt_string = prompt_string:gsub("%$cursor", "${cursor:}")
 
-  -- The Esc character is used to escape placeholders that occur in placeholder text so that are not mistaken for placeholders.
+  -- Tab characters are used to escape cursor placeholders to ensure occurrences in substituted text are ignored.
+  prompt_string = prompt_string:gsub("\t", " ") -- Replace existing tab characters with spaces
+  prompt_string = prompt_string:gsub("%${cursor:(.-)}", "\t%1\t", 1)
+
+  -- The Esc character is used to escape placeholders to ensure occurrences in substituted text are ignored.
   local ESC_PLACEHOLDER = "\27"
 
   opts = opts or {}
