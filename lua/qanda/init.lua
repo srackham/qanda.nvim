@@ -180,26 +180,26 @@ end
 ---It runs in a coroutine to avoid blocking the Neovim UI.
 ---@param prompt Qanda.Prompt The prompt object to execute.
 function M.execute_prompt(prompt)
-  -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
-  if prompt.name then
-    prompt = vim.tbl_deep_extend("force", {}, prompt)
-    local expanded = Prompts.substitute_placeholders(prompt.content)
-    if not expanded then
-      utils.notify("User cancelled", vim.log.levels.INFO)
-      return
-    end
-    prompt.name = nil
-    prompt.content = expanded
-    -- If the prompt contains a cursor placeholder open it in the Prompt window
-    if prompt.content:find(Config.CURSOR_PLACEHOLDER_PATTERN) ~= nil then
-      Prompts.open_prompt(prompt)
-      return
-    end
-  end
-
-  State.prompt_window:close()
-
   coroutine.wrap(function()
+
+    -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
+    if prompt.name then
+      prompt = vim.tbl_deep_extend("force", {}, prompt)
+      local expanded = Prompts.substitute_placeholders(prompt.content)
+      if not expanded then
+        utils.notify("User cancelled", vim.log.levels.INFO)
+        return
+      end
+      prompt.name = nil
+      prompt.content = expanded
+      -- If the prompt contains a cursor placeholder open it in the Prompt window
+      if prompt.content:find(Config.CURSOR_PLACEHOLDER_PATTERN) ~= nil then
+        Prompts.open_prompt(prompt)
+        return
+      end
+    end
+
+    State.prompt_window:close()
 
     local chat = State.chat_window.chat
     assert(chat)

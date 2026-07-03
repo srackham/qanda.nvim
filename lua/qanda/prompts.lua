@@ -632,17 +632,19 @@ function M.user_prompt_picker()
           local prompt = selection.value
           assert(prompt)
           -- Expand prompt template and open in Prompt window
-          prompt = vim.tbl_deep_extend("force", {}, prompt)
-          local expanded = M.substitute_placeholders(prompt.content)
-          if expanded then
-            prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
-            prompt.content = expanded
-            vim.schedule(function()
-              M.open_prompt(prompt)
-            end)
-          else
-            utils.notify("User cancelled", vim.log.levels.INFO)
-          end
+          coroutine.wrap(function()
+            prompt = vim.tbl_deep_extend("force", {}, prompt)
+            local expanded = M.substitute_placeholders(prompt.content)
+            if expanded then
+              prompt.name = nil -- Convert prompt template to an anonymous (expanded) prompt
+              prompt.content = expanded
+              vim.schedule(function()
+                M.open_prompt(prompt)
+              end)
+            else
+              utils.notify("User cancelled", vim.log.levels.INFO)
+            end
+          end)()
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
         end
