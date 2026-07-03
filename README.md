@@ -113,6 +113,9 @@ You could set the `api_key` with the actual key value, but this is not recommend
 
 Key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
 
+> [!TIP]
+> To disable a key mapping set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+
 ## Qanda commands
 
 There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) and _prompt template commands_ (`:Qanda <prompt-template-name>`).
@@ -132,7 +135,7 @@ There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) an
 | `:Qanda /provider_picker`       | Select a provider and a model                                   |
 | `:Qanda /recent_models`         | Select from the list of recent models                           |
 | `:Qanda /status`                | Print Qanda status information                                  |
-| `:Qanda /system_message_picker` | Open the [System Message picker](#system-template-picker)       |
+| `:Qanda /system_message_picker` | Open the [System template picker](#system-template-picker)       |
 | `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)                       |
 
 - Prompt template commands execute immediately, whereas executing with the [prompt template picker](#prompt-template-picker) will pause at the prompt window and await user confirmation before proceeding.
@@ -204,15 +207,15 @@ The _prompt template picker_ is used to select a user [prompt template](#prompt-
 The _system template picker_ is used to select and enable or disable the [system message](#system-messages). It is opened with the `:Qanda /system_message_picker` command.
 
 - The system template picker implements the following key-mapped commands:
-  - `<Enter>` - Enable system message
-  - `<C-d>` - Disable system message
-  - `<C-e>` - Edit system message templates file
+  - `<Enter>` - Enable [system message](#system-messages)
+  - `<C-d>` - Disable [system message](#system-messages)
+  - `<C-e>` - Edit [system message](#system-messages) templates file
   - `<Esc>` - Close picker
 
-In addition to setting the default system message:
+In addition to setting the default [system message](#system-messages):
 
-- Disabling the System Message will delete it from the current Chat.
-- Selecting the System Message will assign it to the current Chat.
+- Disabling the [system message](#system-messages) will delete it from the current Chat.
+- Selecting the [system message](#system-messages) will assign it to the current Chat.
 
 ## Chat picker
 
