@@ -64,7 +64,7 @@ local default = {
 
   -- Chat picker key commands --
   chat_picker_delete_key = "<C-d>",
-  chat_picker_rename_key = "<C-s>",
+  chat_picker_rename_key = "<C-l>",
   chat_picker_edit_key = "<C-e>",
   chat_picker_open_key = "<Enter>",
 
