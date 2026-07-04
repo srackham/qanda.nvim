@@ -77,8 +77,8 @@ local default = {
   -- Prompt window key commands --
   prompt_abort_key = "<C-k>",
   prompt_close_key = "<Esc>",
-  prompt_submit_key = "<S-Enter>",
-  prompt_new_chat_key = "<C-s>",
+  prompt_submit_key = "<C-s>",
+  prompt_new_chat_key = "<S-Enter>",
   prompt_redo_key = "<C-r>",
   prompt_new_key = "<C-Del>",
   prompt_switch_key = "<Tab>",
