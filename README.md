@@ -111,10 +111,32 @@ You could set the `api_key` with the actual key value, but this is not recommend
 
 ### Key mappings
 
-Key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
+There are two types of key mappings: _Vim key mappings_ and _built-in key mappings_, both are user configurable.
+
+#### Vim key mappings
+
+These are the usual Vim key mappings that live in a Neovim configuration file and typically map a key sequence to a `:Qanda` command. Vim key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
+
+#### Built-in key mappings
+
+These are the configurable key sequence options for the built-in pickers, they are mapped to picker-specific key commands.
+
+- To list a picker's key commands and their assigned key sequences, open the picker and enter `<C-h>`.
+- These configuration options are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
 > [!TIP]
-> To disable a key mapping set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+> To disable a built-in key mapping set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+
+#### Default key mappings
+
+The default mappings include:
+
+- `<Tab>` toggles between the Chat and Prompt windows.
+- `<Tab>` opens the Chat window from an edit buffer†, hit `<Tab>` twice to switch to the Prompt window.
+- `<C-Del>` (_Ctrl+Delete_) opens a blank Prompt window in insert mode from Chat and Prompt windows and from an edit buffer†.
+- `<C-h>` lists available picker commands for the current picker.
+
+† See the [example plugin configuration file](examples/example-qanda-configuration.lua).
 
 ## Qanda commands
 
@@ -135,7 +157,7 @@ There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) an
 | `:Qanda /provider_picker`       | Select a provider and a model                                   |
 | `:Qanda /recent_models`         | Select from the list of recent models                           |
 | `:Qanda /status`                | Print Qanda status information                                  |
-| `:Qanda /system_message_picker` | Open the [System template picker](#system-template-picker)       |
+| `:Qanda /system_message_picker` | Open the [System template picker](#system-template-picker)      |
 | `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)                       |
 
 - Prompt template commands execute immediately, whereas executing with the [prompt template picker](#prompt-template-picker) will pause at the prompt window and await user confirmation before proceeding.
@@ -207,15 +229,15 @@ The _prompt template picker_ is used to select a user [prompt template](#prompt-
 The _system template picker_ is used to select and enable or disable the [system message](#system-messages). It is opened with the `:Qanda /system_message_picker` command.
 
 - The system template picker implements the following key-mapped commands:
-  - `<Enter>` - Enable [system message](#system-messages)
-  - `<C-d>` - Disable [system message](#system-messages)
-  - `<C-e>` - Edit [system message](#system-messages) templates file
+  - `<Enter>` - Enable system message
+  - `<C-d>` - Disable system message
+  - `<C-e>` - Edit system message templates file
   - `<Esc>` - Close picker
 
-In addition to setting the default [system message](#system-messages):
+In addition to setting the default system message:
 
-- Disabling the [system message](#system-messages) will delete it from the current Chat.
-- Selecting the [system message](#system-messages) will assign it to the current Chat.
+- Disabling the system message will delete it from the current Chat.
+- Selecting the system message will assign it to the current Chat.
 
 ## Chat picker
 
