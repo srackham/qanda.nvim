@@ -26,7 +26,7 @@ function M.setup()
 
   -- Load user prompt and system message templates
   M.load_user_prompts()
-  M.load_system_messages()
+  M.load_system_templates()
 
   -- Set global system message
   local system_message_template = State.saved_state.system_message_template
@@ -106,13 +106,13 @@ function M.set_system_message(system_message_template, opts)
   State.save_state()
 end
 
---- Parses markdown-style prompt template file into a Prompts array.
+--- Parses markdown-style templates file into a Prompts array.
 ---Each prompt section starts and ends with `___`.
 ---The header envelopes prompt fields formatted like `<name>: <value>`.
 ---The `name` field (template name) is mandatory, all other fields are model options.
 ---@param lines string[] The full content of the markdown prompt file as an array of strings.
 ---@return Prompts|nil Returns a Prompts array or nil if parsing fails due to formatting errors.
-local function parse_prompt_templates(lines)
+local function parse_templates(lines)
   local result = {}
   local i = 1
 
@@ -306,10 +306,10 @@ function M.prompt_to_lines(prompt)
   return lines
 end
 
---- Loads prompt templates from files in the configured prompts directory.
---- @param role "user"|"system" The role of the prompts to load.
+--- Loads templates from files in the configured prompts directory.
+--- @param role "user"|"system" The role of the templates to load.
 --- @return Prompts An array of loaded prompt objects.
-local function load_prompts(role)
+local function load_templates(role)
   assert(role == "user" or role == "system")
 
   local result = {} ---@type Prompts
@@ -362,7 +362,7 @@ ___
       local lines = vim.fn.readfile(file_path)
       if lines then
         local prompts
-        prompts = parse_prompt_templates(lines)
+        prompts = parse_templates(lines)
         if prompts then
           for _, v in ipairs(prompts) do
             v.filename = file_path
@@ -378,8 +378,8 @@ ___
 end
 
 --- Loads system message templates from files and updates `M.system_messages` and `State.system_message`.
-function M.load_system_messages()
-  M.system_messages = load_prompts "system"
+function M.load_system_templates()
+  M.system_messages = load_templates "system"
   -- Sync the State.system_message prompt because loading creates new objects
   if State.system_message then
     for _, t in ipairs(M.system_messages) do
@@ -393,7 +393,7 @@ end
 
 --- Loads user prompt templates from files and updates `M.user_prompts`.
 function M.load_user_prompts()
-  M.user_prompts = load_prompts "user"
+  M.user_prompts = load_templates "user"
 end
 
 ---Open prompt window, load the prompt.
@@ -556,11 +556,11 @@ function M.add_prompt_syntax_highlighting(bufnr)
   end)
 end
 
---- Displays a Telescope picker for selecting, editing, and executing prompts.
---- @param prompts Prompts The array of prompt objects to display.
---- @param display_entry? fun(prompt: Prompt): string? Optional function to format how each prompt is displayed in the picker.
+--- Displays a Telescope picker for selecting, editing, and executing prompt and system templates.
+--- @param prompts Prompts The array of templates to display.
+--- @param display_entry? fun(prompt: Prompt): string? Optional function to format how each entry is displayed in the picker.
 --- @param opts table? Optional configuration options for the Telescope picker.
-local function prompt_picker(prompts, display_entry, opts)
+local function template_picker(prompts, display_entry, opts)
   local finders = require "telescope.finders"
   local pickers = require "telescope.pickers"
   local previewers = require "telescope.previewers"
@@ -607,18 +607,18 @@ local function prompt_picker(prompts, display_entry, opts)
         },
         sorter = conf.generic_sorter {},
         previewer = prompt_previewer,
-        layout_config = Config.prompt_picker_layout,
+        layout_config = Config.template_picker_layout,
       }, opts)
     )
     :find()
 end
 
 --- Displays a Telescope picker for user prompt templates, allowing selection, execution, or editing.
-function M.user_prompt_picker()
+function M.prompt_template_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
 
-  prompt_picker(M.user_prompts, nil, {
+  template_picker(M.user_prompts, nil, {
     results_title = "Prompt Templates",
     preview_title = "Preview",
     prompt_title = "[" .. Config.help_key .. " help]",
@@ -692,7 +692,7 @@ function M.user_prompt_picker()
 end
 
 --- Displays a Telescope picker for system message templates, allowing selection, disabling, or editing.
-function M.system_message_picker()
+function M.system_template_picker()
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
   local finders = require "telescope.finders"
@@ -725,7 +725,7 @@ function M.system_message_picker()
     }
   end
 
-  prompt_picker(M.system_messages, display_entry, {
+  template_picker(M.system_messages, display_entry, {
     results_title = "System Templates",
     preview_title = "Preview",
     prompt_title = "[" .. Config.help_key .. " help]",

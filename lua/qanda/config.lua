@@ -99,7 +99,7 @@ local default = {
   chat_window_mode = "float", ---@type WindowMode
   chat_picker_layout = { width = 0.9, height = 0.6, preview_width = 0.65 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
-  prompt_picker_layout = { width = 0.8, height = 0.5 },
+  template_picker_layout = { width = 0.8, height = 0.5 }, -- Prompt and System template pickers layout
   prompt_window_layout = { border = "rounded", height = 0.5 },
   model_picker_layout = { width = 0.4, height = 0.6 },
   recent_models_layout = { width = 0.5, height = 0.6 },

@@ -51,10 +51,10 @@ Qanda features:
 
 - _chat_: An ordered series of model requests and responses pairs (turns) representing a single turn-based conversation.
 - _turn_: (or "turn-about") is one full back-and-forth LLM request and response.
-- _request_: The prompt, context and [model options](#model-options) sent to the model.
+- _request_: The user prompt, the context and the [model options](#model-options) sent to the model.
 - _response_: Data returned by the model and streamed to the [chat window](#chat-window) in response to a request.
-- _context_: Each chat maintains it's own context comprising the chat's [system message](#system-messages), user prompts, and model responses. When a new prompt is submitted to the model it is accompanied by current context.
-- _prompt_: User questions and instructions submitted to the AI model from the [prompt window](#prompt-window).
+- _context_: Each chat maintains it's own context comprising the chat's [system message](#system-messages), previous user prompts along with the corresponding model responses. When a new user prompt is submitted to the model it is accompanied by current context.
+- _prompt_: User questions or instructions submitted to the AI model from the [prompt window](#prompt-window).
 
 > [!NOTE]
 > A user prompt is not the same as a model request; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous requests and responses) and [model options](#model-options).
@@ -136,29 +136,29 @@ The default mappings include:
 - `<C-Del>` (_Ctrl+Delete_) opens a blank Prompt window in insert mode from Chat and Prompt windows and from an edit buffer†.
 - `<C-h>` lists available picker commands for the current picker.
 
-† See the [example plugin configuration file](examples/example-qanda-configuration.lua).
+† See the Vim mappings in the [example plugin configuration file](examples/example-qanda-configuration.lua).
 
 ## Qanda commands
 
 There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) and _prompt template commands_ (`:Qanda <prompt-template-name>`).
 
-| Command                         | Description                                                     |
-| ------------------------------- | --------------------------------------------------------------- |
-| `:Qanda <prompt-template-name>` | Execute a named [prompt template](#prompt-and-system-templates) |
-| `:Qanda /abort`                 | Abort the current model request                                 |
-| `:Qanda /chat_picker`           | Open the [Chat picker](#chat-picker)                            |
-| `:Qanda /chat_window`           | Open the [Chat window](#chat-window)                            |
-| `:Qanda /dump_diagnostics`      | Display diagnostics for the previous model request              |
-| `:Qanda /model_picker`          | Select a model from the current provider                        |
-| `:Qanda /new_chat`              | Start a new Chat                                                |
-| `:Qanda /new_prompt`            | Open a new Prompt                                               |
-| `:Qanda /prompt_picker`         | Open the [Prompt picker](#prompt-template-picker)               |
-| `:Qanda /prompt_window`         | Open the [Prompt window](#prompt-window)                        |
-| `:Qanda /provider_picker`       | Select a provider and a model                                   |
-| `:Qanda /recent_models`         | Select from the list of recent models                           |
-| `:Qanda /status`                | Print Qanda status information                                  |
-| `:Qanda /system_message_picker` | Open the [System template picker](#system-template-picker)      |
-| `:Qanda /turn_picker`           | Open the chat [Turn picker](#turn-picker)                       |
+| Command                          | Description                                                     |
+| -------------------------------- | --------------------------------------------------------------- |
+| `:Qanda <prompt-template-name>`  | Execute a named [prompt template](#prompt-and-system-templates) |
+| `:Qanda /abort`                  | Abort the current model request                                 |
+| `:Qanda /chat_picker`            | Open the [Chat picker](#chat-picker)                            |
+| `:Qanda /chat_window`            | Open the [Chat window](#chat-window)                            |
+| `:Qanda /dump_diagnostics`       | Display diagnostics for the previous model request              |
+| `:Qanda /model_picker`           | Select a model from the current provider                        |
+| `:Qanda /new_chat`               | Start a new Chat                                                |
+| `:Qanda /new_prompt`             | Open a new Prompt                                               |
+| `:Qanda /prompt_template_picker` | Open the [Prompt picker](#prompt-template-picker)               |
+| `:Qanda /prompt_window`          | Open the [Prompt window](#prompt-window)                        |
+| `:Qanda /provider_picker`        | Select a provider and a model                                   |
+| `:Qanda /recent_models`          | Select from the list of recent models                           |
+| `:Qanda /status`                 | Print Qanda status information                                  |
+| `:Qanda /system_template_picker` | Open the [System template picker](#system-template-picker)      |
+| `:Qanda /turn_picker`            | Open the chat [Turn picker](#turn-picker)                       |
 
 - Prompt template commands execute immediately, whereas executing with the [prompt template picker](#prompt-template-picker) will pause at the prompt window and await user confirmation before proceeding.
 - Qanda commands respond to tabbed command completion.
@@ -170,7 +170,7 @@ There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) an
 The Prompt window is a floating window into which the user enters questions and instructions for the AI model. Prompt submission generates a model request which is appended, with the model response, to the chat's history file.
 
 - A prompt is submitted for execution from the prompt window or directly with a `:Qanda <prompt template name>` command.
-- A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
+- A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_template_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
   - `<S-Enter>` - Submit the prompt to the current chat
   - `<C-s>` - Submit the prompt to a new chat
@@ -214,7 +214,7 @@ The Chat window displays a chat, one turn at a time. Open the chat window with t
 
 ![Alt text](screenshots/prompt-template-picker.png)
 
-The _prompt template picker_ is used to select a user [prompt template](#prompt-and-system-templates) which is then expanded and opened in the _[prompt window](#prompt-window)_. The _prompt template picker_ is opened with the `:Qanda /prompt_picker` command.
+The _prompt template picker_ is used to select a user [prompt template](#prompt-and-system-templates) which is then expanded and opened in the _[prompt window](#prompt-window)_. The _prompt template picker_ is opened with the `:Qanda /prompt_template_picker` command.
 
 - The prompt template picker implements the following key-mapped commands:
   - `<Enter>` - Expand the prompt template and open in the [prompt window](#prompt-window)
@@ -226,7 +226,7 @@ The _prompt template picker_ is used to select a user [prompt template](#prompt-
 
 ![Alt text](screenshots/system-template-picker.png)
 
-The _system template picker_ is used to select and enable or disable the [system message](#system-messages). It is opened with the `:Qanda /system_message_picker` command.
+The _system template picker_ is used to select and enable or disable the [system message](#system-messages). It is opened with the `:Qanda /system_template_picker` command.
 
 - The system template picker implements the following key-mapped commands:
   - `<Enter>` - Enable system message
@@ -248,11 +248,11 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
 - The _chat picker_ allows previous chats to be selected and resumed.
 - The _chat picker_ chronologically orders chats by creation date based on the chat file name timestamp.
 - The most recent chat is restored when the plugin is loaded.
-- The default chat name displayed in the chat picker is from the first words of the chat's first turn request (you can rename the chat with the chat picker `<C-s>` key-mapped command).
+- The default chat name displayed in the chat picker is from the first words of the chat's first turn request (you can rename the chat with the chat picker `<C-l>` key-mapped command).
 - The _chat picker_ implements the following key-mapped commands:
   - `<Enter>` - Open chat in the [chat window](#chat-window)
   - `<C-d>` - Delete selected chat
-  - `<C-s>` - Rename selected chat
+  - `<C-l>` - Rename selected chat
   - `<C-e>` - Edit the chat file
   - `<Esc>` - Close the picker
 
@@ -393,7 +393,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - The `${cursor:<prompt>}` syntax displays a prompt message on the status line e.g. `${cursor:Enter a word to find antonyms}`, in all other respects it behaves the same as the `$cursor` syntax.
 - Templates containing the `$cursor` placeholder are always opened in the Prompt window.
-- Templates opened with the `:Qanda /prompt_picker` command are opened in the Prompt window.
+- Templates opened with the `:Qanda /prompt_template_picker` command are opened in the Prompt window.
 - Templates opened with a `:Qanda <template-name>` command are only opened in the Prompt window if they contain a _cursor_ placeholder.
 
 ### Template format

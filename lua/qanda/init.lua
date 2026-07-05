@@ -59,7 +59,7 @@ function M.create_user_command()
 
     local args = arg.args
     if args == "" then
-      args = "/prompt_picker"
+      args = "/prompt_template_picker"
     end
 
     if args == "/chat_window" then
@@ -88,13 +88,13 @@ function M.create_user_command()
     elseif args == "/turn_picker" then
       Chats.turns_picker()
       return
-    elseif args == "/prompt_picker" then
+    elseif args == "/prompt_template_picker" then
       Prompts.load_user_prompts()
-      Prompts.user_prompt_picker()
+      Prompts.prompt_template_picker()
       return
-    elseif args == "/system_message_picker" then
-      Prompts.load_system_messages()
-      Prompts.system_message_picker()
+    elseif args == "/system_template_picker" then
+      Prompts.load_system_templates()
+      Prompts.system_template_picker()
       return
     elseif args == "/model_picker" then
       Providers.select_model()
@@ -150,12 +150,12 @@ function M.create_user_command()
       table.insert(args, "/turn_picker")
       table.insert(args, "/prompt_window")
       table.insert(args, "/new_prompt")
-      table.insert(args, "/prompt_picker")
+      table.insert(args, "/prompt_template_picker")
       table.insert(args, "/model_picker")
       table.insert(args, "/provider_picker")
       table.insert(args, "/recent_models")
       table.insert(args, "/abort")
-      table.insert(args, "/system_message_picker")
+      table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")
 
