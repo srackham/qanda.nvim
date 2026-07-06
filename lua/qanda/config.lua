@@ -52,6 +52,7 @@ local default = {
   -- Chat window key commands --
   chat_abort_key = "<C-k>",
   chat_close_key = "<Esc>",
+  chat_copy_key = "<C-c>",
   chat_edit_key = "<C-e>",
   chat_prompt_key = "<S-Enter>",
   chat_switch_key = "<Tab>",

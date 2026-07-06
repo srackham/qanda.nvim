@@ -365,6 +365,19 @@ function M.open_chat(chat, turn)
     win:set_lines(lines)
   end, { buffer = win.bufnr })
 
+  -- Copy chat window response to system clipboard
+  vim.keymap.set({ "n", "v", "i" }, Config.chat_copy_key, function()
+    if curl.is_active_job() then
+      return
+    end
+    if win.current_turn then
+      local response = win.current_turn.response
+      if response and response ~= "" then
+        vim.fn.setreg("+", response)
+      end
+    end
+  end, { buffer = win.bufnr })
+
   vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
     if curl.is_active_job() then
       return
@@ -378,11 +391,12 @@ Normal mode commands:
 - %s - Open the prompt window, clear it, and enter insert mode
 - %s/%s Scroll up/down for previous/next prompt (from the current chat message)
 - %s - Delete current turn, if last turn delete the chat
-- %s - Open the chat file for editing at the selected turn (by searching for the timestamp)
+- %s - Open the chat file in the editor at the selected turn (by searching for the timestamp)
 - %s - Delete then rerun the latest turn
 - %s - Abort the current request
-- %s - Close Chat window
 - %s - Toggle truncated fields
+- %s - Copy response to clipboard
+- %s - Close Chat window
 
 ]]):format(
       Config.chat_prompt_key,
@@ -394,8 +408,9 @@ Normal mode commands:
       Config.chat_edit_key,
       Config.chat_redo_key,
       Config.chat_abort_key,
-      Config.chat_close_key,
-      Config.chat_truncate_key
+      Config.chat_truncate_key,
+      Config.chat_copy_key,
+      Config.chat_close_key
     )
     vim.notify(help_message, vim.log.levels.INFO)
   end, { buffer = win.bufnr, desc = "Show Chat window help" })
@@ -822,12 +837,7 @@ function M.turns_picker()
 - %s - Delete selected turn
 - %s - Toggle truncated fields in preview
 
-]]):format(
-        Config.turn_picker_open_key,
-        Config.turn_prompt_key,
-        Config.turn_picker_delete_key,
-        Config.turn_truncate_key
-      )
+]]):format(Config.turn_picker_open_key, Config.turn_prompt_key, Config.turn_picker_delete_key, Config.turn_truncate_key)
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Turn picker help" })
 
