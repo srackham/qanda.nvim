@@ -19,14 +19,24 @@ return {
     }
 
     -- Key mappings for builtin commands --
-    vim.keymap.set("n", "<Tab>", "<Cmd>Qanda /prompt_window<CR>", { desc = "Qanda.nvim open user prompt window" })
+    vim.keymap.set("n", "<Tab>", "<Cmd>Qanda /chat_window<CR>", { desc = "Qanda.nvim open user chat window" })
     vim.keymap.set({ "n", "v" }, "<Leader>lq", "<Cmd>Qanda /prompt_window<CR>", { desc = "Qanda.nvim open Prompt window" })
     vim.keymap.set({ "n", "v", "i" }, "<C-Del>", "<Cmd>Qanda /new_prompt<CR>", { desc = "Qanda.nvim open new prompt" })
-    vim.keymap.set({ "n", "v" }, "<Leader>lp", "<Cmd>Qanda /prompt_template_picker<CR>", { desc = "Qanda.nvim open prompts picker" })
+    vim.keymap.set(
+      { "n", "v" },
+      "<Leader>lp",
+      "<Cmd>Qanda /prompt_template_picker<CR>",
+      { desc = "Qanda.nvim open prompts template picker" }
+    )
     vim.keymap.set({ "n", "v" }, "<Leader>la", "<Cmd>Qanda /chat_window<CR>", { desc = "Qanda.nvim open Chat window" })
     vim.keymap.set({ "n", "v" }, "<Leader>lc", "<Cmd>Qanda /chat_picker<CR>", { desc = "Qanda.nvim open Chat picker" })
     vim.keymap.set({ "n", "v" }, "<Leader>ln", "<Cmd>Qanda /new_chat<CR>", { desc = "Qanda.nvim new chat" })
-    vim.keymap.set({ "n", "v" }, "<Leader>ls", "<Cmd>Qanda /system_template_picker<CR>", { desc = "Qanda.nvim open System Messages picker" })
+    vim.keymap.set(
+      { "n", "v" },
+      "<Leader>ls",
+      "<Cmd>Qanda /system_template_picker<CR>",
+      { desc = "Qanda.nvim open System template picker" }
+    )
     vim.keymap.set({ "n", "v" }, "<leader>lm", "<Cmd>Qanda /model_picker<CR>", { desc = "Qanda.nvim model selection" })
     vim.keymap.set({ "n", "v" }, "<leader>lP", "<Cmd>Qanda /provider_picker<CR>", { desc = "Qanda.nvim provider selection" })
     vim.keymap.set({ "n", "v" }, "<leader>lr", "<Cmd>Qanda /recent_models<CR>", { desc = "Qanda.nvim recent model selection" })
@@ -41,10 +51,28 @@ return {
     vim.keymap.set({ "n", "v" }, "<leader>lt", "<Cmd>Qanda /turn_picker<CR>", { desc = "Qanda.nvim open turn picker" })
 
     -- Key mappings for commonly used custom prompt templates --
-    -- Convention: 2nd letter in uppercase
-    vim.keymap.set({ "n", "v" }, "<Leader>lD", ":Qanda Dictionary definition<CR>", { desc = "Qanda.nvim dictionary definition" })
-    vim.keymap.set({ "n", "v" }, "<Leader>lL", ":Qanda Latin word meaning<CR>", { desc = "Qanda.nvim Latin word to English" })
-    vim.keymap.set({ "n", "v" }, "<Leader>lS", ":Qanda Synonyms<CR>", { desc = "Qanda.nvim synonyms for word" })
+    vim.keymap.set({ "n", "v" }, "<Leader>ad", ":Qanda Dictionary definition<CR>", { desc = "Qanda.nvim dictionary definition" })
+    vim.keymap.set({ "n", "v" }, "<Leader>as", ":Qanda Synonyms<CR>", { desc = "Qanda.nvim synonyms for word" })
+    vim.keymap.set({ "n", "v" }, "<Leader>aS", ":Qanda Spell a word<CR>", { desc = "Qanda.nvim spell a word" })
+
+    -- Here are examples of the prompt templates referenced above:
+    --[[
+___
+name: Dictionary definition
+___
+Briefly explain the meaning and etymology the following word: ${input:Enter word to find in dictionary}
+
+___
+name: Spell a word
+___
+What is the correct spelling for "${input:Enter word to spell}"
+
+___
+name: Synonyms
+___
+List synonyms for "${cursor:Enter a word to find synonyms}"
+
+]]
 
   end,
 }

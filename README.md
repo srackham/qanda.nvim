@@ -196,18 +196,19 @@ The Chat window displays a chat, one turn at a time. Open the chat window with t
 - The chat window is read-only, you can't edit it directly.
 - By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
 - Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
-- The turn in the Chat window can be re-prompted with the `<S-Enter>` key-mapped command — from the [prompt window](#prompt-window) it can be resubmitted using the `<S-Enter>` and `<C-s>` key-mapped commands.
+- The turn in the Chat window can be re-prompted with the `<S-Enter>` key-mapped command, then from the [prompt window](#prompt-window) it can be resubmitted using the `<S-Enter>` or `<C-s>` key-mapped commands.
 - The chat window implements the following key-mapped commands:
   - `<S-Enter>` - Create a new prompt from the current chat window prompt
   - `<Tab>` - Switch to [prompt window](#prompt-window)
-  - `<C-Del>` - Clear the prompt window and enter insert mode
+  - `<C-Del>` - Open the prompt window, clear it, and enter insert mode
   - `<C-p>/<C-n>` Scroll up/down for previous/next prompt (from the current chat message)
   - `<C-d>` - Delete current turn, if last turn delete the chat
   - `<C-e>` - Open the chat file in the editor at the selected turn (by searching for the timestamp)
-  - `<C-r>` - Re-execute the latest turn
+  - `<C-r>` - Delete then rerun the latest turn
   - `<C-k>` - Abort the current request
-  - `<Esc>` - Close Chat window
   - `<C-z>` - Toggle truncated fields
+  - `<C-c>` - Copy response to clipboard
+  - `<Esc>` - Close Chat window
   - `<C-h>` - List key-mapped commands
 
 ## Prompt template picker
