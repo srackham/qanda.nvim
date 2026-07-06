@@ -183,15 +183,19 @@ vim.cmd [[
 
 --- Display a notification message with an animated spinner
 --- Creates a visual spinner animation that runs while processing occurs,
---- and returns a function to stop the animation and display a completion message.
+--- and returns a control object to stop/suspend the animation and display a completion message.
 --- The spinner uses Unicode braille characters for smooth animation.
 --- @param message string The message to display alongside the spinner
 --- @param opts? { interval?: number } `interval` is animation frame interval in milliseconds (default: 100)
---- @return function A stop function that halts the spinner and shows completion message
+--- @return { start: function, stop: function, suspend: function } A control object:
+---   - `start(done_message, done_opts)` starts the spinner animation
+---   - `stop(done_message, done_opts)` halts the spinner and shows completion message
+---   - `suspend(duration_ms)` suspends status line updates for the specified duration
 --- @usage
---- local stop_spinner = notify_with_spinner("Loading...", {interval = 50})
+--- local spinner = notify_with_spinner("Loading...", {interval = 50})
+--- spinner.suspend(500) -- Suspend updates for 500ms
 --- -- ... some async work ...
---- stop_spinner("Load complete!")
+--- spinner.stop("Load complete!")
 function M.notify_with_spinner(message, opts)
   opts = opts or {}
   local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
@@ -199,7 +203,7 @@ function M.notify_with_spinner(message, opts)
   local interval = opts.interval or 100
   opts.interval = nil -- delete from opts because it is passed to M.message
 
-  -- 1. Create the coroutine logic
+  -- Create the coroutine logic
   local co = coroutine.create(function()
     local i = 1
     while not kill do
@@ -210,23 +214,42 @@ function M.notify_with_spinner(message, opts)
     end
   end)
 
-  -- 2. Define the animation loop
-  local function run_animation()
+  -- Return a control object to kill/pause the loop
+  local control = {}
+
+  -- Start the animation loop
+  function control.start()
     if coroutine.status(co) ~= "dead" then
       coroutine.resume(co)
-      -- Adjust the 100ms for faster/slower rotation
-      vim.defer_fn(run_animation, interval)
+      if interval > 0 then
+        vim.defer_fn(control.start, interval)
+      end
     end
   end
 
-  -- Start the animation
-  run_animation()
-
-  -- 3. Return a "stop" function to kill the loop
-  return function(done_message, done_opts)
+  ---@param done_message? string
+  ---@param done_opts? table
+  function control.stop(done_message, done_opts)
     kill = true
     M.message(done_message or "Done!", vim.tbl_deep_extend("force", opts, done_opts or {}))
   end
+
+  --- Suspend status line updates for the specified duration in milliseconds.
+  --- The spinner continues running but does not update the status line.
+  ---@param duration_ms number Duration to suspend updates in milliseconds
+  function control.suspend(duration_ms)
+    local saved_interval
+    if interval > 0 then
+      saved_interval = interval
+    end
+    interval = 0 -- Setting to 0 stops the animation scheduling loop
+    vim.defer_fn(function()
+      interval = saved_interval -- Resume with original interval
+      control.start() -- Restart the animation loop
+    end, duration_ms)
+  end
+
+  return control
 end
 
 --- Remove empty/whitespace-only elements from the beginning and end of a table

@@ -1,5 +1,6 @@
 ---@meta
 
+local Config = require "qanda.config"
 local utils = require "qanda.utils"
 
 local M = {}
@@ -7,8 +8,8 @@ local M = {}
 local active_job = nil
 local job_status = "stopped" ---@type JobStatus
 local error_message = nil ---@type string|nil
-local stop_spinner = function(_, _) end
 local model_response = {} ---@type string[] Stores the full model response as a table of lines.
+local spinner = { start = function() end, stop = function(_, _) end, suspend = function(_) end }
 
 --@private
 ---Helper: Appends text to the end of a specific window's buffer.
@@ -97,6 +98,21 @@ function M.is_active_job()
   return active_job ~= nil
 end
 
+---Prints a warning if there is an active job running.
+---@return boolean _true_ if a job is active, _false_ otherwise.
+function M.active_job_warning()
+  if M.is_active_job() then
+    spinner.suspend(1000)
+    utils.message(
+      "Model request/response is running, wait for completion or enter " .. Config.prompt_abort_key .. " to kill it",
+      { hl_group = "WarningMsg" }
+    )
+    return true
+  else
+    return false
+  end
+end
+
 ---Executes the command and streams API 'content' to the window.
 ---The `data_normaliser` should convert raw_json response data into Ollama‑shape response data.
 ---@param cmd table The command array (e.g., `{'curl', ...}`).
@@ -114,7 +130,8 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
   utils.clear_sequence(model_response)
 
   stop_job()
-  stop_spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
+  spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
+  spinner.start()
 
   local line_buffer = ""
   local done = false
@@ -235,11 +252,11 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
     end,
   }, function(_)
     if job_status == "aborted" then
-      stop_spinner("User aborted!", { hl_group = "WarningMsg" })
+      spinner.stop("User aborted!", { hl_group = "WarningMsg" })
     elseif job_status == "error" then
-      stop_spinner("Error: " .. error_message, { hl_group = "ErrorMsg" })
+      spinner.stop("Error: " .. error_message, { hl_group = "ErrorMsg" })
     else
-      stop_spinner "Execution complete!"
+      spinner.stop "Execution complete!"
     end
     active_job = nil
     if on_exit_callback then

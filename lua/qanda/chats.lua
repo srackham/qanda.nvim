@@ -248,7 +248,7 @@ function M.open_chat(chat, turn)
 
   -- Attach key commands.
   vim.keymap.set({ "n", "v", "i" }, Config.chat_close_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     win:close()
@@ -259,14 +259,14 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_switch_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     vim.cmd "Qanda /prompt_window"
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_prompt_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     local current_turn = win.current_turn or {}
@@ -285,7 +285,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_prev_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     if win.current_turn then
@@ -297,7 +297,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_next_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     if win.current_turn then
@@ -309,7 +309,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_delete_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     M.delete_turn(win.chat, win.current_turn)
@@ -317,7 +317,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_edit_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     if win.chat.filename then
@@ -337,7 +337,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.chat_redo_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     if #win.chat.turns == 0 then
@@ -357,7 +357,7 @@ function M.open_chat(chat, turn)
 
   -- Toggle chat display fields
   vim.keymap.set({ "n", "v", "i" }, Config.chat_truncate_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     M.turn_truncation = not M.turn_truncation
@@ -367,7 +367,7 @@ function M.open_chat(chat, turn)
 
   -- Copy chat window response to system clipboard
   vim.keymap.set({ "n", "v", "i" }, Config.chat_copy_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     if win.current_turn then
@@ -379,7 +379,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     local help_message = ([[-- Chat Window Commands --
