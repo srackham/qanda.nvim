@@ -172,8 +172,8 @@ The Prompt window is a floating window into which the user enters questions and 
 - A prompt is submitted for execution from the prompt window or directly with a `:Qanda <prompt template name>` command.
 - A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_template_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
-  - `<S-Enter>` - Submit the prompt to the current chat
-  - `<C-s>` - Submit the prompt to a new chat
+  - `<C-s>` - Submit the prompt to the current chat
+  - `<C-n>` - Submit the prompt to a new chat
   - `<C-r>` - Submit the prompt, replacing the latest turn in the current chat
   - `<C-Del>` - Clear the prompt window and enter insert mode
   - `<Tab>` - Switch to the [chat window](#chat-window) †
@@ -196,12 +196,11 @@ The Chat window displays a chat, one turn at a time. Open the chat window with t
 - The chat window is read-only, you can't edit it directly.
 - By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
 - Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
-- The turn in the Chat window can be re-prompted with the `<S-Enter>` key-mapped command, then from the [prompt window](#prompt-window) it can be resubmitted using the `<S-Enter>` or `<C-s>` key-mapped commands.
 - The chat window implements the following key-mapped commands:
-  - `<S-Enter>` - Create a new prompt from the current chat window prompt
-  - `<Tab>` - Switch to [prompt window](#prompt-window)
+  - `<Tab>` - Switch to Prompt window
+  - `<C-x>` - Open the prompt window with the current prompt
   - `<C-Del>` - Open the prompt window, clear it, and enter insert mode
-  - `<C-p>/<C-n>` Scroll up/down for previous/next prompt (from the current chat message)
+  - `<C-p>`/`<C-n>` - Scroll up/down for previous/next prompt (from the current chat message)
   - `<C-d>` - Delete current turn, if last turn delete the chat
   - `<C-e>` - Open the chat file in the editor at the selected turn (by searching for the timestamp)
   - `<C-r>` - Delete then rerun the latest turn
@@ -219,7 +218,7 @@ The _prompt template picker_ is used to select a user [prompt template](#prompt-
 
 - The prompt template picker implements the following key-mapped commands:
   - `<Enter>` - Expand the prompt template and open in the [prompt window](#prompt-window)
-  - `<S-Enter>` - Expand and execute the selected prompt template immediately
+  - `<C-x>` - Expand and execute the selected prompt template immediately
   - `<C-e>` - Edit prompt templates file
   - `<Esc>` - Close the picker
 
@@ -264,7 +263,7 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
 The _turn picker_ displays the turns in the current chat, it implements the following key-mapped commands and is opened with the `:Qanda /turn_picker` command:
 
 - `<Enter>` - Open selected turn in the [chat window](#chat-window)
-- `<S-Enter>` - Open Prompt window with selected turn's prompt
+- `<C-x>` - Open Prompt window with selected turn's prompt
 - `<C-d>` - Delete the selected turn
 - `<C-z>` - Toggle truncated fields in the preview window
 - `<Esc>` - Close the picker

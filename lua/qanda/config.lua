@@ -54,7 +54,7 @@ local default = {
   chat_close_key = "<Esc>",
   chat_copy_key = "<C-c>",
   chat_edit_key = "<C-e>",
-  chat_prompt_key = "<S-Enter>",
+  chat_prompt_key = "<C-x>",
   chat_switch_key = "<Tab>",
   chat_new_prompt_key = "<C-Del>",
   chat_delete_key = "<C-d>",
@@ -73,25 +73,25 @@ local default = {
   turn_picker_open_key = "<Enter>",
   turn_picker_delete_key = "<C-d>",
   turn_truncate_key = "<C-z>",
-  turn_prompt_key = "<S-Enter>",
+  turn_prompt_key = "<C-x>",
 
   -- Prompt window key commands --
   prompt_abort_key = "<C-k>",
   prompt_close_key = "<Esc>",
   prompt_submit_key = "<C-s>",
-  prompt_new_chat_key = "<S-Enter>",
+  prompt_new_chat_key = "<C-n>",
   prompt_redo_key = "<C-r>",
   prompt_new_key = "<C-Del>",
   prompt_switch_key = "<Tab>",
   prompt_inject_key = "<Leader>fi",
 
   -- Prompt template picker key commands --
-  user_picker_open_key = "<Enter>",
-  user_picker_exec_key = "<S-Enter>",
-  user_picker_delete_key = "<C-d>",
-  user_picker_edit_key = "<C-e>",
+  prompt_picker_open_key = "<Enter>",
+  prompt_picker_exec_key = "<C-x>",
+  prompt_picker_delete_key = "<C-d>",
+  prompt_picker_edit_key = "<C-e>",
 
-  -- System message picker key commands --
+  -- System template picker key commands --
   system_picker_edit_key = "<C-e>",
   system_picker_select_key = "<Enter>",
   system_picker_disable_key = "<C-d>",

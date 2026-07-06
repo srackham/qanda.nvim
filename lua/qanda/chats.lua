@@ -386,8 +386,8 @@ function M.open_chat(chat, turn)
 
 Normal mode commands:
 
-- %s - Create a new prompt from the current turn
 - %s - Switch to Prompt window
+- %s - Open the prompt window with the current prompt
 - %s - Open the prompt window, clear it, and enter insert mode
 - %s/%s Scroll up/down for previous/next prompt (from the current chat message)
 - %s - Delete current turn, if last turn delete the chat
@@ -399,8 +399,8 @@ Normal mode commands:
 - %s - Close Chat window
 
 ]]):format(
-      Config.chat_prompt_key,
       Config.chat_switch_key,
+      Config.chat_prompt_key,
       Config.chat_new_prompt_key,
       Config.chat_prev_key,
       Config.chat_next_key,
