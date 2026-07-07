@@ -194,7 +194,9 @@ function M.execute_prompt(prompt)
       prompt.content = expanded
       -- If the prompt contains a cursor placeholder open it in the Prompt window
       if prompt.content:find(Prompts.CURSOR_PLACEHOLDER_PATTERN) ~= nil then
-        Prompts.open_prompt(prompt)
+        vim.schedule(function()
+          Prompts.open_prompt(prompt)
+        end)
         return
       end
     end
