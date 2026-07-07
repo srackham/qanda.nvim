@@ -5,6 +5,7 @@ local ui = require "qanda.ui"
 local curl = require "qanda.curl"
 
 local M = {
+  CURSOR_PLACEHOLDER_PATTERN = "\02(.-)\02", -- Tagged cursor placeholder
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -416,9 +417,9 @@ function M.open_prompt(prompt)
 
     -- Process cursor placeholder
     for i, line in ipairs(lines) do
-      local s, e = line:find(Config.CURSOR_PLACEHOLDER_PATTERN)
+      local s, e = line:find(M.CURSOR_PLACEHOLDER_PATTERN)
       if s then
-        local cursor_prompt = line:match(Config.CURSOR_PLACEHOLDER_PATTERN)
+        local cursor_prompt = line:match(M.CURSOR_PLACEHOLDER_PATTERN)
         local new_line = line:sub(1, s - 1) .. line:sub(e + 1)
         vim.api.nvim_buf_set_lines(win.bufnr, i - 1, i, false, { new_line })
         local col = s - 1
@@ -831,12 +832,11 @@ function M.substitute_placeholders(prompt_string, opts)
   -- Convert degenerate no-prompt syntax to canonical form
   prompt_string = prompt_string:gsub("%$cursor", "${cursor:}")
 
-  -- Tab characters are used to escape cursor placeholders to ensure occurrences in substituted text are ignored.
-  prompt_string = prompt_string:gsub("\t", " ") -- Replace existing tab characters with spaces
-  prompt_string = prompt_string:gsub("%${cursor:(.-)}", "\t%1\t", 1)
+  -- The ETX character is used to escape placeholders to ensure occurrences in substituted text are ignored.
+  local PLACEHOLDER_TAG = "\03"
 
-  -- The Esc character is used to escape placeholders to ensure occurrences in substituted text are ignored.
-  local ESC_PLACEHOLDER = "\27"
+  -- STX (non white-space) characters are used to escape cursor placeholders to ensure occurrences in substituted text are ignored.
+  prompt_string = prompt_string:gsub("%${cursor:(.-)}", "\02%1\02", 1)
 
   opts = opts or {}
 
@@ -848,7 +848,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
-    return (answer:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER))
+    return (answer:gsub("%%", "%%%%"):gsub("%$", PLACEHOLDER_TAG))
   end)
 
   if cancelled then
@@ -861,7 +861,7 @@ function M.substitute_placeholders(prompt_string, opts)
     if answer == "" then
       return nil
     end
-    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER)))
+    prompt_string = prompt_string:gsub("%$input", (answer:gsub("%%", "%%%%"):gsub("%$", PLACEHOLDER_TAG)))
   end
 
   if cancelled then
@@ -876,7 +876,7 @@ function M.substitute_placeholders(prompt_string, opts)
       utils.notify("Error: " .. err, vim.log.levels.ERROR)
       return file_content
     end
-    return (file_content:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER))
+    return (file_content:gsub("%%", "%%%%"):gsub("%$", PLACEHOLDER_TAG))
   end)
 
   -- Handle the $files syntax
@@ -888,7 +888,7 @@ function M.substitute_placeholders(prompt_string, opts)
       return nil
     end
     local text = table.concat(lines, "\n")
-    prompt_string = prompt_string:gsub("%$files", (text:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER)))
+    prompt_string = prompt_string:gsub("%$files", (text:gsub("%%", "%%%%"):gsub("%$", PLACEHOLDER_TAG)))
   end
 
   prompt_string = prompt_string:gsub("%$clipboard", "$register_+")
@@ -906,10 +906,10 @@ function M.substitute_placeholders(prompt_string, opts)
       utils.notify(msg .. " is empty", vim.log.levels.WARN)
       return ""
     end
-    return (register:gsub("%%", "%%%%"):gsub("%$", ESC_PLACEHOLDER))
+    return (register:gsub("%%", "%%%%"):gsub("%$", PLACEHOLDER_TAG))
   end)
 
-  prompt_string = prompt_string:gsub(ESC_PLACEHOLDER, "$") -- Restore the $'s
+  prompt_string = prompt_string:gsub(PLACEHOLDER_TAG, "$") -- Restore the $'s
 
   return prompt_string
 end
