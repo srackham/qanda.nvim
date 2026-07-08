@@ -669,7 +669,9 @@ function M.prompt_template_picker()
           assert(prompt)
           actions.close(picker_bufnr)
           if prompt.filename then
-            utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
+            utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name), function()
+              M.load_user_prompts() -- Reload templates after edited file is saved
+            end)
           else
             utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
           end
@@ -757,12 +759,14 @@ function M.system_template_picker()
           assert(prompt)
           actions.close(picker_bufnr)
           if prompt.filename then
-            utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name))
+            utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name), function()
+              M.load_system_templates() -- Reload templates after edited file is saved
+            end)
           else
             utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)
           end
         end
-      end, { desc = "Close the picker and edit prompts file containing the selected prompt" })
+      end, { desc = "Close the picker and edit system templates file containing the selected prompt" })
 
       map({ "n", "i" }, Config.help_key, function()
         local help_message = ([[-- System Message Template Picker Commands --
