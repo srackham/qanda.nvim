@@ -387,16 +387,16 @@ function M.open_chat(chat, turn)
 Normal mode commands:
 
 - %s - Switch to Prompt window
-- %s - Open the prompt window with the current prompt
-- %s - Open the prompt window, clear it, and enter insert mode
-- %s/%s Scroll up/down for previous/next prompt (from the current chat message)
-- %s - Delete current turn, if last turn delete the chat
-- %s - Open the chat file in the editor at the selected turn (by searching for the timestamp)
-- %s - Delete then rerun the latest turn
+- %s - Open the current turn's prompt in the Prompt window
+- %s - Open a blank Prompt window in insert mode
+- %s/%s Go to next/previous turn
+- %s - Delete the current turn, if last turn delete the chat
+- %s - Open the chat file in the editor at the selected turn
+- %s - Delete the latest turn from the chat and open its prompt in the Prompt window
 - %s - Abort the current request
-- %s - Toggle truncated fields
-- %s - Copy response to clipboard
-- %s - Close Chat window
+- %s - Toggle truncated prompt and system message fields
+- %s - Copy the turn response to clipboard
+- %s - Close the Chat window
 
 ]]):format(
       Config.chat_switch_key,

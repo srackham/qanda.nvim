@@ -198,16 +198,16 @@ The Chat window displays a chat, one turn at a time. Open the chat window with t
 - Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
 - The chat window implements the following key-mapped commands:
   - `<Tab>` - Switch to Prompt window
-  - `<C-x>` - Open the prompt window with the current prompt
-  - `<C-Del>` - Open the prompt window, clear it, and enter insert mode
-  - `<C-p>`/`<C-n>` - Scroll up/down for previous/next prompt (from the current chat message)
-  - `<C-d>` - Delete current turn, if last turn delete the chat
-  - `<C-e>` - Open the chat file in the editor at the selected turn (by searching for the timestamp)
-  - `<C-r>` - Delete then rerun the latest turn
+  - `<C-x>` - Open the current turn's prompt in the Prompt window
+  - `<C-Del>` - Open a blank Prompt window in insert mode
+  - `<C-p>`/<C-n> Go to next/previous turn
+  - `<C-d>` - Delete the current turn, if last turn delete the chat
+  - `<C-e>` - Open the chat file in the editor at the selected turn
+  - `<C-r>` - Delete the latest turn from the chat and open its prompt in the Prompt window
   - `<C-k>` - Abort the current request
-  - `<C-z>` - Toggle truncated fields
-  - `<C-c>` - Copy response to clipboard
-  - `<Esc>` - Close Chat window
+  - `<C-z>` - Toggle truncated prompt and system message fields
+  - `<C-c>` - Copy the turn response to clipboard
+  - `<Esc>` - Close the Chat window
   - `<C-h>` - List key-mapped commands
 
 ## Prompt template picker
