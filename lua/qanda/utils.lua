@@ -154,14 +154,16 @@ function M.append_string_to_file(str, fname)
   return M.write_string_to_file(str, fname, "a+")
 end
 
+--- @class MessageOpts
+--- @field hl_group? string Highlight group name for the message (default: "Normal")
+--- @field history? boolean Whether to save the message to command history (default: false)
+--- @field [string] any Additional options passed directly to vim.api.nvim_echo
+
 --- Display a message using vim's echo interface
 --- Shows a message in the command line area with optional highlighting.
 --- This function wraps vim.api.nvim_echo with simplified parameter handling.
 --- @param msg string The message text to display
---- @param opts table|nil Optional configuration table forwarded to vim.api.nvim_echo
---- @param opts.hl_group string Highlight group name for the message (default: "Normal")
---- @param opts.history boolean Whether to save the message to command history (default: false)
---- @param opts.* any Additional options passed directly to vim.api.nvim_echo
+--- @param opts MessageOpts|nil Optional configuration table forwarded to vim.api.nvim_echo
 --- @usage
 --- M.message("Hello World")  -- displays with Normal highlight
 --- M.message("Error occurred", {hl_group = "ErrorMsg"})  -- displays with ErrorMsg highlight
@@ -181,28 +183,25 @@ vim.cmd [[
     highlight default QandaSpinner  gui=NONE  cterm=NONE  guifg=#a6e3a1 ctermfg=157
 ]]
 
---- Display a notification message with an animated spinner
+--- Controls a notification spinner.
+--- @class SpinnerControl
+--- @field start fun() Starts the spinner animation.
+--- @field stop fun(done_message?: string, done_opts?: MessageOpts) Stops the spinner and displays an optional completion message.
+--- @field suspend fun(duration_ms: integer) Suspends spinner updates for the specified duration in milliseconds.
+--- Display a notification message with an animated spinner.
+---
 --- Creates a visual spinner animation that runs while processing occurs,
---- and returns a control object to stop/suspend the animation and display a completion message.
---- The spinner uses Unicode braille characters for smooth animation.
---- @param message string The message to display alongside the spinner
---- @param opts? { interval?: number } `interval` is animation frame interval in milliseconds (default: 100)
---- @return { start: function, stop: function, suspend: function } A control object:
----   - `start(done_message, done_opts)` starts the spinner animation
----   - `stop(done_message, done_opts)` halts the spinner and shows completion message
----   - `suspend(duration_ms)` suspends status line updates for the specified duration
---- @usage
---- local spinner = notify_with_spinner("Loading...", {interval = 50})
---- spinner.suspend(500) -- Suspend updates for 500ms
---- -- ... some async work ...
---- spinner.stop("Load complete!")
+--- and returns a control object to start, stop, or suspend the animation.
+---
+--- @param message string The message to display alongside the spinner.
+--- @param opts? { interval?: integer } Animation frame interval in milliseconds (default: 100).
+--- @return SpinnerControl
 function M.notify_with_spinner(message, opts)
   opts = opts or {}
   local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
   local kill = false
   local interval = opts.interval or 100
   opts.interval = nil -- delete from opts because it is passed to M.message
-
   -- Create the coroutine logic
   local co = coroutine.create(function()
     local i = 1
