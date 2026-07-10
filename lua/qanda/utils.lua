@@ -9,6 +9,13 @@ function M.trim_string(s)
   return s:match "^%s*(.-)%s*$"
 end
 
+--- Returns true if the string is nil, empty, or contains only whitespace characters.
+--- @param str string|nil The string to check.
+--- @return boolean True if the string is empty or whitespace-only, false otherwise.
+function M.nil_or_blank(str)
+  return str == nil or str:match "^%s*$" ~= nil
+end
+
 --- Escapes special characters in a string
 --- @param s string The string to escape
 --- @return string The escaped string
@@ -198,7 +205,7 @@ vim.cmd [[
 --- @param message string The message to display alongside the spinner.
 --- @param opts? { interval?: integer } Animation frame interval in milliseconds (default: 100).
 --- @return SpinnerControl
-function M.notify_with_spinner(message, opts)
+function M.new_spinner(message, opts)
   opts = opts or {}
   opts.interval = nil -- delete from opts because it is passed to M.message
   local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }

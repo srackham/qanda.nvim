@@ -130,7 +130,7 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
   utils.clear_sequence(model_response)
 
   stop_job()
-  spinner = utils.notify_with_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
+  spinner = utils.new_spinner("Generating...", { interval = 100, hl_group = "QandaSpinner" })
   spinner.start()
 
   local line_buffer = ""
