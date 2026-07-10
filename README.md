@@ -393,8 +393,11 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - The `${cursor:<prompt>}` syntax displays a prompt message on the status line e.g. `${cursor:Enter a word to find antonyms}`, in all other respects it behaves the same as the `$cursor` syntax.
 - Templates containing the `$cursor` placeholder are always opened in the Prompt window.
-- Templates opened with the `:Qanda /prompt_template_picker` command are opened in the Prompt window.
-- Templates opened with a `:Qanda <template-name>` command are only opened in the Prompt window if they contain a _cursor_ placeholder.
+- Templates executed with the `:Qanda /prompt_template_picker` command are opened in the Prompt window.
+- Templates executed with a `:Qanda <template-name>` command are only opened in the Prompt window if they contain a _cursor_ placeholder.
+- Templates executed with a `:Qanda <template-name>` command initiate a new chat if an `$input` ends in a space followed by a `+` character.
+- Templates executed with a `:Qanda <template-name>` command initiate a new chat
+- When a template containing an `$input` placeholder is executed a new chat will be initiated if an `$input` placeholder's value ends in a space followed by a `+` character (the suffix is ignored if the template is opened in the Prompt window).
 
 ### Template format
 

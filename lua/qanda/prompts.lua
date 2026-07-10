@@ -5,7 +5,8 @@ local ui = require "qanda.ui"
 local curl = require "qanda.curl"
 
 local M = {
-  CURSOR_TAG = "\02(.-)\02", -- Tagged cursor placeholder
+  CURSOR_TAG = "\02(.-)\02", -- Prompt cursor placeholder tag
+  NEW_CHAT_TAG = "\04", -- Prompt new chat tag
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -412,6 +413,11 @@ function M.open_prompt(prompt)
   M.add_prompt_syntax_highlighting(win.bufnr)
 
   if prompt then
+    if prompt.content:find(M.NEW_CHAT_TAG) ~= nil then
+      prompt.content = prompt.content:gsub(M.NEW_CHAT_TAG, "") -- Delete the new chat tags
+      utils.notify("New chat input suffix ignored", vim.log.levels.WARN)
+    end
+
     local lines = M.prompt_to_lines(prompt)
     win:set_lines(lines)
 
@@ -827,10 +833,10 @@ function M.substitute_placeholders(prompt_string, opts)
   -- Convert no-prompt syntax to canonical form
   prompt_string = prompt_string:gsub("%$cursor", "${cursor:}")
 
-  -- The ETX character is used to escape placeholders to ensure occurrences in substituted text are ignored.
+  -- Non-printable character is used to escape placeholders to ensure occurrences in substituted text are ignored.
   local DOLLAR_TAG = "\03"
 
-  -- STX (non white-space) characters are used to escape cursor placeholders to ensure occurrences in substituted text are ignored.
+  -- Non-printable characters are used to escape cursor placeholders to ensure occurrences in substituted text are ignored.
   prompt_string = prompt_string:gsub("%${cursor:(.-)}", "\02%1\02", 1)
 
   opts = opts or {}
@@ -847,6 +853,9 @@ function M.substitute_placeholders(prompt_string, opts)
     local answer = vim.fn.input(prompt_text .. ": ")
     if answer == "" then
       cancelled = true
+    end
+    if answer:match " %+$" then
+      answer = answer:gsub(" %+$", M.NEW_CHAT_TAG)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))

@@ -203,13 +203,18 @@ function M.execute_prompt(prompt)
 
     State.prompt_window:close()
 
-    local chat = State.chat_window.chat
-    assert(chat)
-    local turns = chat.turns
-
     if not prompt.content then
       return
     end
+
+    if prompt.content:find(Prompts.NEW_CHAT_TAG) ~= nil then
+      prompt.content = prompt.content:gsub(Prompts.NEW_CHAT_TAG, "") -- Delete the new chat tags
+      Chats.new_chat()
+    end
+
+    local chat = State.chat_window.chat
+    assert(chat)
+    local turns = chat.turns
 
     local turn = {
       request = prompt.content,
