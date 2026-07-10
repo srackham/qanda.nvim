@@ -10,7 +10,7 @@ M.ROOT_DIR = vim.fn.getcwd() -- Lock the root directory to the Neovim's startup 
 -- Default configuration options --
 local default = {
 
-  debug = true,
+  debug = false,
 
   -- Default onboarding provider and model names (if `nil` you will be prompted)
   provider = nil,

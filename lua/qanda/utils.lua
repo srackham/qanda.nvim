@@ -1,3 +1,5 @@
+local Config = require "qanda.config"
+
 local M = {} -- This module
 
 --- Strip leading and trailing whitespace from a string
@@ -175,7 +177,7 @@ function M.message(msg, opts)
   echo_opts.hl_group = nil
   echo_opts.history = nil
   vim.schedule(function() -- Defer because of Neovim's "fast event" context
-    vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, opts.history or false, echo_opts)
+    vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, Config.debug or opts.history or false, echo_opts)
   end)
 end
 
@@ -198,14 +200,18 @@ vim.cmd [[
 --- @return SpinnerControl
 function M.notify_with_spinner(message, opts)
   opts = opts or {}
-  local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
-  local kill = false
-  local interval = opts.interval or 100
   opts.interval = nil -- delete from opts because it is passed to M.message
+  local spinner_frames = { "⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏" }
+  local stopped = false
+  local interval = opts.interval or 100
+  local spinner_timer
+  local suspended = false
+  local control = {} ---@type SpinnerControl
+
   -- Create the coroutine logic
   local co = coroutine.create(function()
     local i = 1
-    while not kill do
+    while not stopped do
       local frame = spinner_frames[i]
       M.message(frame .. " " .. message, opts)
       i = i % #spinner_frames + 1
@@ -213,37 +219,37 @@ function M.notify_with_spinner(message, opts)
     end
   end)
 
-  -- Return a control object to kill/pause the loop
-  local control = {}
-
   -- Start the animation loop
   function control.start()
     if coroutine.status(co) ~= "dead" then
+      stopped = false
+      spinner_timer = vim.defer_fn(control.start, interval)
       coroutine.resume(co)
-      if interval > 0 then
-        vim.defer_fn(control.start, interval)
-      end
     end
   end
 
   ---@param done_message? string
   ---@param done_opts? table
   function control.stop(done_message, done_opts)
-    kill = true
+    stopped = true
+    spinner_timer:stop()
+    spinner_timer:close()
     M.message(done_message or "Done!", vim.tbl_deep_extend("force", opts, done_opts or {}))
   end
 
   --- Suspend status line updates for the specified duration in milliseconds.
   --- The spinner continues running but does not update the status line.
+  --- If called while already suspending, this is a no-op.
   ---@param duration_ms number Duration to suspend updates in milliseconds
   function control.suspend(duration_ms)
-    local saved_interval
-    if interval > 0 then
-      saved_interval = interval
+    if suspended then
+      return -- Already suspending, ignore
     end
-    interval = 0 -- Setting to 0 stops the animation scheduling loop
+    suspended = true
+    spinner_timer:stop()
+    spinner_timer:close()
     vim.defer_fn(function()
-      interval = saved_interval -- Resume with original interval
+      suspended = false
       control.start() -- Restart the animation loop
     end, duration_ms)
   end

@@ -9,7 +9,7 @@ local active_job = nil
 local job_status = "stopped" ---@type JobStatus
 local error_message = nil ---@type string|nil
 local model_response = {} ---@type string[] Stores the full model response as a table of lines.
-local spinner = { start = function() end, stop = function(_, _) end, suspend = function(_) end }
+local spinner
 
 --@private
 ---Helper: Appends text to the end of a specific window's buffer.
