@@ -27,7 +27,7 @@ function M.setup()
   })
 
   -- Load user prompt and system message templates
-  M.load_user_prompts()
+  M.load_user_templates()
   M.load_system_templates()
 
   -- Set global system message
@@ -316,12 +316,13 @@ local function load_templates(role)
 
   local result = {} ---@type Prompts
 
-  -- Read and merge prompts from all .user.md files
+  -- Read and merge all *.md templates files
+  -- TODO: Need to merge local templates (if they exist) into global templates (see NOTES.md)
   local glob_pattern = Config.prompts_dir .. "/*." .. role .. ".md"
-  local prompt_files = vim.fn.glob(glob_pattern, false, true)
+  local template_files = vim.fn.glob(glob_pattern, false, true)
 
   -- If there are no prompts files then create example
-  if #prompt_files == 0 then
+  if #template_files == 0 then
     local path = Config.prompts_dir .. "/default." .. role .. ".md"
 
     -- Create parent directory if it does not already exist
@@ -332,19 +333,36 @@ local function load_templates(role)
 
     local f, err = io.open(path, "w")
     if not f then
-      utils.notify("Error creating prompts file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
+      utils.notify("Error creating templates file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
       return result
     end
     local content
     if role == "user" then
       content = [[
+<!-- Example user prompts templates installed by qanda.nvim -->
 ___
-name: Ask a question
+name: Dictionary definition
 ___
-${input:Enter question}
+Briefly explain the meaning and etymology the following word: ${input:Enter word to find in dictionary}
+
+___
+name: Spell a word
+___
+What is the correct spelling for "${input:Enter word to spell}"
+
+___
+name: Synonyms
+___
+List synonyms for "${cursor:Enter a word to find synonyms}"
+
+___
+name: Antonyms
+___
+List antonyms for the word "${input:Enter a word to find antonyms}:
 ]]
     else
       content = [[
+<!-- Example system message template installed by qanda.nvim -->
 ___
 name: Generic
 ___
@@ -354,12 +372,12 @@ ___
     end
     f:write(content)
     f:close()
-    prompt_files = vim.fn.glob(glob_pattern, false, true)
-    assert(#prompt_files == 1)
+    template_files = vim.fn.glob(glob_pattern, false, true)
+    assert(#template_files == 1)
   end
 
-  -- Load the prompts files
-  for _, file_path in ipairs(prompt_files) do
+  -- Load the templates files
+  for _, file_path in ipairs(template_files) do
     if utils.file_exists(file_path) then
       local lines = vim.fn.readfile(file_path)
       if lines then
@@ -371,7 +389,7 @@ ___
             table.insert(result, v)
           end
         else
-          utils.notify("Failed to parse prompts from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
+          utils.notify("Failed to parse templates from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
         end
       end
     end
@@ -394,7 +412,7 @@ function M.load_system_templates()
 end
 
 --- Loads user prompt templates from files and updates `M.user_prompts`.
-function M.load_user_prompts()
+function M.load_user_templates()
   M.user_prompts = load_templates "user"
 end
 
@@ -676,7 +694,7 @@ function M.prompt_template_picker()
           actions.close(picker_bufnr)
           if prompt.filename then
             utils.edit_file(prompt.filename, M.add_prompt_syntax_highlighting, "^name:%s*" .. utils.escape_pattern(prompt.name), function()
-              M.load_user_prompts() -- Reload templates after edited file is saved
+              M.load_user_templates() -- Reload templates after edited file is saved
             end)
           else
             utils.notify("No file associated with built-in prompt '" .. prompt.name .. "'", vim.log.levels.WARN)

@@ -50,29 +50,10 @@ return {
     )
     vim.keymap.set({ "n", "v" }, "<leader>lt", "<Cmd>Qanda /turn_picker<CR>", { desc = "Qanda.nvim open turn picker" })
 
-    -- Key mappings for commonly used custom prompt templates --
+    -- Key mappings for default prompt templates --
     vim.keymap.set({ "n", "v" }, "<Leader>ad", ":Qanda Dictionary definition<CR>", { desc = "Qanda.nvim dictionary definition" })
     vim.keymap.set({ "n", "v" }, "<Leader>as", ":Qanda Synonyms<CR>", { desc = "Qanda.nvim synonyms for word" })
     vim.keymap.set({ "n", "v" }, "<Leader>aS", ":Qanda Spell a word<CR>", { desc = "Qanda.nvim spell a word" })
-
-    -- Here are examples of the prompt templates referenced above:
-    --[[
-___
-name: Dictionary definition
-___
-Briefly explain the meaning and etymology the following word: ${input:Enter word to find in dictionary}
-
-___
-name: Spell a word
-___
-What is the correct spelling for "${input:Enter word to spell}"
-
-___
-name: Synonyms
-___
-List synonyms for "${cursor:Enter a word to find synonyms}"
-
-]]
 
   end,
 }
