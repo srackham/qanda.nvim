@@ -54,7 +54,7 @@ local default = {
   chat_copy_key = "<C-c>",
   chat_edit_key = "<C-e>",
   chat_prompt_key = "<C-x>",
-  chat_switch_key = "<Tab>",
+  chat_switch_key = "<S-Tab>",
   chat_new_prompt_key = "<C-Del>",
   chat_delete_key = "<C-d>",
   chat_next_key = "<C-n>",
@@ -81,7 +81,7 @@ local default = {
   prompt_new_chat_key = "<C-n>",
   prompt_redo_key = "<C-r>",
   prompt_new_key = "<C-Del>",
-  prompt_switch_key = "<Tab>",
+  prompt_switch_key = "<S-Tab>",
   prompt_inject_key = "<Leader>fi",
 
   -- Prompt template picker key commands --

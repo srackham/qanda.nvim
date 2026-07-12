@@ -131,8 +131,8 @@ These are the configurable key sequence options for the built-in pickers, they a
 
 The default mappings include:
 
-- `<Tab>` toggles between the Chat and Prompt windows.
-- `<Tab>` opens the Chat window from an edit buffer†, hit `<Tab>` twice to switch to the Prompt window.
+- `<S-Tab>` toggles between the Chat and Prompt windows.
+- `<S-Tab>` opens the Chat window from an edit buffer†, hit `<S-Tab>` twice to switch to the Prompt window.
 - `<C-Del>` (_Ctrl+Delete_) opens a blank Prompt window in insert mode from Chat and Prompt windows and from an edit buffer†.
 - `<C-h>` lists available picker commands for the current picker.
 
@@ -176,7 +176,7 @@ The Prompt window is a floating window into which the user enters questions and 
   - `<C-n>` - Submit the prompt to a new chat
   - `<C-r>` - Submit the prompt, replacing the latest turn in the current chat
   - `<C-Del>` - Clear the prompt window and enter insert mode
-  - `<Tab>` - Switch to the [chat window](#chat-window) †
+  - `<S-Tab>` - Switch to the [chat window](#chat-window) †
   - `<Esc>` - Close the prompt window †
   - `<Leader>fi` - Inject file(s) into the prompt as Markdown (the file path followed by the fenced contents)†
   - `<C-h>` - List key-mapped commands
@@ -197,7 +197,7 @@ The Chat window displays a chat, one turn at a time. Open the chat window with t
 - By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
 - Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
 - The chat window implements the following key-mapped commands:
-  - `<Tab>` - Switch to Prompt window
+  - `<S-Tab>` - Switch to Prompt window
   - `<C-x>` - Open the current turn's prompt in the Prompt window
   - `<C-Del>` - Open a blank Prompt window in insert mode
   - `<C-p>`/<C-n> Go to next/previous turn
