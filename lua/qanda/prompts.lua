@@ -317,11 +317,10 @@ local function load_templates(role)
   local result = {} ---@type Prompts
 
   -- Read and merge all *.md templates files
-  -- TODO: Need to merge local templates (if they exist) into global templates (see NOTES.md)
   local glob_pattern = Config.prompts_dir .. "/*." .. role .. ".md"
   local template_files = vim.fn.glob(glob_pattern, false, true)
 
-  -- If there are no prompts files then create example
+  -- If there are no role templates files then create default examples
   if #template_files == 0 then
     local path = Config.prompts_dir .. "/default." .. role .. ".md"
 
@@ -331,6 +330,7 @@ local function load_templates(role)
       vim.fn.mkdir(dir, "p")
     end
 
+    utils.notify("Creating default " .. role .. " templates file: " .. path, vim.log.levels.INFO)
     local f, err = io.open(path, "w")
     if not f then
       utils.notify("Error creating templates file '" .. path .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
@@ -353,7 +353,7 @@ What is the correct spelling for "${input:Enter word to spell}"
 ___
 name: Synonyms
 ___
-List synonyms for "${cursor:Enter a word to find synonyms}"
+List synonyms for the word "${input:Enter a word to find synonyms}:
 
 ___
 name: Antonyms

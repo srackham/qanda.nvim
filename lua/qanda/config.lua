@@ -121,27 +121,15 @@ function M.setup(opts)
   end
 
   -- Set configuration file locations
-  local global_data_dir = vim.fn.expand(M.data_dir) -- Global data directory
-  local local_data_dir = M.ROOT_DIR .. "/.qanda_nvim" -- Local project directory
+  M.data_dir = vim.fn.expand(M.data_dir)
+  M.prompts_dir = M.data_dir .. "/templates"
+  M.chats_dir = M.data_dir .. "/chats"
 
-  if vim.fn.isdirectory(local_data_dir) == 1 then
-    M.data_dir = local_data_dir
-  else
-    M.data_dir = global_data_dir
-  end
-
-  local dir = local_data_dir .. "/prompts"
-  if vim.fn.isdirectory(dir) == 1 then
-    M.prompts_dir = dir
-  else
-    M.prompts_dir = global_data_dir .. "/prompts"
-  end
-
-  dir = local_data_dir .. "/chats"
+  local project_data_dir = M.ROOT_DIR .. "/.qanda_nvim"
+  local dir = project_data_dir .. "/chats"
   if vim.fn.isdirectory(dir) == 1 then
     M.chats_dir = dir
   else
-    M.chats_dir = global_data_dir .. "/chats"
   end
 
   -- Restore state

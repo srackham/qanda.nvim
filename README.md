@@ -329,27 +329,17 @@ Qanda maintains a number of history and session data files:
   - Each chat is saved in a separate [JSONL](https://jsonlines.org/) file named like `<creation-date>.chat.json` with date format `YYYYMMDD_HHMMSS` e.g. `20260224_104421.chat.jsonl`.
   - Within each chat file is a chronologically ordered list of JSON-formatted turn objects.
 
-- The `prompts` directory containing [prompt and system template](#prompt-and-system-templates) files.
+- The [prompt and system template](#prompt-and-system-templates) files.
 
 ## Data directories
 
 Qanda [data files](#data-files) are sourced from two locations:
 
-- The global Qanda data directory which is set by the `data_dir` [configuration](#configuration) option and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
-- An optional Qanda local data directory `$PWD/.qanda_nvim`
-
-If an optional local directory exists then it will source `session.json` and, optionally, templates and chats files from the `prompts` and `chats` subdirectories respectively.
-
-- The `chats` directory contains the saved chats history (one file per chat).
-- The `prompts` directory contains the user [prompt templates](#prompt-and-system-templates) and [system message](#system-messages) templates.
-- If there is no local `chats` folder Qanda uses the global `chats` folder.
-- If there is no local `prompts` folder Qanda uses the global `prompts` folder.
-
-This scheme allows you to selectively share sessions, [templates](#prompt-and-system-templates) and chats across projects.
-
-Local data storage is initiated by creating a directory called `.qanda_nvim` in the project root directory. Creating sub-directories `prompts` and `chats` will confine prompt templates and chats to the project, otherwise they are sourced from the global locations.
-
-For example, executing the `mkdir -p .qanda_nvim/chats` shell command in the project root directory creates the local data folder and a sub-folder for chats files; since we didn't create a `prompts` templates folder, they will be sourced from the global data store.
+- The _global data directory_ which is set by the `data_dir` [configuration](#configuration) option and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
+- An optional _project data directory_ `$PWD/.qanda_nvim`
+- Files in the _project data directory_ take priority.
+- If there is no project `.qanda/chats` folder Qanda uses the global data directory `chats` folder.
+- [User prompt templates and system message templates](#prompt-and-system-templates) files are always sourced from the _global data directory_.
 
 ## Prompt and System templates
 
@@ -357,9 +347,9 @@ Named templates for user prompts and [system messages](#system-messages) are sel
 
 Both template types share the same text file format; they generate model request messages with "user" and "system" roles respectively.
 
-- Templates are stored (one or more per file) in the directory set by the `prompts_dir` [configuration](#configuration) option (it defaults to `~/.local/share/nvim/qanda_nvim/prompts/` on most Linux systems).
+- Templates are stored (one or more per file) in the `templates` subdirectory in the global data directory (it defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
 - Template files are named like `*.user.md` or `*.system.md`.
-- Templates can contain [template placeholders](#template-placeholders) which are expanded into the user prompt and system message.
+- Templates can contain [template placeholders](#template-placeholders) which are expanded to the user prompt and system message.
 
 ### Template placeholders
 
@@ -378,7 +368,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 - The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
 - The `${file:<file name>}` placeholder file location is determined by the file name directory prefix:
-  - No directory prefix defaults to the Qanda `prompts` [data directory](#data-directories) e.g. `${file:RULES.md}`
+  - No directory prefix defaults to the Qanda `templates` [data directory](#data-directories) e.g. `${file:RULES.md}`
   - A relative directory prefix is relative to the current working directory (reported by the `:pwd` command) e.g. `${file:./README.md}`
   - An absolute directory prefix can be used to specify any location e.g. `${file:~/.config/nvim/stylua.toml}`
 

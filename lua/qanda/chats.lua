@@ -116,6 +116,7 @@ function M.save_chat(chat)
 
   -- 2. Ensure the directory exists
   if vim.fn.isdirectory(dir) == 0 then
+    utils.notify("Creating chats directory: " .. dir, vim.log.levels.INFO)
     vim.fn.mkdir(dir, "p")
   end
 
