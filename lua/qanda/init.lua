@@ -187,7 +187,6 @@ function M.execute_prompt(prompt)
       prompt = vim.tbl_deep_extend("force", {}, prompt)
       local expanded = Prompts.substitute_placeholders(prompt.content)
       if not expanded then
-        utils.notify("User cancelled", vim.log.levels.INFO)
         return
       end
       prompt.name = nil

@@ -133,7 +133,7 @@ function M.read_file_to_string(filepath)
   end
   local content = file:read "*all"
   file:close()
-  return content
+  return content, nil
 end
 
 --- Writes a string to a file.

@@ -160,8 +160,9 @@ There are two types of Qanda commands: _slash commands_ (`:Qanda /<command>`) an
 | `:Qanda /system_template_picker` | Open the [System template picker](#system-template-picker)      |
 | `:Qanda /turn_picker`            | Open the chat [Turn picker](#turn-picker)                       |
 
-- Prompt template commands execute immediately, whereas executing with the [prompt template picker](#prompt-template-picker) will pause at the prompt window and await user confirmation before proceeding.
 - Qanda commands respond to tabbed command completion.
+- Prompt template commands execute immediately, whereas executing with the [prompt template picker](#prompt-template-picker) will pause at the prompt window and await user confirmation before proceeding.
+- Templates containing the `$cursor` placeholder are always opened in the Prompt window.
 
 ## Prompt window
 
@@ -357,13 +358,16 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 | Syntax                          | Description                                                       |
 | ------------------------------- | ----------------------------------------------------------------- |
-| `$cursor`, `${cursor:<prompt>}` | Positions the cursor in the Prompt window                         |
-| `$input`, `${input:<prompt>}`   | Prompts user for input and substitutes the input                  |
-| `$files`                        | Prompts the user with a file picker and injects the file(s)       |
-| `${file:<file name>}`           | Inject text file                                                  |
 | `$clipboard`                    | Substitutes content of system clipboard (alias for `$register_+`) |
-| `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
+| `$cursor`, `${cursor:<prompt>}` | Positions the cursor in the Prompt window                         |
+| `${file:<file name>}`           | Inject text file                                                  |
+| `$files`                        | Prompts the user with a file picker and injects the file(s)       |
+| `$input`, `${input:<prompt>}`   | Prompts user for input and substitutes the input                  |
 | `$register_<register name>`     | Substitutes content of specified register                         |
+| `${shell:<command>}`            | Substitutes `stdout` output from shell command                    |
+| `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
+
+- The `$input` placeholder initiates a new chat if its value ends in a space followed by a `+` character (the suffix is ignored if the template is opened in the Prompt window).
 
 - The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
@@ -382,12 +386,10 @@ The following placeholders are used in [prompt and system templates](#prompt-and
       ```
 
 - The `${cursor:<prompt>}` syntax displays a prompt message on the status line e.g. `${cursor:Enter a word to find antonyms}`, in all other respects it behaves the same as the `$cursor` syntax.
-- Templates containing the `$cursor` placeholder are always opened in the Prompt window.
-- Templates executed with the `:Qanda /prompt_template_picker` command are opened in the Prompt window.
-- Templates executed with a `:Qanda <template-name>` command are only opened in the Prompt window if they contain a _cursor_ placeholder.
-- Templates executed with a `:Qanda <template-name>` command initiate a new chat if an `$input` ends in a space followed by a `+` character.
-- Templates executed with a `:Qanda <template-name>` command initiate a new chat
-- When a template containing an `$input` placeholder is executed a new chat will be initiated if an `$input` placeholder's value ends in a space followed by a `+` character (the suffix is ignored if the template is opened in the Prompt window).
+
+- The `${shell:<command>}` placeholder is replaced by the output of the shell command.
+  - The shell command extends from the colon up to the last `}` character on the line.
+  - The shell command runs the command from Neovim’s current working directory.
 
 ### Template format
 

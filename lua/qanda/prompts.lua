@@ -76,7 +76,7 @@ function M.set_system_message(system_message_template, opts)
     -- Clone and expand the template and assign to State.system_message
     local system_message = vim.tbl_deep_extend("force", {}, system_message_template)
     local expanded = M.substitute_placeholders(system_message.content)
-    if not expanded then -- Substitution error
+    if not expanded then
       return
     end
     system_message.content = expanded
@@ -563,7 +563,7 @@ end
 
 local prompt_syntax_rules = {
   QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
-  QandaPromptPlaceholder = [[\v\$(cursor|input|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}|\$\{cursor:.{-}\}]],
+  QandaPromptPlaceholder = [[\v\$(cursor|input|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}|\$\{cursor:.{-}\}|\$\{shell:.*\}]],
 }
 
 -- Define highlight groups once (link to existing groups)
@@ -666,8 +666,6 @@ function M.prompt_template_picker()
               vim.schedule(function()
                 M.open_prompt(prompt)
               end)
-            else
-              utils.notify("User cancelled", vim.log.levels.INFO)
             end
           end)()
         else
@@ -844,10 +842,6 @@ end
 ---@param prompt_string string The prompt string containing placeholders to substitute
 ---@return string|nil The prompt with placeholders substituted, or `nil` if processing should abort i.e. user cancelled or substitution error.
 function M.substitute_placeholders(prompt_string, opts)
-  if utils.nil_or_blank(prompt_string) then
-    return nil
-  end
-
   -- Convert no-prompt syntax to canonical form
   prompt_string = prompt_string:gsub("%$cursor", "${cursor:}")
 
@@ -878,21 +872,44 @@ function M.substitute_placeholders(prompt_string, opts)
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))
   end)
-
   if cancelled then
+    utils.notify("User cancelled", vim.log.levels.INFO)
     return nil
   end
 
   -- Handle the ${file:<filename>} syntax
+  local file_error = false
   prompt_string = prompt_string:gsub("%${file:(.-)}", function(file_name)
     file_name = M.resolve_prompt_path(file_name)
     local file_content, err = utils.read_file_to_string(file_name)
-    if not file_content then
+    if file_content == nil then
+      file_error = true
       utils.notify("Error: " .. err, vim.log.levels.ERROR)
-      return file_content
+      return ""
     end
     return (file_content:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))
   end)
+  if file_error then
+    return nil
+  end
+
+  -- Handle the ${shell:<command>} syntax
+  local shell_error = false
+  prompt_string = prompt_string:gsub("%${shell:([^\n]*)}", function(cmd) -- Greedy match but don't cross line boundaries
+    local ok, out = pcall(function()
+      return vim.fn.system(cmd)
+    end)
+    if not ok or vim.v.shell_error ~= 0 then
+      shell_error = true
+      utils.notify("Error executing shell command: " .. cmd .. ": " .. out, vim.log.levels.ERROR)
+      out = "${shell:" .. cmd .. "}"
+    end
+    -- escape any `%` and `$` that the user may want to keep literally
+    return (out:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))
+  end)
+  if shell_error then
+    return nil
+  end
 
   -- Handle the $files syntax
   -- NOTE: Cannot use gsub with a callback here because concat_files_as_markdown_sync

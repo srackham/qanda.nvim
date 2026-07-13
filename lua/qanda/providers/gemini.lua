@@ -167,7 +167,7 @@ No API key was found. The key is required to authenticate with the Google Gemini
 - You can obtain an API key at <https://aistudio.google.com/apikey>]]
   end
 
-  -- The models endpoint requires a valid API key, so this single request tests both connectivity and auth.
+  -- The models endpoint requires a valid API key, so this single request tests both connectivity and authorisation.
   local ok, response
   ok = pcall(function()
     response = vim.fn.systemlist(
