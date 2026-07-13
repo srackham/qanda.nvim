@@ -692,8 +692,7 @@ end
 function M.delete_file(filename, opts)
   opts = opts or {}
   if opts.confirm then
-    local confirm_result = vim.fn.confirm("Delete '" .. filename .. "'?", "&Yes\n&No", 2)
-    if confirm_result ~= 1 then -- User did not select 'Yes'
+    if not M.confirm("Delete '" .. filename .. "'?") then
       M.notify("User aborted", vim.log.levels.INFO)
       return false
     end
@@ -816,6 +815,11 @@ function M.table_delete_item(tbl, item)
       break
     end
   end
+end
+
+--- @return boolean `true` if the user answers yes, `false` otherwise.
+function M.confirm(prompt)
+  return vim.fn.confirm(prompt, "&Yes\n&No", 2) == 1
 end
 
 return M
