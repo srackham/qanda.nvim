@@ -367,6 +367,8 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 | `${shell:<command>}`            | Substitutes `stdout` output from shell command                    |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 
+- Placeholders cannot cross line boundaries.
+
 - The `$input` placeholder initiates a new chat if its value ends in a space followed by a `+` character (the suffix is ignored if the template is opened in the Prompt window).
 
 - The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).

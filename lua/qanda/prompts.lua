@@ -849,7 +849,7 @@ function M.substitute_placeholders(prompt_string, opts)
   local DOLLAR_TAG = "\03"
 
   -- Non-printable characters are used to escape cursor placeholders to ensure occurrences in substituted text are ignored.
-  prompt_string = prompt_string:gsub("%${cursor:(.-)}", "\02%1\02", 1)
+  prompt_string = prompt_string:gsub("%${cursor:([^\n]-)}", "\02%1\02", 1)
 
   opts = opts or {}
 
@@ -858,7 +858,7 @@ function M.substitute_placeholders(prompt_string, opts)
 
   -- Handle the ${input:<prompt>} syntax
   local cancelled = false
-  prompt_string = prompt_string:gsub("%${input:(.-)}", function(prompt_text)
+  prompt_string = prompt_string:gsub("%${input:([^\n]-)}", function(prompt_text)
     if utils.nil_or_blank(prompt_text) then
       prompt_text = "Input"
     end
@@ -879,7 +879,7 @@ function M.substitute_placeholders(prompt_string, opts)
 
   -- Handle the ${file:<filename>} syntax
   local file_error = false
-  prompt_string = prompt_string:gsub("%${file:(.-)}", function(file_name)
+  prompt_string = prompt_string:gsub("%${file:([^\n]-)}", function(file_name)
     file_name = M.resolve_prompt_path(file_name)
     local file_content, err = utils.read_file_to_string(file_name)
     if file_content == nil then
