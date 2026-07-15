@@ -416,6 +416,23 @@ function M.load_user_templates()
   M.user_prompts = load_templates "user"
 end
 
+---Checks if the prompt specifies a system message template and validates it.
+---@param prompt Prompt|nil The prompt object to check.
+---@return Prompt|nil The system message template if specified and found, otherwise `nil`.
+---@return boolean True if an error occurred (e.g. invalid template name), false otherwise.
+function M.has_system_prompt(prompt)
+  local result = nil
+  local err = false
+  if prompt and prompt.model_options and prompt.model_options.system then
+    result = M.get_prompt(M.system_messages, prompt.model_options.system)
+    if result == nil then
+      utils.notify("Invalid system message template name: '" .. prompt.model_options.system .. "'", vim.log.levels.ERROR)
+      err = true
+    end
+  end
+  return result, err
+end
+
 ---Open prompt window, load the prompt.
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 ---@param prompt Prompt?
@@ -487,6 +504,10 @@ function M.open_prompt(prompt)
     win:close()
     local p = parse_prompt(lines)
     if p then
+      local _, err = M.has_system_prompt(p)
+      if err then
+        return
+      end
       require("qanda").execute_prompt(p)
     end
   end, { buffer = win.bufnr })
@@ -496,6 +517,10 @@ function M.open_prompt(prompt)
     win:close()
     local p = parse_prompt(lines)
     if p then
+      local _, err = M.has_system_prompt(p)
+      if err then
+        return
+      end
       require("qanda.chats").new_chat()
       require("qanda.chats").open_chat()
       require("qanda").execute_prompt(p)
@@ -562,7 +587,7 @@ function M.open_prompt(prompt)
 end
 
 local prompt_syntax_rules = {
-  QandaPromptProperty = [[\v^(name|prompt|temperature|top_p|max_tokens|stream):]],
+  QandaPromptProperty = [[\v^(name|prompt|system|temperature|top_p|max_tokens|stream):]],
   QandaPromptPlaceholder = [[\v\$(cursor|input|clipboard|yanked|register_.|register|files)|\$\{input:.{-}\}|\$\{file:.{-}\}|\$\{cursor:.{-}\}|\$\{shell:.*\}]],
 }
 

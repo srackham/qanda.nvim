@@ -352,6 +352,42 @@ Both template types share the same text file format; they generate model request
 - Template files are named like `*.user.md` or `*.system.md`.
 - Templates can contain [template placeholders](#template-placeholders) which are expanded to the user prompt and system message.
 
+### Template format
+
+A template is a Markdown text file containing one or more templates separated by a template header.
+
+A template header consists of one or more property declarations formatted like `<name>: <value>` and delimited top and bottom by a line containing three underscore characters.
+
+Example prompt template:
+
+```
+___
+name: Synonyms
+___
+List synonyms for "${input:Enter word}"
+```
+
+System templates can use the same [placeholders](#template-placeholders) as prompt templates (with the exception of interactive placeholders). Here are a couple of examples of system templates:
+
+```
+___
+name: Generic
+temperature: 0.5
+___
+${file:GENERIC_RULES.md}
+
+___
+name: Sarcastic math teacher
+___
+You are a sarcastic math tutor. Use LaTeX for formulas.
+```
+
+### Template properties
+
+- The `name` property is the displayed template name and is mandatory.
+- The optional prompt template `system` property is the name of a system message template.
+- All other properties are optional and are assumed to be [model options](#model-options).
+
 ### Template placeholders
 
 The following placeholders are used in [prompt and system templates](#prompt-and-system-templates).
@@ -392,38 +428,6 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 - The `${shell:<command>}` placeholder is replaced by the output of the shell command.
   - The shell command extends from the colon up to the last `}` character on the line.
   - The shell command runs the command from Neovim’s current working directory.
-
-### Template format
-
-A template is a Markdown text file containing one or more templates separated by a template header.
-
-A template header consists of one or more property declarations formatted like `<name>: <value>` and delimited top and bottom by a line containing three underscore characters.
-
-- The `name` property is the displayed template name and is mandatory, all other properties are optional and are assumed to be [model options](#model-options).
-
-Example prompt template:
-
-```
-___
-name: Synonyms
-___
-List synonyms for "${input:Enter word}"
-```
-
-System templates can use the same [placeholders](#template-placeholders) as prompt templates (with the exception of interactive placeholders). Here are a couple of examples of system templates:
-
-```
-___
-name: Generic
-temperature: 0.5
-___
-${file:GENERIC_RULES.md}
-
-___
-name: Sarcastic math teacher
-___
-You are a sarcastic math tutor. Use LaTeX for formulas.
-```
 
 ## System messages
 

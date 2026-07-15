@@ -229,13 +229,29 @@ function M.execute_prompt(prompt)
       table.remove(turns)
     end
 
+    -- Set the system message if we're executing the first chat turn
+    if #turns == 0 then
+      local template, err = Prompts.has_system_prompt(prompt)
+      if err then
+        return
+      end
+      if template ~= nil then
+        -- Use the system message template specified in the prompt `system` property
+        local expanded = Prompts.substitute_placeholders(template.content)
+        if not expanded then
+          return
+        end
+        turn.system = expanded
+      elseif State.system_message then
+        turn.system = State.system_message.content
+      end
+    end
+
+    -- Don't pass the prompt template system property to the turn because it's not a model option and its been processed
+    turn.model_options.system = nil
+
     -- Append the new turn to current chat.
     table.insert(turns, turn)
-
-    -- Set the system message if we're executing the first chat turn
-    if #turns == 1 and State.system_message then
-      turn.system = State.system_message.content
-    end
 
     -- Create the model Request object
     local request_data = {
