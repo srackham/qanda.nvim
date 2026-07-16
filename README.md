@@ -174,7 +174,7 @@ The Prompt window is a floating window into which the user enters questions and 
 - A prompt is submitted for execution either from the prompt window, or with a `:Qanda <prompt-template-name>` command.
 - A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_template_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
-  - `<C-s>` - Submit the prompt to the current chat
+  - `<C-a>` - Submit the prompt to the current chat
   - `<C-n>` - Submit the prompt to a new chat
   - `<C-r>` - Submit the prompt, replacing the latest turn in the current chat
   - `<C-Del>` - Clear the prompt window and enter insert mode
@@ -189,7 +189,7 @@ The Prompt window is a floating window into which the user enters questions and 
 
 ![Alt text](screenshots/chat-window.png)
 
-The Chat window displays a chat, one turn at a time. Open the chat window with the `:Qanda /chat_window` command, or from the _[chat picker](#chat-picker)_ or _[prompt window](#prompt-window)_.
+The read-only Chat window displays a chat, one turn at a time. Open the chat window with the `:Qanda /chat_window` command, or from the _[chat picker](#chat-picker)_ or _[prompt window](#prompt-window)_.
 
 - A new chat can be created with the `:Qanda /new_chat` command or directly from the _[prompt window](#prompt-window)_.
 - Chats are saved automatically at each turn and the chat window is updated with streamed response messages from model.
@@ -200,16 +200,16 @@ The Chat window displays a chat, one turn at a time. Open the chat window with t
 - Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
 - The chat window implements the following key-mapped commands:
   - `<S-Tab>` - Switch to Prompt window
-  - `<C-x>` - Open the current turn's prompt in the Prompt window
   - `<C-Del>` - Open a blank Prompt window in insert mode
-  - `<C-p>`/<C-n> Go to next/previous turn
-  - `<C-d>` - Delete the current turn, if last turn delete the chat
-  - `<C-e>` - Open the chat file in the editor at the selected turn
-  - `<C-r>` - Delete the latest turn from the chat and open its prompt in the Prompt window
-  - `<C-k>` - Abort the current request
-  - `<C-z>` - Toggle truncated prompt and system message fields
   - `<C-c>` - Copy the turn response to clipboard
   - `<Esc>` - Close the Chat window
+  - `<C-n>`/`<C-p>` Go to next/previous turn
+  - `<C-k>` - Abort the current request
+  - `<C-d>` - Delete the current turn, if last turn delete the chat
+  - `e` - Open the chat file in the editor at the selected turn
+  - `p` - Open the current turn's prompt in the Prompt window
+  - `r` - Delete the latest turn from the chat and open its prompt in the Prompt window
+  - `t` - Toggle truncated prompt and system message fields
   - `<C-h>` - List key-mapped commands
 
 ## Prompt template picker

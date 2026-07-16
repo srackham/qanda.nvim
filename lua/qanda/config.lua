@@ -49,18 +49,19 @@ local default = {
   help_key = "<C-h>", -- Display a list of picker commands
 
   -- Chat window key commands --
-  chat_abort_key = "<C-k>",
+  -- The Chat window is read-only, all commands execute in normal mode
   chat_close_key = "<Esc>",
-  chat_copy_key = "<C-c>",
-  chat_edit_key = "<C-e>",
-  chat_prompt_key = "<C-x>",
-  chat_switch_key = "<S-Tab>",
   chat_new_prompt_key = "<C-Del>",
-  chat_delete_key = "<C-d>",
+  chat_switch_key = "<S-Tab>",
+  chat_copy_key = "<C-c>",
+  chat_abort_key = "<C-k>",
   chat_next_key = "<C-n>",
   chat_prev_key = "<C-p>",
-  chat_redo_key = "<C-r>",
-  chat_truncate_key = "<C-z>",
+  chat_delete_key = "<C-d>",
+  chat_edit_key = "e",
+  chat_prompt_key = "p",
+  chat_redo_key = "r",
+  chat_truncate_key = "t",
 
   -- Chat picker key commands --
   chat_picker_delete_key = "<C-d>",
@@ -77,7 +78,7 @@ local default = {
   -- Prompt window key commands --
   prompt_abort_key = "<C-k>",
   prompt_close_key = "<Esc>",
-  prompt_submit_key = "<C-s>",
+  prompt_submit_key = "<C-a>",
   prompt_new_chat_key = "<C-n>",
   prompt_redo_key = "<C-r>",
   prompt_new_key = "<C-Del>",

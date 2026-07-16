@@ -248,25 +248,25 @@ function M.open_chat(chat, turn)
   })
 
   -- Attach key commands.
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_close_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_close_key, function()
     if curl.active_job_warning() then
       return
     end
     win:close()
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_abort_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_abort_key, function()
     curl.kill_command()
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_switch_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_switch_key, function()
     if curl.active_job_warning() then
       return
     end
     vim.cmd "Qanda /prompt_window"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_prompt_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_prompt_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -278,7 +278,7 @@ function M.open_chat(chat, turn)
     }
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_new_prompt_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_new_prompt_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -288,7 +288,7 @@ function M.open_chat(chat, turn)
     vim.cmd "startinsert"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_prev_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_prev_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -300,7 +300,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_next_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_next_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -312,7 +312,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_delete_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_delete_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -320,7 +320,7 @@ function M.open_chat(chat, turn)
     M.open_chat(win.chat, win.current_turn)
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_edit_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_edit_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -340,7 +340,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_redo_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_redo_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -360,7 +360,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   -- Toggle chat display fields
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_truncate_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_truncate_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -370,7 +370,7 @@ function M.open_chat(chat, turn)
   end, { buffer = win.bufnr })
 
   -- Copy chat window response to system clipboard
-  vim.keymap.set({ "n", "v", "i" }, Config.chat_copy_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_copy_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -378,11 +378,12 @@ function M.open_chat(chat, turn)
       local response = win.current_turn.response
       if response and response ~= "" then
         vim.fn.setreg("+", response)
+        utils.notify("Model response copied to clipboard", vim.log.levels.INFO)
       end
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
+  vim.keymap.set({ "n", "v" }, Config.help_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -391,32 +392,32 @@ function M.open_chat(chat, turn)
 Normal mode commands:
 
 - %s - Switch to Prompt window
-- %s - Open the current turn's prompt in the Prompt window
 - %s - Open a blank Prompt window in insert mode
-- %s/%s Go to next/previous turn
-- %s - Delete the current turn, if last turn delete the chat
-- %s - Open the chat file in the editor at the selected turn
-- %s - Delete the latest turn from the chat and open its prompt in the Prompt window
-- %s - Abort the current request
-- %s - Toggle truncated prompt and system message fields
 - %s - Copy the turn response to clipboard
 - %s - Close the Chat window
+- %s/%s Go to next/previous turn
+- %s - Abort the current request
+- %s - Delete the current turn, if last turn delete the chat
+- %s - Open the chat file in the editor at the selected turn
+- %s - Open the current turn's prompt in the Prompt window
+- %s - Delete the latest turn from the chat and open its prompt in the Prompt window
+- %s - Toggle truncated prompt and system message fields
 
 ]]):format(
       Config.chat_switch_key,
-      Config.chat_prompt_key,
       Config.chat_new_prompt_key,
-      Config.chat_prev_key,
+      Config.chat_copy_key,
+      Config.chat_close_key,
       Config.chat_next_key,
+      Config.chat_prev_key,
+      Config.chat_abort_key,
       Config.chat_delete_key,
       Config.chat_edit_key,
+      Config.chat_prompt_key,
       Config.chat_redo_key,
-      Config.chat_abort_key,
-      Config.chat_truncate_key,
-      Config.chat_copy_key,
-      Config.chat_close_key
+      Config.chat_truncate_key
     )
-    vim.notify(help_message, vim.log.levels.INFO)
+    utils.notify(help_message, vim.log.levels.INFO)
   end, { buffer = win.bufnr, desc = "Show Chat window help" })
 end
 
