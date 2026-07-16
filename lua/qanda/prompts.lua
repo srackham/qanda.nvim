@@ -6,7 +6,7 @@ local curl = require "qanda.curl"
 
 local M = {
   CURSOR_TAG = "\02(.-)\02", -- Prompt cursor placeholder tag
-  NEW_CHAT_TAG = "\04", -- Prompt new chat tag
+  APPEND_CHAT_TAG = "\04", -- Prompt new chat tag
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -448,8 +448,8 @@ function M.open_prompt(prompt)
   M.add_prompt_syntax_highlighting(win.bufnr)
 
   if prompt then
-    if prompt.content:find(M.NEW_CHAT_TAG) ~= nil then
-      prompt.content = prompt.content:gsub(M.NEW_CHAT_TAG, "") -- Delete the new chat tags
+    if prompt.content:find(M.APPEND_CHAT_TAG) ~= nil then
+      prompt.content = prompt.content:gsub(M.APPEND_CHAT_TAG, "") -- Delete the append chat tags
       utils.notify("New chat input suffix ignored", vim.log.levels.WARN)
     end
 
@@ -508,6 +508,7 @@ function M.open_prompt(prompt)
       if err then
         return
       end
+      p.content = p.content .. M.APPEND_CHAT_TAG
       require("qanda").execute_prompt(p)
     end
   end, { buffer = win.bufnr })
@@ -563,8 +564,8 @@ function M.open_prompt(prompt)
   vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
     local help_message = ([[-- Prompt Window Commands --
 
-- %s - Submit the prompt to the current chat
-- %s - Submit the prompt to a new chat
+- %s - Submit the prompt with the current chat
+- %s - Submit the prompt in a new chat
 - %s - Submit the prompt to the current chat replacing the latest turn
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to Chat window †
@@ -892,7 +893,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     if answer:match " %+$" then
-      answer = answer:gsub(" %+$", M.NEW_CHAT_TAG)
+      answer = answer:gsub(" %+$", M.APPEND_CHAT_TAG)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))

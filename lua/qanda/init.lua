@@ -206,8 +206,9 @@ function M.execute_prompt(prompt)
       return
     end
 
-    if prompt.content:find(Prompts.NEW_CHAT_TAG) ~= nil then
-      prompt.content = prompt.content:gsub(Prompts.NEW_CHAT_TAG, "") -- Delete the new chat tags
+    if prompt.content:find(Prompts.APPEND_CHAT_TAG) ~= nil then
+      prompt.content = prompt.content:gsub(Prompts.APPEND_CHAT_TAG, "") -- Delete the append chat tags
+    else
       Chats.new_chat()
     end
 
