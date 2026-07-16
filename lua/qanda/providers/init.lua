@@ -114,7 +114,6 @@ function M.set_provider(provider_name, model_name)
       State.saved_state.provider = provider.name
       M.update_recent_models(provider_name, model_name)
       State.save_state()
-      utils.notify("Model set to " .. provider_name .. "/" .. model_name, vim.log.levels.INFO)
       return provider
     end
   end

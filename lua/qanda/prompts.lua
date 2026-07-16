@@ -449,8 +449,8 @@ function M.open_prompt(prompt)
 
   if prompt then
     if prompt.content:find(M.APPEND_CHAT_TAG) ~= nil then
-      prompt.content = prompt.content:gsub(M.APPEND_CHAT_TAG, "") -- Delete the append chat tags
-      utils.notify("New chat input suffix ignored", vim.log.levels.WARN)
+      prompt.content = prompt.content:gsub(M.APPEND_CHAT_TAG, "") -- Delete unused append chat tags
+      utils.notify("New chat input placeholder suffixes ignored", vim.log.levels.WARN)
     end
 
     local lines = M.prompt_to_lines(prompt)
