@@ -111,7 +111,7 @@ You could set the `api_key` with the actual key value, but this is not recommend
 
 ### Key mappings
 
-There are two types of key mappings: _Vim key mappings_ and _built-in key mappings_, both are user configurable.
+There are two types of key mappings: _[Vim key mappings](#vim-key-mappings)_ and _[built-in key mappings](#built-in-key-mappings)_, both are user configurable.
 
 #### Vim key mappings
 
@@ -125,7 +125,7 @@ These are the configurable key sequence options for the built-in pickers, they a
 - These configuration options are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
 > [!TIP]
-> To disable a built-in key mapping set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+> To disable a _[built-in key mapping](#built-in-key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
 
 #### Default key mappings
 
@@ -347,9 +347,9 @@ Qanda [data files](#data-files) are sourced from two locations:
 
 Named templates for user prompts and [system messages](#system-messages) are selected and managed with the _[prompt template picker](#prompt-template-picker)_ and _[system template picker](#system-template-picker)_ respectively.
 
-Both template types share the same text file format; they generate model request messages with "user" and "system" roles respectively.
+Both _[template types](#prompt-and-system-templates)_ share the same text file format; they generate model request messages with "user" and "system" roles respectively.
 
-- Templates are stored (one or more per file) in the `templates` subdirectory in the global data directory (it defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
+- _[Templates](#prompt-and-system-templates)_ are stored (one or more per file) in the `templates` subdirectory in the global data directory (it defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
 - Template files are named like `*.user.md` or `*.system.md`.
 - Templates can contain [template placeholders](#template-placeholders) which are expanded to the user prompt and system message.
 
