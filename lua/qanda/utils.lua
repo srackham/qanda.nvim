@@ -226,13 +226,18 @@ function M.new_spinner(message, opts)
     end
   end)
 
-  -- Start the animation loop
-  function control.start()
-    if coroutine.status(co) ~= "dead" then
-      stopped = false
-      spinner_timer = vim.defer_fn(control.start, interval)
+  -- Queue the next animation frame timer and resume the coroutine to display the current animation frame
+  local function start()
+    if stopped == false and coroutine.status(co) ~= "dead" then
+      spinner_timer = vim.defer_fn(start, interval)
       coroutine.resume(co)
     end
+  end
+
+  -- Start the animation loop
+  function control.start()
+    stopped = false
+    start()
   end
 
   ---@param done_message? string
