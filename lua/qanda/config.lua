@@ -67,6 +67,7 @@ local default = {
   chat_picker_delete_key = "<C-d>",
   chat_picker_rename_key = "<C-l>",
   chat_picker_edit_key = "<C-e>",
+  chat_picker_turns_key = "<C-t>",
   chat_picker_open_key = "<Enter>",
 
   -- Turn picker key commands --

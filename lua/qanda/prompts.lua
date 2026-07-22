@@ -568,8 +568,8 @@ function M.open_prompt(prompt)
 - %s - Submit the prompt in a new chat
 - %s - Submit the prompt to the current chat replacing the latest turn
 - %s - Clear the prompt window and enter insert mode
-- %s - Switch to Chat window †
-- %s - Close Prompt window †
+- %s - Switch to the Chat window †
+- %s - Close the Prompt window †
 - %s - Inject file(s) into the prompt †
 
 † Normal mode
@@ -731,7 +731,7 @@ function M.prompt_template_picker()
 
 - %s - Expand the prompt template and open in the prompt window
 - %s - Expand and execute the selected prompt template
-- %s - Edit prompt templates file
+- %s - Edit the prompt templates file
 
 ]]):format(Config.prompt_picker_open_key, Config.prompt_picker_exec_key, Config.prompt_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)
@@ -819,10 +819,10 @@ function M.system_template_picker()
       map({ "n", "i" }, Config.help_key, function()
         local help_message = ([[-- System Message Template Picker Commands --
 
-- %s - Enable system message
-- %s - Disable system message
-- %s - Edit system message templates file
-- <Esc> - Close picker
+- %s - Enable the system message
+- %s - Disable the system message
+- %s - Edit the system message templates file
+- <Esc> - Close the picker
 
 ]]):format(Config.system_picker_select_key, Config.system_picker_disable_key, Config.system_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)

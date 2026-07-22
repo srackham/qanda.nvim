@@ -32,6 +32,15 @@ function M.setup()
   end
 end
 
+--- Refresh chat window if it is open.
+local function refresh_chat_window()
+  local win = State.chat_window
+  if win and win:is_open() and win.current_turn then
+    local lines = M.turn_to_lines(win.chat, win.current_turn)
+    win:set_lines(lines)
+  end
+end
+
 --- Parse JSONL lines into chat turns.
 ---@param lines string[] Array of JSON strings.
 ---@return ChatTurn[]|nil result Array of parsed turns, or nil on parse error.
@@ -391,13 +400,13 @@ function M.open_chat(chat, turn)
 
 Normal mode commands:
 
-- %s - Switch to Prompt window
+- %s - Switch to the Prompt window
 - %s - Open a blank Prompt window in insert mode
 - %s - Copy the turn response to clipboard
 - %s - Close the Chat window
 - %s/%s Go to next/previous turn
 - %s - Abort the current request
-- %s - Delete the current turn, if last turn delete the chat
+- %s - Delete the current turn, if it is the last turn delete the chat
 - %s - Open the chat file in the editor at the selected turn
 - %s - Open the current turn's prompt in the Prompt window
 - %s - Delete the latest turn from the chat and open its prompt in the Prompt window
@@ -628,10 +637,16 @@ function M.chat_picker()
         assert(chat)
         M.open_chat(chat, chat.turns[#chat.turns]) -- Open at most recent turn
         M.set_recent_chat_file(chat.filename)
-      else
-        utils.notify("User cancelled", vim.log.levels.INFO)
       end
-    end, { desc = "Close the picker and open the chat in the chat window" })
+    end, { desc = "Close the picker and open the chat in the Chat window" })
+
+    map({ "n", "i" }, Config.chat_picker_turns_key, function()
+      local selection = action_state.get_selected_entry()
+      if selection then
+        local chat = selection.value
+        M.turns_picker(chat)
+      end
+    end, { desc = "Open the chat in the Turn picker" })
 
     map({ "n", "i" }, Config.chat_picker_delete_key, function()
       delete_entry(picker_bufnr)
@@ -680,12 +695,19 @@ function M.chat_picker()
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Chat Picker Commands --
 
-- %s - Open chat in Chat window
-- %s - Delete selected chat
-- %s - Rename selected chat
+- %s - Open the selected chat in Chat window
+- %s - Open the selected chat in the Turn picker
+- %s - Delete the selected chat
+- %s - Rename the selected chat
 - %s - Edit the chat file
 
-]]):format(Config.chat_picker_open_key, Config.chat_picker_delete_key, Config.chat_picker_rename_key, Config.chat_picker_edit_key)
+]]):format(
+        Config.chat_picker_open_key,
+        Config.chat_picker_turns_key,
+        Config.chat_picker_delete_key,
+        Config.chat_picker_rename_key,
+        Config.chat_picker_edit_key
+      )
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Chat picker help" })
 
@@ -736,7 +758,8 @@ function M.chat_name(chat)
 end
 
 --- Open a Telescope picker to select and manage turns in the current chat.
-function M.turns_picker()
+---@param chat? Chat The chat.
+function M.turns_picker(chat)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
   local finders = require "telescope.finders"
@@ -744,7 +767,7 @@ function M.turns_picker()
   local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
 
-  local current_chat = State.chat_window.chat
+  local current_chat = chat or State.chat_window.chat
   assert(current_chat)
   local current_turn = State.chat_window.current_turn
 
@@ -768,7 +791,7 @@ function M.turns_picker()
       once = true,
       callback = function()
         -- Reload the chat window if it is open and a deletion occurred
-        if not State.chat_window.current_turn and State.chat_window:is_open() then
+        if current_chat == State.chat_window.chat and not State.chat_window.current_turn and State.chat_window:is_open() then
           M.open_chat(State.chat_window.chat)
         end
       end,
@@ -798,6 +821,9 @@ function M.turns_picker()
 
     map({ "n", "i" }, Config.turn_picker_delete_key, function()
       delete_entry(picker_bufnr)
+      if current_chat == State.chat_window.chat then
+        refresh_chat_window()
+      end
     end, { desc = "Close the picker and delete the selected chat file" })
 
     map({ "n", "i" }, Config.turn_truncate_key, function()
@@ -825,22 +851,17 @@ function M.turns_picker()
         M.add_chat_syntax_highlighting(previewer.state.bufnr)
       end
 
-      -- Refresh chat window if open
-      local win = State.chat_window
-      if win and win:is_open() and win.current_turn then
-        local lines = M.turn_to_lines(win.chat, win.current_turn)
-        win:set_lines(lines)
-      end
+      refresh_chat_window()
 
     end, { desc = "Toggle truncated fields in preview" })
 
     map({ "n", "i" }, Config.help_key, function()
       local help_message = ([[-- Turn Picker Commands --
 
-- %s - Open turn in Chat window
+- %s - Open the selected turn in the Chat window
 - %s - Open Prompt window with selected turn's prompt
-- %s - Delete selected turn
-- %s - Toggle truncated fields in preview
+- %s - Delete the selected turn
+- %s - Toggle truncated fields in the Preview
 
 ]]):format(Config.turn_picker_open_key, Config.turn_prompt_key, Config.turn_picker_delete_key, Config.turn_truncate_key)
       vim.notify(help_message, vim.log.levels.INFO)
