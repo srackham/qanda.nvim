@@ -174,13 +174,13 @@ The Prompt window is a floating window into which the user enters questions and 
 - A prompt is submitted for execution either from the prompt window, or with a `:Qanda <prompt-template-name>` command.
 - A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_template_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
-  - `<C-a>` - Submit the prompt to the current chat
-  - `<C-n>` - Submit the prompt to a new chat
-  - `<C-r>` - Submit the prompt, replacing the latest turn in the current chat
+  - `<C-a>` - Submit the prompt with the current chat
+  - `<C-n>` - Submit the prompt in a new chat
+  - `<C-r>` - Submit the prompt to the current chat replacing the latest turn
   - `<C-Del>` - Clear the prompt window and enter insert mode
-  - `<S-Tab>` - Switch to the [chat window](#chat-window) †
-  - `<Esc>` - Close the prompt window †
-  - `<Leader>fi` - Inject file(s) into the prompt as Markdown (the file path followed by the fenced contents)†
+  - `<S-Tab>` - Switch to the Chat window †
+  - `<Esc>` - Close the Prompt window †
+  - `<Leader>fi` - Inject file(s) into the prompt †
   - `<C-h>` - List key-mapped commands
 
 † Normal mode commands
@@ -199,17 +199,17 @@ The read-only Chat window displays a chat, one turn at a time. Open the chat win
 - By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
 - Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
 - The chat window implements the following key-mapped commands:
-  - `<S-Tab>` - Switch to Prompt window
+  - `<S-Tab>` - Switch to the Prompt window
   - `<C-Del>` - Open a blank Prompt window in insert mode
   - `<C-c>` - Copy the turn response to clipboard
   - `<Esc>` - Close the Chat window
-  - `<C-n>`/`<C-p>` Go to next/previous turn
+  - `<C-n>/<C-p>` Go to next/previous turn
   - `<C-k>` - Abort the current request
-  - `<C-d>` - Delete the current turn, if last turn delete the chat
-  - `e` - Open the chat file in the editor at the selected turn
-  - `p` - Open the current turn's prompt in the Prompt window
-  - `r` - Delete the latest turn from the chat and open its prompt in the Prompt window
-  - `t` - Toggle truncated prompt and system message fields
+  - `<C-d>` - Delete the current turn, if it is the last turn delete the chat
+  - e - Open the chat file in the editor at the selected turn
+  - p - Open the current turn's prompt in the Prompt window
+  - r - Delete the latest turn from the chat and open its prompt in the Prompt window
+  - t - Toggle truncated prompt and system message fields
   - `<C-h>` - List key-mapped commands
 
 ## Prompt template picker
@@ -220,9 +220,10 @@ The _prompt template picker_ is used to select a user [prompt template](#prompt-
 
 - The prompt template picker implements the following key-mapped commands:
   - `<Enter>` - Expand the prompt template and open in the [prompt window](#prompt-window)
-  - `<C-x>` - Expand and execute the selected prompt template immediately
+  - `<C-x>` - Expand and execute the selected prompt template
   - `<C-e>` - Edit prompt templates file
   - `<Esc>` - Close the picker
+  - `<C-h>` - List key-mapped commands
 
 ## System template picker
 
@@ -231,10 +232,11 @@ The _prompt template picker_ is used to select a user [prompt template](#prompt-
 The _system template picker_ is used to select and enable or disable the [system message](#system-messages). It is opened with the `:Qanda /system_template_picker` command.
 
 - The system template picker implements the following key-mapped commands:
-  - `<Enter>` - Enable system message
-  - `<C-d>` - Disable system message
-  - `<C-e>` - Edit system message templates file
-  - `<Esc>` - Close picker
+  - `<Enter>` - Enable the system message
+  - `<C-d>` - Disable the system message
+  - `<C-e>` - Edit the system message templates file
+  - `<Esc>` - Close the picker
+  - `<C-h>` - List key-mapped commands
 
 In addition to setting the default system message:
 
@@ -252,11 +254,13 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
 - The most recent chat is restored when the plugin is loaded.
 - The default chat name displayed in the chat picker is from the first words of the chat's first turn request (you can rename the chat with the chat picker `<C-l>` key-mapped command).
 - The _chat picker_ implements the following key-mapped commands:
-  - `<Enter>` - Open chat in the [chat window](#chat-window)
-  - `<C-d>` - Delete selected chat
-  - `<C-l>` - Rename selected chat
+  - `<Enter>` - Open the selected chat in Chat window
+  - `<C-t>` - Open the selected chat in the Turn picker
+  - `<C-d>` - Delete the selected chat
+  - `<C-l>` - Rename the selected chat
   - `<C-e>` - Edit the chat file
   - `<Esc>` - Close the picker
+  - `<C-h>` - List key-mapped commands
 
 ## Turn picker
 
@@ -264,11 +268,12 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
 
 The _turn picker_ displays the turns in the current chat, it implements the following key-mapped commands and is opened with the `:Qanda /turn_picker` command:
 
-- `<Enter>` - Open selected turn in the [chat window](#chat-window)
+- `<Enter>` - Open the selected turn in the Chat window
 - `<C-x>` - Open Prompt window with selected turn's prompt
 - `<C-d>` - Delete the selected turn
-- `<C-z>` - Toggle truncated fields in the preview window
+- `<C-z>` - Toggle truncated fields in the Preview
 - `<Esc>` - Close the picker
+- `<C-h>` - List key-mapped commands
 
 ## Provider picker
 
