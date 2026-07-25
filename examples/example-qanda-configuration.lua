@@ -19,7 +19,7 @@ return {
     }
 
     -- Key mappings for builtin commands --
-    vim.keymap.set("n", "<Tab>", "<Cmd>Qanda /chat_window<CR>", { desc = "Qanda.nvim open user chat window" })
+    vim.keymap.set({ "n", "v" }, "<S-Tab>", "<Cmd>Qanda /chat_window<CR>", { desc = "Qanda.nvim open user Chat window" })
     vim.keymap.set({ "n", "v" }, "<Leader>lq", "<Cmd>Qanda /prompt_window<CR>", { desc = "Qanda.nvim open Prompt window" })
     vim.keymap.set({ "n", "v", "i" }, "<C-Del>", "<Cmd>Qanda /new_prompt<CR>", { desc = "Qanda.nvim open new prompt" })
     vim.keymap.set(
@@ -50,8 +50,11 @@ return {
     )
     vim.keymap.set({ "n", "v" }, "<leader>lt", "<Cmd>Qanda /turn_picker<CR>", { desc = "Qanda.nvim open turn picker" })
 
-    -- Key mappings for default prompt templates --
+    -- Key mappings for commonly used custom prompt templates --
+    vim.keymap.set({ "n", "v" }, "<Leader>aq", ":Qanda Query<CR>", { desc = "Qanda.nvim ask a question" })
     vim.keymap.set({ "n", "v" }, "<Leader>ad", ":Qanda Dictionary definition<CR>", { desc = "Qanda.nvim dictionary definition" })
+    vim.keymap.set({ "n", "v" }, "<Leader>al", ":Qanda Latin word meaning<CR>", { desc = "Qanda.nvim Latin word to English" })
+    vim.keymap.set({ "n", "v" }, "<Leader>aa", ":Qanda Antonyms<CR>", { desc = "Qanda.nvim antonyms for word" })
     vim.keymap.set({ "n", "v" }, "<Leader>as", ":Qanda Synonyms<CR>", { desc = "Qanda.nvim synonyms for word" })
     vim.keymap.set({ "n", "v" }, "<Leader>aS", ":Qanda Spell a word<CR>", { desc = "Qanda.nvim spell a word" })
 
