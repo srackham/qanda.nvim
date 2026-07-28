@@ -721,9 +721,16 @@ function M.chat_picker()
       assert(chat)
 
       local preview_lines = {}
-      for _, turn in ipairs(chat.turns) do
-        local line = utils.sanitize_display_entry(turn.request, 80)
-        table.insert(preview_lines, line)
+
+      if #chat.turns == 1 then
+        preview_lines = M.turn_to_lines(chat, chat.turns[1])
+        vim.api.nvim_set_option_value("filetype", "markdown", { buf = self.state.bufnr })
+        M.add_chat_syntax_highlighting(self.state.bufnr)
+      else
+        for _, turn in ipairs(chat.turns) do
+          local line = utils.sanitize_display_entry(turn.request, 80)
+          table.insert(preview_lines, line)
+        end
       end
 
       vim.api.nvim_buf_set_lines(self.state.bufnr, 0, -1, false, preview_lines)

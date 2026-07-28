@@ -251,6 +251,7 @@ The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda
 
 - The _chat picker_ allows previous chats to be selected and resumed.
 - The _chat picker_ chronologically orders chats by creation date based on the chat file name timestamp.
+- The chat picker _Preview window_ lists the chat turns from first to last, if there is only one turn then the turn is displayed.
 - The most recent chat is restored when the plugin is loaded.
 - The default chat name displayed in the chat picker is from the first words of the chat's first turn request (you can rename the chat with the chat picker `<C-l>` key-mapped command).
 - The _chat picker_ implements the following key-mapped commands:
