@@ -145,13 +145,16 @@ function M.create_user_command()
     elseif args:sub(1, 1) == "/" then
       utils.notify("Invalid command: " .. args, vim.log.levels.ERROR)
     else
-      -- DEPRECATED: compatibility only
-      local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
-      if prompt then
-        M.execute_prompt(prompt)
-      else
-        utils.notify("Missing prompt template name: " .. args, vim.log.levels.ERROR)
-      end
+      local help_message = [[-- Qanda Command Syntax --
+
+:Qanda                        -- Open the Prompt template picker
+:Qanda /<command>             -- Execute a builtin command
+:Qanda !<template>            -- Execute a prompt template
+:Qanda ?<prompt>              -- Execute a user prompt
+
+Press <Tab> for command completion.
+]]
+      vim.notify(help_message, vim.log.levels.INFO)
     end
   end, {
     range = true,
