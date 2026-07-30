@@ -23,7 +23,7 @@ local default = {
   -- Model specific options
   -- Model names are formatted like `<provider>/<model>`.
   model_options = {
-    -- ["ollama/minimax-m2.5:cloud"] = { think = true, temperature = 0.7 },
+    ["ollama/gemma4:e4b"] = { think = false, temperature = 0.7 }, -- Turn off thinking to speed up local model
   },
 
   -- Provider specific options
