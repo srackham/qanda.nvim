@@ -339,7 +339,12 @@ local function load_templates(role)
     local content
     if role == "user" then
       content = [[
-<!-- Example user prompts templates installed by qanda.nvim -->
+<!-- Default user prompts templates installed by qanda.nvim -->
+___
+name: Query
+___
+${input:Enter your question}
+
 ___
 name: Dictionary definition
 ___
