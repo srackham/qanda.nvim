@@ -132,7 +132,15 @@ function M.create_user_command()
       if prompt then
         M.execute_prompt(prompt)
       else
-        utils.notify("Missing prompt: " .. prompt_name, vim.log.levels.ERROR)
+        utils.notify("Missing prompt template name: " .. prompt_name, vim.log.levels.ERROR)
+      end
+    elseif args:sub(1, 1) == "?" then
+      local prompt_text = args:sub(2)
+      if not utils.nil_or_blank(prompt_text) then
+        local prompt = { model_options = {}, content = prompt_text }
+        M.execute_prompt(prompt)
+      else
+        utils.notify("Missing prompt" .. prompt_text, vim.log.levels.ERROR)
       end
     elseif args:sub(1, 1) == "/" then
       utils.notify("Invalid command: " .. args, vim.log.levels.ERROR)
@@ -142,7 +150,7 @@ function M.create_user_command()
       if prompt then
         M.execute_prompt(prompt)
       else
-        utils.notify("Missing prompt: " .. args, vim.log.levels.ERROR)
+        utils.notify("Missing prompt template name: " .. args, vim.log.levels.ERROR)
       end
     end
   end, {
