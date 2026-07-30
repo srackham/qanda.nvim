@@ -126,14 +126,24 @@ function M.create_user_command()
     elseif args == "/dump_diagnostics" then
       diagnostics.open()
       return
-    else
-      local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
-      if not prompt then
-        utils.notify("Invalid " .. (args:sub(1, 1) == "/" and "command" or "prompt") .. "'" .. args .. "'", vim.log.levels.ERROR)
-        return
+    elseif args:sub(1, 1) == "!" then
+      local prompt_name = args:sub(2)
+      local prompt = Prompts.get_prompt(Prompts.user_prompts, prompt_name)
+      if prompt then
+        M.execute_prompt(prompt)
+      else
+        utils.notify("Missing prompt: " .. prompt_name, vim.log.levels.ERROR)
       end
-      M.execute_prompt(prompt)
-      return
+    elseif args:sub(1, 1) == "/" then
+      utils.notify("Invalid command: " .. args, vim.log.levels.ERROR)
+    else
+      -- DEPRECATED: compatibility only
+      local prompt = Prompts.get_prompt(Prompts.user_prompts, args)
+      if prompt then
+        M.execute_prompt(prompt)
+      else
+        utils.notify("Missing prompt: " .. args, vim.log.levels.ERROR)
+      end
     end
   end, {
     range = true,
@@ -141,7 +151,7 @@ function M.create_user_command()
     complete = function(ArgLead)
       local args = {}
       for _, p in ipairs(Prompts.user_prompts) do
-        table.insert(args, p.name)
+        table.insert(args, "!" .. p.name)
       end
 
       table.insert(args, "/new_chat")
