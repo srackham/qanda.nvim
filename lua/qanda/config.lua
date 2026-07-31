@@ -76,12 +76,15 @@ local default = {
   turn_truncate_key = "<C-z>",
   turn_prompt_key = "<C-x>",
 
+  -- Default prompt submission
+  new_chat = true,
+
   -- Prompt window key commands --
-  prompt_abort_key = "<C-k>",
-  prompt_close_key = "<Esc>",
-  prompt_submit_key = "<C-a>",
-  prompt_new_chat_key = "<C-n>",
+  prompt_submit_default_key = "<C-q>",
+  prompt_submit_append_key = "<C-a>",
+  prompt_submit_new_key = "<C-n>",
   prompt_redo_key = "<C-r>",
+  prompt_close_key = "<Esc>",
   prompt_new_key = "<C-Del>",
   prompt_switch_key = "<S-Tab>",
   prompt_inject_key = "<Leader>fi",

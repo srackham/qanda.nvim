@@ -504,7 +504,7 @@ function M.open_prompt(prompt)
     vim.cmd "Qanda /chat_window"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_key, function()
+  local function submit_append()
     local lines = win:get_lines()
     win:close()
     local p = parse_prompt(lines)
@@ -516,9 +516,9 @@ function M.open_prompt(prompt)
       p.content = p.content .. M.APPEND_CHAT_TAG
       require("qanda").execute_prompt(p)
     end
-  end, { buffer = win.bufnr })
+  end
 
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_new_chat_key, function()
+  local function submit_new()
     local lines = win:get_lines()
     win:close()
     local p = parse_prompt(lines)
@@ -530,6 +530,18 @@ function M.open_prompt(prompt)
       require("qanda.chats").new_chat()
       require("qanda.chats").open_chat()
       require("qanda").execute_prompt(p)
+    end
+  end
+
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_append_key, submit_append, { buffer = win.bufnr })
+
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_new_key, submit_new, { buffer = win.bufnr })
+
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_default_key, function()
+    if Config.new_chat then
+      submit_new()
+    else
+      submit_append()
     end
   end, { buffer = win.bufnr })
 
@@ -569,9 +581,10 @@ function M.open_prompt(prompt)
   vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
     local help_message = ([[-- Prompt Window Commands --
 
+- %s - Default prompt submission
 - %s - Submit the prompt with the current chat
 - %s - Submit the prompt in a new chat
-- %s - Submit the prompt to the current chat replacing the latest turn
+- %s - Submit the prompt with the current chat replacing the latest turn
 - %s - Clear the prompt window and enter insert mode
 - %s - Switch to the Chat window †
 - %s - Close the Prompt window †
@@ -580,8 +593,9 @@ function M.open_prompt(prompt)
 † Normal mode
 
 ]]):format(
-      Config.prompt_submit_key,
-      Config.prompt_new_chat_key,
+      Config.prompt_submit_default_key,
+      Config.prompt_submit_append_key,
+      Config.prompt_submit_new_key,
       Config.prompt_redo_key,
       Config.prompt_new_key,
       Config.prompt_switch_key,
