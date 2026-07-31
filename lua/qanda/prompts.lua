@@ -6,7 +6,7 @@ local curl = require "qanda.curl"
 
 local M = {
   CURSOR_TAG = "\02(.-)\02", -- Prompt cursor placeholder tag
-  APPEND_CHAT_TAG = "\04", -- Prompt new chat tag
+  INPUT_SUFFIX_TAG = "\04", -- Prompt input suffix tag
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -453,9 +453,9 @@ function M.open_prompt(prompt)
   M.add_prompt_syntax_highlighting(win.bufnr)
 
   if prompt then
-    if prompt.content:find(M.APPEND_CHAT_TAG) ~= nil then
-      prompt.content = prompt.content:gsub(M.APPEND_CHAT_TAG, "") -- Delete unused append chat tags
-      utils.notify("New chat input placeholder suffixes ignored", vim.log.levels.WARN)
+    if prompt.content:find(M.INPUT_SUFFIX_TAG) ~= nil then
+      prompt.content = prompt.content:gsub(M.INPUT_SUFFIX_TAG, "") -- Delete unused tags
+      utils.notify("Input placeholder ' +' suffixes ignored", vim.log.levels.WARN)
     end
 
     local lines = M.prompt_to_lines(prompt)
@@ -513,8 +513,7 @@ function M.open_prompt(prompt)
       if err then
         return
       end
-      p.content = p.content .. M.APPEND_CHAT_TAG
-      require("qanda").execute_prompt(p)
+      require("qanda").execute_prompt(p, { new_chat = false })
     end
   end
 
@@ -529,7 +528,7 @@ function M.open_prompt(prompt)
       end
       require("qanda.chats").new_chat()
       require("qanda.chats").open_chat()
-      require("qanda").execute_prompt(p)
+      require("qanda").execute_prompt(p, { new_chat = true })
     end
   end
 
@@ -912,7 +911,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     if answer:match " %+$" then
-      answer = answer:gsub(" %+$", M.APPEND_CHAT_TAG)
+      answer = answer:gsub(" %+$", M.INPUT_SUFFIX_TAG)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))

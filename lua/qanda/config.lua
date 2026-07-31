@@ -76,7 +76,7 @@ local default = {
   turn_truncate_key = "<C-z>",
   turn_prompt_key = "<C-x>",
 
-  -- Default prompt submission
+  -- Set default prompt submission mode for the `prompt_submit_default_key` and the :Qanda Template and Prompt commands
   new_chat = true,
 
   -- Prompt window key commands --
