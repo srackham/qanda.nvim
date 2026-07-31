@@ -6,9 +6,9 @@ An easy-to-use Neovim plugin for conversing with AI models.
 
 ## Overview
 
-Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is first and foremost designed for easy on-boarding with a familiar prompt/response chat UI that doesn't get in your way.
+Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is designed for easy onboarding with a familiar prompt/response chat UI.
 
-There are plenty of feature-rich AI applications AI plugins out there and most are not designed for quick-fire Q&A sessions. Most are coding oriented, opinionated, and come with a significant cognitive load.
+There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve.
 
 ## Quick start
 
@@ -21,12 +21,12 @@ TODO:
 - Ollama, OpenRouter and Google Gemini model providers.
 - Models and providers can be switched at any time.
 - Reusable named [prompt templates](#prompt-and-system-templates) canned prompts and [system templates](#prompt-and-system-templates) for custom [system messages](#system-messages).
-- The user engages in interactive turn-about _chats_ (conversations) with the selected AI model.
+- The user has interactive _chats_ (conversations) with the selected AI model.
 - _Chats_ are contextual, persistent, resumable and editable.
-- The chat comprises one or more _turns_ (model request + model response).
-- A turn is initiated with a user _prompt_ (a question or an instruction)
-- Chats can include an optional _[system message](#system-messages)_
-- Qanda is light on token consumption: model requests are explicit (there are no hidden contexts or model requests).
+- Each _turn_ (model request + model response) consists of a user prompt and the model's response.
+- A turn starts when the user sends a _prompt_ (a question or an instruction).
+- Chats can include an optional _[system message](#system-messages)_.
+- Qanda minimizes token use: model requests are explicit with no hidden contexts or automatic requests.
 
 ## Table of contents
 
@@ -57,7 +57,7 @@ TODO:
 - _turn_: (or "turn-about") is one full back-and-forth LLM request and response.
 - _request_: The user prompt, the context and the [model options](#model-options) sent to the model.
 - _response_: Data returned by the model and streamed to the [chat window](#chat-window) in response to a request.
-- _context_: Each chat maintains it's own context comprising the chat's [system message](#system-messages), previous user prompts along with the corresponding model responses. When a new user prompt is submitted to the model it is accompanied by current context.
+- _context_: Each chat maintains its own context comprising the chat's [system message](#system-messages), previous user prompts and the corresponding model responses. When you submit a new user prompt, it includes the current context.
 - _prompt_: User questions or instructions submitted to the AI model from the [prompt window](#prompt-window).
 
 > [!NOTE]
@@ -81,7 +81,7 @@ return {
 }
 ```
 
-- You'll also want to set up some [key mappings](#key-mappings).
+- Set up some [key mappings](#key-mappings) to use the plugin.
 - The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
 > [!NOTE]
@@ -101,7 +101,7 @@ Use the `:Qanda /provider_picker` command to select a provider and the `:Qanda /
 
 ### Authentication
 
-Provider API keys are imported from exported shell environment variables, the variable name is specified in a provider specific `api_key` configuration option. Here are the default provider options:
+Provider API keys come from exported shell environment variables. The variable name is specified in the provider's `api_key` configuration option. Here are the default provider options:
 
 ```lua
 -- Provider specific options
@@ -119,11 +119,11 @@ There are two types of key mappings: _[Vim key mappings](#vim-key-mappings)_ and
 
 #### Vim key mappings
 
-These are the usual Vim key mappings that live in a Neovim configuration file and typically map a key sequence to a `:Qanda` command. Vim key mapping examples can be found in this [example plugin configuration file](examples/example-qanda-configuration.lua).
+These are the standard Vim key mappings in a Neovim configuration file. They map a key sequence to a `:Qanda` command. Examples are in this [example plugin configuration file](examples/example-qanda-configuration.lua).
 
 #### Built-in key mappings
 
-These are the configurable key sequence options for the built-in pickers, they are mapped to picker-specific key commands.
+These are configurable key sequences for the built-in pickers, mapped to picker-specific commands.
 
 - To list a picker's key commands and their assigned key sequences, open the picker and enter `<C-h>`.
 - These configuration options are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
@@ -179,10 +179,10 @@ There are three types of Qanda commands:
 
 ![Alt text](screenshots/prompt-window.png)
 
-The Prompt window is a floating window into which the user enters questions and instructions for the AI model. Prompt submission generates a model request which is appended, with the model response, to the chat's history file.
+The Prompt window is a floating window where you enter questions and instructions for the AI model. When you submit a prompt, the model request and response are appended to the chat's history file.
 
-- A prompt is submitted for execution either from the prompt window, or with a `:Qanda !<template>` command.
-- A new prompt can be created with the `:Qanda /new_prompt`, with the `:Qanda /prompt_template_picker` command, or by resubmitting a previous prompt from the [Chat window](#chat-window).
+- Submit a prompt from the prompt window or with a `:Qanda !<template>` command.
+- Create a new prompt with `:Qanda /new_prompt`, `:Qanda /prompt_template_picker`, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
   - `<C-a>` - Submit the prompt with the current chat
   - `<C-n>` - Submit the prompt in a new chat
@@ -199,15 +199,15 @@ The Prompt window is a floating window into which the user enters questions and 
 
 ![Alt text](screenshots/chat-window.png)
 
-The read-only Chat window displays a chat, one turn at a time. Open the chat window with the `:Qanda /chat_window` command, or from the _[chat picker](#chat-picker)_ or _[prompt window](#prompt-window)_.
+The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_window`, the _[chat picker](#chat-picker)_, or the _[prompt window](#prompt-window)_.
 
 - A new chat can be created with the `:Qanda /new_chat` command or directly from the _[prompt window](#prompt-window)_.
-- Chats are saved automatically at each turn and the chat window is updated with streamed response messages from model.
-- The most recent chat is restored when you restart Neovim.
+- Chats are saved after each turn and the chat window updates with streamed response messages from the model.
+- The most recent chat appears when you restart Neovim.
 - Use the _[chat picker](#chat-picker)_ to select and resume previous conversations.
 - The chat window is read-only, you can't edit it directly.
 - By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
-- Scroll the chat window turn-wise with the next (`<C-n>`) and previous (`<C-p>`) key-mapped commands.
+- Scroll through turns with the next (`<C-n>`) and previous (`<C-p>`) commands.
 - The chat window implements the following key-mapped commands:
   - `<S-Tab>` - Switch to the Prompt window
   - `<C-Del>` - Open a blank Prompt window in insert mode
@@ -260,10 +260,10 @@ In addition to setting the default system message:
 The _chat picker_ is used to list, preview, select and manage chats. The `:Qanda /chat_picker` command opens the chat picker.
 
 - The _chat picker_ allows previous chats to be selected and resumed.
-- The _chat picker_ chronologically orders chats by creation date based on the chat file name timestamp.
+- The _chat picker_ orders chats by creation date using the chat file name timestamp.
 - The chat picker _Preview window_ lists the chat turns from first to last, if there is only one turn then the turn is displayed.
-- The most recent chat is restored when the plugin is loaded.
-- The default chat name displayed in the chat picker is from the first words of the chat's first turn request (you can rename the chat with the chat picker `<C-l>` key-mapped command).
+- The most recent chat appears when the plugin loads.
+- The default chat name comes from the first words of the chat's first turn request (rename with the chat picker `<C-l>` command).
 - The _chat picker_ implements the following key-mapped commands:
   - `<Enter>` - Open the selected chat in Chat window
   - `<C-t>` - Open the selected chat in the Turn picker
@@ -301,7 +301,7 @@ The _provider picker_ is opened with the `:Qanda /provider_picker` command and i
 
 ![Alt text](screenshots/model-picker.png)
 
-Selects a model from a list of models belonging to the current provider. Opened with the `:Qanda /model_picker` command.
+Selects a model from the current provider. Open with `:Qanda /model_picker`.
 
 The _model picker_ implements the following key-mapped commands:
 
@@ -312,8 +312,8 @@ The _model picker_ implements the following key-mapped commands:
 
 ![Alt text](screenshots/recent-model-picker.png)
 
-The _recent model picker_ allow you to quickly switch between recently used models. It is opened with the `:Qanda /recent_models`
-command and implements the following key-mapped commands:
+The _recent model picker_ lets you switch between recently used models. Open it with `:Qanda /recent_models`.
+It implements these commands:
 
 - `<Enter>` - Select the model
 - `<Esc>` - Close the picker
@@ -324,13 +324,13 @@ Displayed model names are formatted like `<provider>/<model>`.
 
 ![Alt text](screenshots/diagnostics-window.png)
 
-The _diagnostics window_ displays the underlying commands and data from the most recent model request. It is opened with the `:Qanda /dump_diagnostics` command and responds the following key-mapped commands:
+The _diagnostics window_ shows the commands and data from the most recent model request. Open it with `:Qanda /dump_diagnostics`. It responds to these commands:
 
 - `<Esc>` or `q` - Close the diagnostics window.
 
 If you have `jq` installed then diagnostics JSON data will be pretty-printed.
 
-If Neovim is configured to persist the Neovim registers across sessions, then the Qanda `/dump_diagnostics` command will also persist across sessions. Set the maximum number of shada lines saved to accommodate the diagnostics e.g. to 999:
+If Neovim is configured to persist registers across sessions, the Qanda `/dump_diagnostics` command also persists. Set the maximum number of shada lines to accommodate the diagnostics, for example 999:
 
       vim.opt.shada = "!,'100,<999,s10,h"
 
@@ -338,14 +338,14 @@ If Neovim is configured to persist the Neovim registers across sessions, then th
 
 Qanda maintains a number of history and session data files:
 
-- The `session.json` file contains the session state which is restored at startup. It contains:
+- The `session.json` file contains the session state restored at startup:
   - Current provider and model names
   - Most recently used chat file name
   - Current [system message](#system-messages) template name
-  - The list of recently used models
-- The `chats` directory containing chat files:
-  - Each chat is saved in a separate [JSONL](https://jsonlines.org/) file named like `<creation-date>.chat.json` with date format `YYYYMMDD_HHMMSS` e.g. `20260224_104421.chat.jsonl`.
-  - Within each chat file is a chronologically ordered list of JSON-formatted turn objects.
+  - List of recently used models
+- The `chats` directory contains chat files:
+  - Each chat is in a separate [JSONL](https://jsonlines.org/) file named `<creation-date>.chat.json` with date format `YYYYMMDD_HHMMSS` (e.g. `20260224_104421.chat.jsonl`).
+  - Each chat file contains a chronologically ordered list of JSON-formatted turn objects.
 
 - The [prompt and system template](#prompt-and-system-templates) files.
 
@@ -353,19 +353,19 @@ Qanda maintains a number of history and session data files:
 
 Qanda [data files](#data-files) are sourced from two locations:
 
-- The _global data directory_ which is set by the `data_dir` [configuration](#configuration) option and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
+- The _global data directory_ is set by the `data_dir` [configuration](#configuration) option and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
 - An optional _project data directory_ `$PWD/.qanda_nvim`
-- Files in the _project data directory_ take priority.
-- If there is no project `.qanda/chats` folder Qanda uses the global data directory `chats` folder.
-- [User prompt templates and system message templates](#prompt-and-system-templates) files are always sourced from the _global data directory_.
+- Project data directory files take priority.
+- If there is no project `.qanda/chats` folder, Qanda uses the global chats folder.
+- [User prompt templates and system message templates](#prompt-and-system-templates) always come from the _global data directory_.
 
 ## Prompt and System templates
 
 Named templates for user prompts and [system messages](#system-messages) are selected and managed with the _[prompt template picker](#prompt-template-picker)_ and _[system template picker](#system-template-picker)_ respectively.
 
-Both _[template types](#prompt-and-system-templates)_ share the same text file format; they generate model request messages with "user" and "system" roles respectively.
+Both _[template types](#prompt-and-system-templates)_ use the same text file format. They generate model request messages with "user" and "system" roles.
 
-- _[Templates](#prompt-and-system-templates)_ are stored (one or more per file) in the `templates` subdirectory in the global data directory (it defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
+- _[Templates](#prompt-and-system-templates)_ are in the `templates` subdirectory of the global data directory (defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
 - Template files are named like `*.user.md` or `*.system.md`.
 - Templates can contain [template placeholders](#template-placeholders) which are expanded to the user prompt and system message.
 
@@ -373,7 +373,7 @@ Both _[template types](#prompt-and-system-templates)_ share the same text file f
 
 A template is a Markdown text file containing one or more templates separated by a template header.
 
-A template header consists of one or more property declarations formatted like `<name>: <value>` and delimited top and bottom by a line containing three underscore characters.
+A template header has one or more property declarations like `<name>: <value>`, delimited top and bottom by a line with three underscore characters.
 
 Example prompt template:
 
@@ -420,18 +420,18 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 | `${shell:<command>}`            | Substitutes `stdout` output from shell command                    |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 
-- Placeholders cannot cross line boundaries.
+- Placeholders cannot span multiple lines.
 
-- The `$input` placeholder initiates a new chat if the user input ends in a space followed by a `+` character (the suffix is ignored if the template is opened in the Prompt window).
+- The `$input` placeholder starts a new chat if the input ends in a space followed by `+` (the suffix is ignored if the template opens in the Prompt window).
 
-- The `${file:<file name>}` placeholder injects the raw file; the `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
+- The `${file:<file name>}` placeholder injects the raw file. The `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
 - The `${file:<file name>}` placeholder file location is determined by the file name directory prefix:
   - No directory prefix defaults to the Qanda `templates` [data directory](#data-directories) e.g. `${file:RULES.md}`
   - A relative directory prefix is relative to the current working directory (reported by the `:pwd` command) e.g. `${file:./README.md}`
   - An absolute directory prefix can be used to specify any location e.g. `${file:~/.config/nvim/stylua.toml}`
 
-- The `$cursor` placeholder marks the position of the cursor when a prompt template is loaded into the Prompt window. For example, the following prompt template is loads `List antonyms for ""` into the prompt window, positions the cursor inside the double-quotes then switches to insert mode:
+- The `$cursor` placeholder marks the cursor position when a prompt template loads in the Prompt window. For example, this template loads `List antonyms for ""` into the prompt window, positions the cursor inside the quotes, then switches to insert mode:
 
       ```
       ___
@@ -448,17 +448,17 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 ## System messages
 
-The System Message (sometimes called the system prompt or system instruction) is the "rulebook" you give an AI which shapes the LLM's persona. Models weigh the system prompt heavily throughout the entire chat.
+The System Message (sometimes called the system prompt or system instruction) is the "rulebook" you give an AI. It shapes the LLM's behavior. Models follow the system prompt throughout the entire chat.
 
 Qanda provides control and customisation of system messages with the _[system template picker](#system-template-picker)_. If a System Message has been set, then it will be included in the chat's first turn.
 
 ## Model options
 
-Model options are named parameters that are passed to the model in the request data sent to the mode. They include the likes of `temperature`, `max_tokens` etc. Model options are often provider or model specific.
+Model options are parameters passed to the model in the request data. Common options include `temperature` and `max_tokens`. Model options often vary by provider or model.
 
 A Qanda request merges model options from:
 
-- The provider specific `provider_options` [configuration](#configuration) option (**lowest precedence**). All options except `api_key` are passed through as AI model request options. Example:
+- The provider `provider_options` [configuration](#configuration) option (**lowest priority**). All options except `api_key` are passed to the AI model. Example:
 
 ```lua
 provider_options = {
@@ -476,11 +476,11 @@ model_options = {
 
 - [System template](#prompt-and-system-templates) headers.
 - [Prompt template](#prompt-and-system-templates) headers.
-- [User prompt](#prompt-window) header (**highest precedence**).
+- [User prompt](#prompt-window) header (**highest priority**).
 
 ## Tips
 
 - The [chat](#chat-window) and [prompt](#prompt-window) window's `<C-h>` help command displays a summary of key-mapped window commands.
-- Use the `:Qanda /dump_diagnostics` command to view the model request and response generated by the most recently executed turn.
+- Use the `:Qanda /dump_diagnostics` command to view the model request and response from the most recent turn.
 
-- Opening a prompt template with the [prompt template picker](#prompt-template-picker) previews the expanded prompt in the [prompt window](#prompt-window); the Prompt window preview will be skipped if you execute a prompt template directly using the `:Qanda !<template>` command.
+- Opening a prompt template with the [prompt template picker](#prompt-template-picker) previews the expanded prompt in the [prompt window](#prompt-window). The preview is skipped if you run the template directly with `:Qanda !<template>`.
