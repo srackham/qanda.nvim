@@ -10,6 +10,30 @@ Qanda is for getting answers and performing tasks interactively, not for automat
 
 There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve.
 
+## Installation
+
+Here is a minimal [lazy.nvim](https://github.com/folke/lazy.nvim) plugin configuration file (typically located in `~/.config/nvim/lua/plugins`):
+
+```lua
+return {
+  "srackham/qanda.nvim",
+  dependencies = {
+    "nvim-telescope/telescope.nvim",
+  },
+  config = function()
+    require("qanda").setup {
+    -- Override default options here --
+    }
+  end,
+}
+```
+
+- Set up some [key mappings](#key-mappings) to use the plugin.
+- The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
+- Restart Neovim after adding the plugin spec.
+
+See
+
 ## Quick start
 
 Run the `:Qanda /help` command.
@@ -17,8 +41,14 @@ Run the `:Qanda /help` command.
 ## Table of contents
 
 - [Overview](#overview)
+- [Installation](#installation)
+- [Quick start](#quick-start)
+- [Qanda features](#qanda-features)
 - [Glossary of terms](#glossary-of-terms)
-- [Configuration](#configuration)
+- [Providers](#providers)
+- [Authentication](#authentication)
+- [Key mappings](#key-mappings)
+- [Chat Mode](#chat-mode)
 - [Qanda commands](#qanda-commands)
 - [Prompt window](#prompt-window)
 - [Chat window](#chat-window)
@@ -63,31 +93,7 @@ Run the `:Qanda /help` command.
 > [!NOTE]
 > A user prompt is not the same as a model request; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous requests and responses) and [model options](#model-options).
 
-## Configuration
-
-Here is a minimal [lazy.nvim](https://github.com/folke/lazy.nvim) plugin configuration file (typically located in `~/.config/nvim/lua/plugins`):
-
-```lua
-return {
-  "srackham/qanda.nvim",
-  dependencies = {
-    "nvim-telescope/telescope.nvim",
-  },
-  config = function()
-    require("qanda").setup {
-    -- Override default options here --
-    }
-  end,
-}
-```
-
-- Set up some [key mappings](#key-mappings) to use the plugin.
-- The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
-
-> [!NOTE]
-> The current release has been tested on NixOS Linux with Neovim v0.11.6.
-
-### Providers
+## Providers
 
 Qanda.nvim supports the following model providers:
 
@@ -99,7 +105,7 @@ Qanda.nvim supports the following model providers:
 
 Use the `:Qanda /provider_picker` command to select a provider and the `:Qanda /model_picker` command to select a provider model.
 
-### Authentication
+## Authentication
 
 Provider API keys come from exported shell environment variables. The variable name is specified in the provider's `api_key` configuration option. Here are the default provider options:
 
@@ -113,15 +119,15 @@ provider_options = {
 
 You could set the `api_key` with the actual key value, but this is not recommended for security reasons.
 
-### Key mappings
+## Key mappings
 
-There are two types of key mappings: _[Vim key mappings](#vim-key-mappings)_ and _[built-in key mappings](#built-in-key-mappings)_, both are user configurable.
+There are two types of key mappings: _[Vim key mappings](#key-mappings)_ and _[built-in key mappings](#key-mappings)_, both are user configurable.
 
-#### Vim key mappings
+### Vim key mappings
 
 These are the standard Vim key mappings in a Neovim configuration file. They map a key sequence to a `:Qanda` command. Examples are in this [example plugin configuration file](examples/example-qanda-configuration.lua).
 
-#### Built-in key mappings
+### Built-in key mappings
 
 These are configurable key sequences for the built-in pickers, mapped to picker-specific commands.
 
@@ -129,9 +135,9 @@ These are configurable key sequences for the built-in pickers, mapped to picker-
 - These configuration options are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
 > [!TIP]
-> To disable a _[built-in key mapping](#built-in-key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+> To disable a _[built-in key mapping](#key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
 
-#### Default key mappings
+### Default key mappings
 
 The default mappings include:
 
@@ -447,9 +453,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - Placeholders cannot span multiple lines.
 
-- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default `new_chat_mode` option prompt submission mode:
-
-- Appending `␣+` to an `$input` placeholder's user input overrides the default [`new_chat_mode` option](#new-chat-mode).
+- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default [chat mode](#chat-mode).
 
 - The `${file:<file name>}` placeholder injects the raw file. The `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
