@@ -10,24 +10,6 @@ Qanda is for getting answers and performing tasks interactively, not for automat
 
 There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve.
 
-## Quick start
-
-TODO:
-
-## Qanda features
-
-- Familiar turn-about chatbot UI.
-- Chats are persistent, resumable and editable.
-- Ollama, OpenRouter and Google Gemini model providers.
-- Models and providers can be switched at any time.
-- Reusable named [prompt templates](#prompt-and-system-templates) canned prompts and [system templates](#prompt-and-system-templates) for custom [system messages](#system-messages).
-- The user has interactive _chats_ (conversations) with the selected AI model.
-- _Chats_ are contextual, persistent, resumable and editable.
-- Each _turn_ (model request + model response) consists of a user prompt and the model's response.
-- A turn starts when the user sends a _prompt_ (a question or an instruction).
-- Chats can include an optional _[system message](#system-messages)_.
-- Qanda minimizes token use: model requests are explicit with no hidden contexts or automatic requests.
-
 ## Table of contents
 
 - [Overview](#overview)
@@ -50,6 +32,24 @@ TODO:
 - [System messages](#system-messages)
 - [Model options](#model-options)
 - [Tips](#tips)
+
+## Quick start
+
+TODO:
+
+## Qanda features
+
+- Familiar turn-about chatbot UI.
+- Chats are persistent, resumable and editable.
+- Ollama, OpenRouter and Google Gemini model providers.
+- Models and providers can be switched at any time.
+- Reusable named [prompt templates](#prompt-and-system-templates) canned prompts and [system templates](#prompt-and-system-templates) for custom [system messages](#system-messages).
+- The user has interactive _chats_ (conversations) with the selected AI model.
+- _Chats_ are contextual, persistent, resumable and editable.
+- Each _turn_ (model request + model response) consists of a user prompt and the model's response.
+- A turn starts when the user sends a _prompt_ (a question or an instruction).
+- Chats can include an optional _[system message](#system-messages)_.
+- Qanda minimizes token use: model requests are explicit with no hidden contexts or automatic requests.
 
 ## Glossary of terms
 
@@ -184,9 +184,10 @@ The Prompt window is a floating window where you enter questions and instruction
 - Submit a prompt from the prompt window or with a `:Qanda !<template>` command.
 - Create a new prompt with `:Qanda /new_prompt`, `:Qanda /prompt_template_picker`, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
+  - `<C-q>` - Default prompt submission
   - `<C-a>` - Submit the prompt with the current chat
   - `<C-n>` - Submit the prompt in a new chat
-  - `<C-r>` - Submit the prompt to the current chat replacing the latest turn
+  - `<C-r>` - Submit the prompt with the current chat replacing the latest turn
   - `<C-Del>` - Clear the prompt window and enter insert mode
   - `<S-Tab>` - Switch to the Chat window †
   - `<Esc>` - Close the Prompt window †
@@ -422,7 +423,16 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - Placeholders cannot span multiple lines.
 
-- The `$input` placeholder starts a new chat if the input ends in a space followed by `+` (the suffix is ignored if the template opens in the Prompt window).
+- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default `new_chat` option prompt submission mode:
+
+  | Input Suffix | `new_chat` Option | Turn Destination |
+  | ------------ | ----------------- | ---------------- |
+  | None         | `true`            | New chat         |
+  | `␣+`         | `true`            | Current chat     |
+  | None         | `false`           | Current chat     |
+  | `␣+`         | `false`           | New chat         |
+
+- The input suffix is ignored if the template is opened in the Prompt window.
 
 - The `${file:<file name>}` placeholder injects the raw file. The `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
