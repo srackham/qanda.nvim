@@ -10,6 +10,10 @@ Qanda is for getting answers and performing tasks interactively, not for automat
 
 There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve.
 
+## Quick start
+
+Run the `:Qanda /help` command.
+
 ## Table of contents
 
 - [Overview](#overview)
@@ -32,10 +36,6 @@ There are plenty of feature-rich AI plugins out there and most are not designed 
 - [System messages](#system-messages)
 - [Model options](#model-options)
 - [Tips](#tips)
-
-## Quick start
-
-TODO:
 
 ## Qanda features
 

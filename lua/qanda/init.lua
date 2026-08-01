@@ -110,6 +110,33 @@ function M.create_user_command()
     elseif args == "/abort" then
       curl.kill_command()
       return
+    elseif args == "/help" then
+      local help_message = [[-- Qanda Commands --
+
+:Qanda                        -- Open the Prompt template picker
+:Qanda /readme                -- Open README file
+:Qanda /<command>             -- Execute a builtin command e.g. :Qanda /prompt_window
+:Qanda !<template>            -- Execute a prompt template e.g. :Qanda !Query
+:Qanda ?<prompt>              -- Execute a user prompt     e.g. :Qanda ?Calculate forty plus two
+
+Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
+]]
+      vim.notify(help_message, vim.log.levels.INFO)
+      return
+    elseif args == "/readme" then
+      local current_file = vim.fn.expand "%:p"
+      local plugin_root = vim.fs.root(current_file, { ".git", "lua", "plugin", "ftplugin", "autoload" })
+      if not plugin_root then
+        vim.notify("Could not find plugin root directory", vim.log.levels.ERROR)
+        return
+      end
+      local readme_path = plugin_root .. "/" .. "README.md"
+      if vim.fn.filereadable(readme_path) == 1 then
+        vim.cmd("edit " .. vim.fn.fnameescape(readme_path))
+      else
+        vim.notify("No README found in: " .. plugin_root, vim.log.levels.WARN)
+      end
+      return
     elseif args == "/status" then
       local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
       local chat = State.chat_window.chat
@@ -159,16 +186,7 @@ function M.create_user_command()
     elseif args:sub(1, 1) == "/" then
       utils.notify("Invalid command: " .. args, vim.log.levels.ERROR)
     else
-      local help_message = [[-- Qanda Command Syntax --
-
-:Qanda                        -- Open the Prompt template picker
-:Qanda /<command>             -- Execute a builtin command
-:Qanda !<template>            -- Execute a prompt template
-:Qanda ?<prompt>              -- Execute a user prompt
-
-Press <Tab> for command completion.
-]]
-      vim.notify(help_message, vim.log.levels.INFO)
+      vim.notify("Invalid command, run ':Quanda /help'", vim.log.levels.INFO)
     end
   end, {
     range = true,
@@ -193,6 +211,8 @@ Press <Tab> for command completion.
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")
+      table.insert(args, "/help")
+      table.insert(args, "/readme")
 
       local completion_candidates = {}
       for _, arg in ipairs(args) do
