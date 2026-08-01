@@ -77,7 +77,7 @@ local default = {
   turn_prompt_key = "<C-x>",
 
   -- Set default prompt submission mode for the `prompt_submit_default_key` and the :Qanda Template and Prompt commands
-  new_chat = true,
+  new_chat_mode = true,
 
   -- Prompt window key commands --
   prompt_submit_default_key = "<C-q>",

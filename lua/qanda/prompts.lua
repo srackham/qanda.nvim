@@ -513,7 +513,7 @@ function M.open_prompt(prompt)
       if err then
         return
       end
-      require("qanda").execute_prompt(p, { new_chat = false })
+      require("qanda").execute_prompt(p, { new_chat_mode = false })
     end
   end
 
@@ -528,7 +528,7 @@ function M.open_prompt(prompt)
       end
       require("qanda.chats").new_chat()
       require("qanda.chats").open_chat()
-      require("qanda").execute_prompt(p, { new_chat = true })
+      require("qanda").execute_prompt(p, { new_chat_mode = true })
     end
   end
 
@@ -537,7 +537,7 @@ function M.open_prompt(prompt)
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_new_key, submit_new, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_default_key, function()
-    if Config.new_chat then
+    if Config.new_chat_mode then
       submit_new()
     else
       submit_append()

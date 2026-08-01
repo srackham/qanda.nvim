@@ -200,7 +200,7 @@ end
 ---manages chat turns, and streams the LLM response back to the chat window.
 ---It runs in a coroutine to avoid blocking the Neovim UI.
 ---@param prompt Qanda.Prompt The prompt object to execute.
---- @param opts { new_chat?: boolean }? Optional configuration.
+--- @param opts { new_chat_mode?: boolean }? Options.
 function M.execute_prompt(prompt, opts)
   coroutine.wrap(function()
 
@@ -230,17 +230,17 @@ function M.execute_prompt(prompt, opts)
       return
     end
 
-    local new_chat
-    if opts.new_chat ~= nil then -- new_chat option takes precedence
-      new_chat = opts.new_chat
+    local new_chat_mode
+    if opts.new_chat_mode ~= nil then -- new_chat_mode option takes precedence
+      new_chat_mode = opts.new_chat_mode
     elseif prompt.content:find(Prompts.INPUT_SUFFIX_TAG) ~= nil then -- Suffix tag inverts the default
-      new_chat = not Config.new_chat
+      new_chat_mode = not Config.new_chat_mode
       prompt.content = prompt.content:gsub(Prompts.INPUT_SUFFIX_TAG, "") -- Delete suffix tags
     else
-      new_chat = Config.new_chat
+      new_chat_mode = Config.new_chat_mode
     end
 
-    if new_chat then
+    if new_chat_mode then
       Chats.new_chat()
     end
 

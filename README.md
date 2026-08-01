@@ -423,14 +423,14 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - Placeholders cannot span multiple lines.
 
-- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default `new_chat` option prompt submission mode:
+- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default `new_chat_mode` option prompt submission mode:
 
-  | Input Suffix | `new_chat` Option | Turn Destination |
-  | ------------ | ----------------- | ---------------- |
-  | None         | `true`            | New chat         |
-  | `␣+`         | `true`            | Current chat     |
-  | None         | `false`           | Current chat     |
-  | `␣+`         | `false`           | New chat         |
+  | Input Suffix | `new_chat_mode` Option | Turn Destination |
+  | ------------ | ---------------------- | ---------------- |
+  | None         | `true`                 | New chat         |
+  | `␣+`         | `true`                 | Current chat     |
+  | None         | `false`                | Current chat     |
+  | `␣+`         | `false`                | New chat         |
 
 - The input suffix is ignored if the template is opened in the Prompt window.
 
