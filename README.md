@@ -142,6 +142,30 @@ The default mappings include:
 
 † See the Vim mappings in the [example plugin configuration file](examples/example-qanda-configuration.lua).
 
+## Chat Mode
+
+A new turn is either appended to the current chat (_current_ chat mode) or to a newly created chat (_new_ chat mode).
+
+If the `new_chat_mode` [configuration option](#configuration) is `true` the chat mode is _new_ and the default destination is a new chat, if `false` the chat mode is _current_ and the default destination is the current chat.
+
+The default chat mode can be overridden by appending `␣+` (a space followed by a plus) to Qanda _Template_ commands and _Prompt_ commands. Examples:
+
+| Command                   | `new_chat_mode` Option | Turn Destination |
+| ------------------------- | ---------------------- | ---------------- |
+| `:Qanda !Query`           | `true`                 | New chat         |
+| `:Qanda !Query +`         | `true`                 | Current chat     |
+| `:Qanda ?Four plus one`   | `false`                | Current chat     |
+| `:Qanda ?Four plus one +` | `false`                | New chat         |
+
+Appending `␣+` to an `$input` [placeholder's](#template-placeholders) user input also overrides the default chat mode. Examples:
+
+| Input    | `new_chat_mode` Option | Turn Destination |
+| -------- | ---------------------- | ---------------- |
+| `Ping`   | `true`                 | New chat         |
+| `Ping +` | `true`                 | Current chat     |
+| `Ping`   | `false`                | Current chat     |
+| `Ping +` | `false`                | New chat         |
+
 ## Qanda commands
 
 There are three types of Qanda commands:
@@ -425,14 +449,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default `new_chat_mode` option prompt submission mode:
 
-  | Input Suffix | `new_chat_mode` Option | Turn Destination |
-  | ------------ | ---------------------- | ---------------- |
-  | None         | `true`                 | New chat         |
-  | `␣+`         | `true`                 | Current chat     |
-  | None         | `false`                | Current chat     |
-  | `␣+`         | `false`                | New chat         |
-
-- The input suffix is ignored if the template is opened in the Prompt window.
+- Appending `␣+` to an `$input` placeholder's user input overrides the default [`new_chat_mode` option](#new-chat-mode).
 
 - The `${file:<file name>}` placeholder injects the raw file. The `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 

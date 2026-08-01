@@ -126,21 +126,35 @@ function M.create_user_command()
     elseif args == "/dump_diagnostics" then
       diagnostics.open()
       return
-    elseif args:sub(1, 1) == "!" then
+    elseif args:sub(1, 1) == "!" then -- Template command
       local prompt_name = args:sub(2)
-      local prompt = Prompts.get_prompt(Prompts.user_prompts, prompt_name)
-      if prompt then
-        M.execute_prompt(prompt)
+      if not utils.nil_or_blank(prompt_name) then
+        local opts = {}
+        if utils.string_ends_with(prompt_name, Prompts.PLUS_SUFFIX) then
+          opts.new_chat_mode = not Config.new_chat_mode
+          prompt_name = utils.string_strip_ending(prompt_name, Prompts.PLUS_SUFFIX)
+        end
+        local prompt = Prompts.get_prompt(Prompts.user_prompts, prompt_name)
+        if prompt then
+          M.execute_prompt(prompt, opts)
+        else
+          utils.notify("Missing prompt template name: " .. prompt_name, vim.log.levels.ERROR)
+        end
       else
-        utils.notify("Missing prompt template name: " .. prompt_name, vim.log.levels.ERROR)
+        utils.notify("Missing template name", vim.log.levels.ERROR)
       end
-    elseif args:sub(1, 1) == "?" then
+    elseif args:sub(1, 1) == "?" then -- Prompt command
       local prompt_text = args:sub(2)
       if not utils.nil_or_blank(prompt_text) then
+        local opts = {}
+        if utils.string_ends_with(prompt_text, Prompts.PLUS_SUFFIX) then
+          opts.new_chat_mode = not Config.new_chat_mode
+          prompt_text = utils.string_strip_ending(prompt_text, Prompts.PLUS_SUFFIX)
+        end
         local prompt = { model_options = {}, content = prompt_text }
-        M.execute_prompt(prompt)
+        M.execute_prompt(prompt, opts)
       else
-        utils.notify("Missing prompt" .. prompt_text, vim.log.levels.ERROR)
+        utils.notify("Missing prompt", vim.log.levels.ERROR)
       end
     elseif args:sub(1, 1) == "/" then
       utils.notify("Invalid command: " .. args, vim.log.levels.ERROR)
@@ -233,9 +247,9 @@ function M.execute_prompt(prompt, opts)
     local new_chat_mode
     if opts.new_chat_mode ~= nil then -- new_chat_mode option takes precedence
       new_chat_mode = opts.new_chat_mode
-    elseif prompt.content:find(Prompts.INPUT_SUFFIX_TAG) ~= nil then -- Suffix tag inverts the default
+    elseif prompt.content:find(Prompts.PLUS_SUFFIX_TAG) ~= nil then -- Suffix tag inverts the default
       new_chat_mode = not Config.new_chat_mode
-      prompt.content = prompt.content:gsub(Prompts.INPUT_SUFFIX_TAG, "") -- Delete suffix tags
+      prompt.content = prompt.content:gsub(Prompts.PLUS_SUFFIX_TAG, "") -- Delete suffix tags
     else
       new_chat_mode = Config.new_chat_mode
     end

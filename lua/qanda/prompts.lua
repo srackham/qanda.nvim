@@ -6,7 +6,8 @@ local curl = require "qanda.curl"
 
 local M = {
   CURSOR_TAG = "\02(.-)\02", -- Prompt cursor placeholder tag
-  INPUT_SUFFIX_TAG = "\04", -- Prompt input suffix tag
+  PLUS_SUFFIX = " +",
+  PLUS_SUFFIX_TAG = "\04",
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -453,8 +454,8 @@ function M.open_prompt(prompt)
   M.add_prompt_syntax_highlighting(win.bufnr)
 
   if prompt then
-    if prompt.content:find(M.INPUT_SUFFIX_TAG) ~= nil then
-      prompt.content = prompt.content:gsub(M.INPUT_SUFFIX_TAG, "") -- Delete unused tags
+    if prompt.content:find(M.PLUS_SUFFIX_TAG) ~= nil then
+      prompt.content = prompt.content:gsub(M.PLUS_SUFFIX_TAG, "") -- Delete unused tags
       utils.notify("Input placeholder ' +' suffixes ignored", vim.log.levels.WARN)
     end
 
@@ -911,7 +912,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     if answer:match " %+$" then
-      answer = answer:gsub(" %+$", M.INPUT_SUFFIX_TAG)
+      answer = answer:gsub(" %+$", M.PLUS_SUFFIX_TAG)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))

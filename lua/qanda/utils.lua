@@ -2,6 +2,17 @@ local Config = require "qanda.config"
 
 local M = {} -- This module
 
+function M.string_ends_with(str, ending)
+  return ending == "" or string.sub(str, -#ending) == ending
+end
+
+function M.string_strip_ending(str, ending)
+  if M.string_ends_with(str, ending) then
+    return str:sub(1, -#ending - 1)
+  end
+  return str
+end
+
 --- Strip leading and trailing whitespace from a string
 --- @param s string The input string to trim
 --- @return string The trimmed string
