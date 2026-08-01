@@ -6,8 +6,8 @@ local curl = require "qanda.curl"
 
 local M = {
   CURSOR_TAG = "\02(.-)\02", -- Prompt cursor placeholder tag
-  PLUS_SUFFIX = " +",
-  PLUS_SUFFIX_TAG = "\04",
+  CHAT_MODE_SUFFIX = " +",
+  CHAT_MODE_TAG = "\04",
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -443,6 +443,7 @@ end
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 ---@param prompt Prompt?
 function M.open_prompt(prompt)
+  local new_chat_mode = Config.new_chat_mode
   local win = State.prompt_window ---@type UIWindow
   local already_open = win.winid ~= nil
   win:open()
@@ -454,9 +455,9 @@ function M.open_prompt(prompt)
   M.add_prompt_syntax_highlighting(win.bufnr)
 
   if prompt then
-    if prompt.content:find(M.PLUS_SUFFIX_TAG) ~= nil then
-      prompt.content = prompt.content:gsub(M.PLUS_SUFFIX_TAG, "") -- Delete unused tags
-      utils.notify("Input placeholder ' +' suffixes ignored", vim.log.levels.WARN)
+    if prompt.content:find(M.CHAT_MODE_TAG) ~= nil then
+      new_chat_mode = not Config.new_chat_mode
+      prompt.content = prompt.content:gsub(M.CHAT_MODE_TAG, "") -- Delete unused tags
     end
 
     local lines = M.prompt_to_lines(prompt)
@@ -538,7 +539,7 @@ function M.open_prompt(prompt)
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_new_key, submit_new, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_default_key, function()
-    if Config.new_chat_mode then
+    if new_chat_mode then
       submit_new()
     else
       submit_append()
@@ -912,7 +913,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     if answer:match " %+$" then
-      answer = answer:gsub(" %+$", M.PLUS_SUFFIX_TAG)
+      answer = answer:gsub(" %+$", M.CHAT_MODE_TAG)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))

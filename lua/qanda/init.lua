@@ -130,9 +130,9 @@ function M.create_user_command()
       local prompt_name = args:sub(2)
       if not utils.nil_or_blank(prompt_name) then
         local opts = {}
-        if utils.string_ends_with(prompt_name, Prompts.PLUS_SUFFIX) then
+        if utils.string_ends_with(prompt_name, Prompts.CHAT_MODE_SUFFIX) then
           opts.new_chat_mode = not Config.new_chat_mode
-          prompt_name = utils.string_strip_ending(prompt_name, Prompts.PLUS_SUFFIX)
+          prompt_name = utils.string_strip_ending(prompt_name, Prompts.CHAT_MODE_SUFFIX)
         end
         local prompt = Prompts.get_prompt(Prompts.user_prompts, prompt_name)
         if prompt then
@@ -147,9 +147,9 @@ function M.create_user_command()
       local prompt_text = args:sub(2)
       if not utils.nil_or_blank(prompt_text) then
         local opts = {}
-        if utils.string_ends_with(prompt_text, Prompts.PLUS_SUFFIX) then
+        if utils.string_ends_with(prompt_text, Prompts.CHAT_MODE_SUFFIX) then
           opts.new_chat_mode = not Config.new_chat_mode
-          prompt_text = utils.string_strip_ending(prompt_text, Prompts.PLUS_SUFFIX)
+          prompt_text = utils.string_strip_ending(prompt_text, Prompts.CHAT_MODE_SUFFIX)
         end
         local prompt = { model_options = {}, content = prompt_text }
         M.execute_prompt(prompt, opts)
@@ -247,9 +247,9 @@ function M.execute_prompt(prompt, opts)
     local new_chat_mode
     if opts.new_chat_mode ~= nil then -- new_chat_mode option takes precedence
       new_chat_mode = opts.new_chat_mode
-    elseif prompt.content:find(Prompts.PLUS_SUFFIX_TAG) ~= nil then -- Suffix tag inverts the default
+    elseif prompt.content:find(Prompts.CHAT_MODE_TAG) ~= nil then -- Suffix tag inverts the default
       new_chat_mode = not Config.new_chat_mode
-      prompt.content = prompt.content:gsub(Prompts.PLUS_SUFFIX_TAG, "") -- Delete suffix tags
+      prompt.content = prompt.content:gsub(Prompts.CHAT_MODE_TAG, "") -- Delete suffix tags
     else
       new_chat_mode = Config.new_chat_mode
     end

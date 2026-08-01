@@ -146,7 +146,7 @@ The default mappings include:
 
 A new turn is either appended to the current chat (_current_ chat mode) or to a newly created chat (_new_ chat mode).
 
-If the `new_chat_mode` [configuration option](#configuration) is `true` the chat mode is _new_ and the default destination is a new chat, if `false` the chat mode is _current_ and the default destination is the current chat.
+If the `new_chat_mode` [configuration option](#configuration) is `true` the chat mode is _new_ and the default turn destination is a new chat, if `false` the chat mode is _current_ and the default turn destination is the current chat.
 
 The default chat mode can be overridden by appending `␣+` (a space followed by a plus) to Qanda _Template_ commands and _Prompt_ commands. Examples:
 
