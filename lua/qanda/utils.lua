@@ -838,4 +838,17 @@ function M.confirm(prompt)
   return vim.fn.confirm(prompt, "&Yes\n&No", 2) == 1
 end
 
+--- Return the root path of this plugin
+function M.plugin_root()
+  -- Get the path of this file (the current Lua module)
+  local source = debug.getinfo(1, "S").source
+  if source:sub(1, 1) == "@" then
+    source = source:sub(2)
+  end
+  -- This file is: <plugin-root>/lua/<plugin-name>/utils.lua
+  -- Adjust ":h:h:h" depending on your layout
+  local root = vim.fn.fnamemodify(source, ":h:h:h")
+  return root
+end
+
 return M

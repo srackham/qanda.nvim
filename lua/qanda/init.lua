@@ -124,17 +124,16 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       vim.notify(help_message, vim.log.levels.INFO)
       return
     elseif args == "/readme" then
-      local current_file = vim.fn.expand "%:p"
-      local plugin_root = vim.fs.root(current_file, { ".git", "lua", "plugin", "ftplugin", "autoload" })
+      local plugin_root = utils.plugin_root()
       if not plugin_root then
         vim.notify("Could not find plugin root directory", vim.log.levels.ERROR)
         return
       end
-      local readme_path = plugin_root .. "/" .. "README.md"
+      local readme_path = plugin_root .. "/README.md"
       if vim.fn.filereadable(readme_path) == 1 then
         vim.cmd("edit " .. vim.fn.fnameescape(readme_path))
       else
-        vim.notify("No README found in: " .. plugin_root, vim.log.levels.WARN)
+        vim.notify("README file not found: " .. readme_path, vim.log.levels.WARN)
       end
       return
     elseif args == "/status" then
