@@ -10,34 +10,6 @@ Qanda is for getting answers and performing tasks interactively, not for automat
 
 There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve.
 
-## Installation
-
-Here is a minimal [lazy.nvim](https://github.com/folke/lazy.nvim) plugin configuration file (typically located in `~/.config/nvim/lua/plugins`):
-
-```lua
-return {
-  "srackham/qanda.nvim",
-  dependencies = {
-    "nvim-telescope/telescope.nvim",
-  },
-  config = function()
-    require("qanda").setup {
-    -- Override default options here --
-    }
-  end,
-}
-```
-
-- Set up some [key mappings](#key-mappings) to use the plugin.
-- The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
-- Restart Neovim after adding the plugin spec.
-
-See
-
-## Quick start
-
-Run the `:Qanda /help` command.
-
 ## Table of contents
 
 - [Overview](#overview)
@@ -66,6 +38,34 @@ Run the `:Qanda /help` command.
 - [System messages](#system-messages)
 - [Model options](#model-options)
 - [Tips](#tips)
+
+## Installation
+
+Here is a minimal [lazy.nvim](https://github.com/folke/lazy.nvim) plugin configuration file (typically located in `~/.config/nvim/lua/plugins`):
+
+```lua
+return {
+  "srackham/qanda.nvim",
+  dependencies = {
+    "nvim-telescope/telescope.nvim",
+  },
+  config = function()
+    require("qanda").setup {
+    -- Override default options here --
+    }
+  end,
+}
+```
+
+- Set some [keyboard shortcuts](#key-mappings).
+- The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
+- Restart Neovim to enable the changes.
+
+See
+
+## Quick start
+
+Run the `:Qanda /help` command.
 
 ## Qanda features
 
@@ -133,9 +133,7 @@ These are configurable key sequences for the built-in pickers, mapped to picker-
 
 - To list a picker's key commands and their assigned key sequences, open the picker and enter `<C-h>`.
 - These configuration options are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
-
-> [!TIP]
-> To disable a _[built-in key mapping](#key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+- To disable a _[built-in key mapping](#key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
 
 ### Default key mappings
 
@@ -152,9 +150,7 @@ The default mappings include:
 
 A new turn is either appended to the current chat (_current_ chat mode) or to a newly created chat (_new_ chat mode).
 
-If the `new_chat_mode` [configuration option](#configuration) is `true` the chat mode is _new_ and the default turn destination is a new chat, if `false` the chat mode is _current_ and the default turn destination is the current chat.
-
-The default chat mode can be overridden by appending `␣+` (a space followed by a plus) to Qanda _Template_ commands and _Prompt_ commands. Examples:
+The `new_chat_mode` [configuration option](#configuration) sets the default chat mode, it can be overridden by appending `␣+` (a space followed by a plus) to _Template_ and _Prompt_ commands or to user inputs. Examples:
 
 | Command                   | `new_chat_mode` Option | Turn Destination |
 | ------------------------- | ---------------------- | ---------------- |
@@ -163,7 +159,7 @@ The default chat mode can be overridden by appending `␣+` (a space followed by
 | `:Qanda ?Four plus one`   | `false`                | Current chat     |
 | `:Qanda ?Four plus one +` | `false`                | New chat         |
 
-Appending `␣+` to an `$input` [placeholder's](#template-placeholders) user input also overrides the default chat mode. Examples:
+Appending `␣+` to an `$input` [placeholder's](#template-placeholders) user input overrides the default chat mode. Examples:
 
 | Input    | `new_chat_mode` Option | Turn Destination |
 | -------- | ---------------------- | ---------------- |
@@ -189,21 +185,22 @@ There are three types of Qanda commands:
 | `:Qanda /chat_picker`            | Open the [Chat picker](#chat-picker)                            |
 | `:Qanda /chat_window`            | Open the [Chat window](#chat-window)                            |
 | `:Qanda /dump_diagnostics`       | Display diagnostics for the previous model request              |
+| `:Qanda /help`                   | Print help summary                                              |
 | `:Qanda /model_picker`           | Select a model from the current provider                        |
 | `:Qanda /new_chat`               | Start a new Chat                                                |
 | `:Qanda /new_prompt`             | Open a new Prompt                                               |
 | `:Qanda /prompt_template_picker` | Open the [Prompt picker](#prompt-template-picker)               |
 | `:Qanda /prompt_window`          | Open the [Prompt window](#prompt-window)                        |
 | `:Qanda /provider_picker`        | Select a provider and a model                                   |
+| `:Qanda /readme`                 | Open Qanda `README.md` file                                     |
 | `:Qanda /recent_models`          | Select from the list of recent models                           |
 | `:Qanda /status`                 | Print Qanda status information                                  |
 | `:Qanda /system_template_picker` | Open the [System template picker](#system-template-picker)      |
 | `:Qanda /turn_picker`            | Open the chat [Turn picker](#turn-picker)                       |
 
+- Appending `␣+` to `_Template_ or _Prompt_ commands inverts the [chat mode](#chat-mode).
+- _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
 - Qanda commands respond to tabbed command completion.
-- `:Qanda !<template>` commands execute immediately cf. the [Prompt template picker](#prompt-template-picker) which previews the prompt in the Prompt window.
-- The `:Qanda !<template>` command creates a new chat unless the user enters an [input placeholder](#template-placeholders) value that ends in a space character followed by a `+` character, in which case the new turn will be appended to the current chat.
-- Templates containing the `$cursor` placeholder are always previewed in the Prompt window.
 
 ## Prompt window
 
