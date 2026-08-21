@@ -199,6 +199,30 @@ local function get_prev_turn(chat, turn)
   end
 end
 
+--- Return the next chat or `nil` if at there are no chats or at last chat.
+---@param chat Chat The current chat
+---@return Chat|nil next_chat
+local function get_next_chat(chat)
+  local i = utils.index_of(State.chats, chat)
+  assert(i ~= nil)
+  if i == #State.chats then
+    return nil
+  end
+  return State.chats[i + 1]
+end
+
+--- Return the previous chat or `nil` if at there are no chats or at first chat.
+---@param chat Chat The current chat
+---@return Chat|nil prev_chat
+local function get_prev_chat(chat)
+  local i = utils.index_of(State.chats, chat)
+  assert(i ~= nil)
+  if i == 1 then
+    return nil
+  end
+  return State.chats[i - 1]
+end
+
 --- Delete a turn from a chat.
 ---@param chat Chat The chat to modify.
 ---@param turn ChatTurn The turn to delete.
@@ -297,7 +321,7 @@ function M.open_chat(chat, turn)
     vim.cmd "startinsert"
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_prev_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_prev_turn_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -309,7 +333,7 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_next_key, function()
+  vim.keymap.set({ "n", "v" }, Config.chat_next_turn_key, function()
     if curl.active_job_warning() then
       return
     end
@@ -318,6 +342,30 @@ function M.open_chat(chat, turn)
       if t then
         M.open_chat(win.chat, t)
       end
+    end
+  end, { buffer = win.bufnr })
+
+  vim.keymap.set({ "n", "v" }, Config.chat_prev_chat_key, function()
+    if curl.active_job_warning() then
+      return
+    end
+    local c = get_prev_chat(win.chat)
+    if c then
+      M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
+    else
+      utils.notify("No previous chat", vim.log.levels.WARN)
+    end
+  end, { buffer = win.bufnr })
+
+  vim.keymap.set({ "n", "v" }, Config.chat_next_chat_key, function()
+    if curl.active_job_warning() then
+      return
+    end
+    local c = get_next_chat(win.chat)
+    if c then
+      M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
+    else
+      utils.notify("No next chat", vim.log.levels.WARN)
     end
   end, { buffer = win.bufnr })
 
@@ -404,10 +452,11 @@ Normal mode commands:
 - %s - Open a blank Prompt window in insert mode
 - %s - Copy the turn response to clipboard
 - %s - Close the Chat window
-- %s/%s Go to next/previous turn
 - %s - Abort the current request
 - %s - Delete the current turn, if it is the last turn delete the chat
 - %s - Open the chat file in the editor at the selected turn
+- %s/%s - Go to next/previous turn
+- %s/%s - Go to next/previous chat
 - %s - Open the current turn's prompt in the Prompt window
 - %s - Delete the latest turn from the chat and open its prompt in the Prompt window
 - %s - Toggle truncated prompt and system message fields
@@ -417,11 +466,13 @@ Normal mode commands:
       Config.chat_new_prompt_key,
       Config.chat_copy_key,
       Config.chat_close_key,
-      Config.chat_next_key,
-      Config.chat_prev_key,
       Config.chat_abort_key,
       Config.chat_delete_key,
       Config.chat_edit_key,
+      Config.chat_next_turn_key,
+      Config.chat_prev_turn_key,
+      Config.chat_next_chat_key,
+      Config.chat_prev_chat_key,
       Config.chat_prompt_key,
       Config.chat_redo_key,
       Config.chat_truncate_key

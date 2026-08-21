@@ -242,7 +242,7 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
   - `<C-Del>` - Open a blank Prompt window in insert mode
   - `<C-c>` - Copy the turn response to clipboard
   - `<Esc>` - Close the Chat window
-  - `<C-n>/<C-p>` Go to next/previous turn
+  - `<C-n>/<C-p>` - Go to next/previous turn
   - `<C-k>` - Abort the current request
   - `<C-d>` - Delete the current turn, if it is the last turn delete the chat
   - e - Open the chat file in the editor at the selected turn
