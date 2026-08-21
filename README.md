@@ -193,6 +193,7 @@ There are three types of Qanda commands:
 | `:Qanda /prompt_window`          | Open the [Prompt window](#prompt-window)                        |
 | `:Qanda /provider_picker`        | Select a provider and a model                                   |
 | `:Qanda /readme`                 | Open Qanda `README.md` file                                     |
+| `:Qanda /repeat`                 | Re-execute the previous Qanda command                           |
 | `:Qanda /recent_models`          | Select from the list of recent models                           |
 | `:Qanda /status`                 | Print Qanda status information                                  |
 | `:Qanda /system_template_picker` | Open the [System template picker](#system-template-picker)      |

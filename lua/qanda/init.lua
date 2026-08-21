@@ -31,6 +31,7 @@ function M.setup(opts)
 end
 
 local initialised = false
+local last_command = nil
 
 ---Creates the Neovim user command `:Qanda`.
 ---
@@ -60,6 +61,16 @@ function M.create_user_command()
     local args = arg.args
     if args == "" then
       args = "/prompt_template_picker"
+    end
+
+    if args == "/repeat" then
+      if not last_command then
+        utils.notify("No commands have yet been executed", vim.log.levels.WARN)
+        return
+      end
+      args = last_command
+    else
+      last_command = args
     end
 
     if args == "/chat_window" then
@@ -210,6 +221,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")
+      table.insert(args, "/repeat")
       table.insert(args, "/help")
       table.insert(args, "/readme")
 
