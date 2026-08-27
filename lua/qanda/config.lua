@@ -132,8 +132,8 @@ function M.setup(opts)
   M.prompts_dir = M.data_dir .. "/templates"
   M.chats_dir = M.data_dir .. "/chats"
 
-  local project_data_dir = M.ROOT_DIR .. "/.qanda_nvim"
-  local dir = project_data_dir .. "/chats"
+  local workspace_data_dir = M.ROOT_DIR .. "/.qanda_nvim"
+  local dir = workspace_data_dir .. "/chats"
   if vim.fn.isdirectory(dir) == 1 then
     M.chats_dir = dir
   else

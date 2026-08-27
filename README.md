@@ -383,9 +383,9 @@ Qanda maintains a number of history and session data files:
 Qanda [data files](#data-files) are sourced from two locations:
 
 - The _global data directory_ is set by the `data_dir` [configuration](#configuration) option and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
-- An optional _project data directory_ `$PWD/.qanda_nvim`
-- Project data directory files take priority.
-- If there is no project `.qanda/chats` folder, Qanda uses the global chats folder.
+- An optional _workspace data directory_ `$PWD/.qanda_nvim`
+- Workspace data directory files take priority.
+- If there is no workspace `.qanda/chats` folder, Qanda uses the global chats folder.
 - [User prompt templates and system message templates](#prompt-and-system-templates) always come from the _global data directory_.
 
 ## Prompt and System templates
