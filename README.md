@@ -178,7 +178,7 @@ There are three types of Qanda commands:
 
 | Command                                      | Description                                                     |
 | -------------------------------------------- | --------------------------------------------------------------- |
-| `:Qanda`                                     | Open the [Prompt template picker](#prompt-template-picker)      |
+| `:Qanda`                                     | Print help message                                              |
 | `:Qanda !<template>`                         | Execute a named [prompt template](#prompt-and-system-templates) |
 | `:Qanda ?<prompt>`                           | Execute a user prompt                                           |
 | `:Qanda /abort`                              | Abort the current model request                                 |

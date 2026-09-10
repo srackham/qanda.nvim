@@ -60,7 +60,7 @@ function M.create_user_command()
 
     local args = arg.args
     if args == "" then
-      args = "/prompt_template_picker"
+      args = "/help"
     end
 
     if args == "/repeat" then
@@ -158,7 +158,7 @@ function M.create_user_command()
     elseif args == "/help" then
       local help_message = [[-- Qanda Commands --
 
-:Qanda                        -- Open the Prompt template picker
+:Qanda                        -- Print this help message
 :Qanda /readme                -- Open README file
 :Qanda /<command>             -- Execute a builtin command e.g. :Qanda /prompt_window
 :Qanda !<template>            -- Execute a prompt template e.g. :Qanda !Query
