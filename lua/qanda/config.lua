@@ -82,7 +82,7 @@ local default = {
   new_chat_mode = true,
 
   -- Prompt window key commands --
-  prompt_submit_default_key = "<C-q>",
+  prompt_submit_default_key = "<S-Enter>",
   prompt_submit_append_key = "<C-a>",
   prompt_submit_new_key = "<C-n>",
   prompt_redo_key = "<C-r>",
