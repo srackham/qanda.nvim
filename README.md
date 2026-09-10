@@ -176,28 +176,29 @@ There are three types of Qanda commands:
 - _Template commands_: Execute a prompt template (`:Qanda !<template>`)
 - _Prompt commands_: Execute a user prompt (`:Qanda ?<prompt>`)
 
-| Command                          | Description                                                     |
-| -------------------------------- | --------------------------------------------------------------- |
-| `:Qanda`                         | Open the [Prompt template picker](#prompt-template-picker)      |
-| `:Qanda !<template>`             | Execute a named [prompt template](#prompt-and-system-templates) |
-| `:Qanda ?<prompt>`               | Execute a user prompt                                           |
-| `:Qanda /abort`                  | Abort the current model request                                 |
-| `:Qanda /chat_picker`            | Open the [Chat picker](#chat-picker)                            |
-| `:Qanda /chat_window`            | Open the [Chat window](#chat-window)                            |
-| `:Qanda /dump_diagnostics`       | Display diagnostics for the previous model request              |
-| `:Qanda /help`                   | Print help summary                                              |
-| `:Qanda /model_picker`           | Select a model from the current provider                        |
-| `:Qanda /new_chat`               | Start a new Chat                                                |
-| `:Qanda /new_prompt`             | Open a new Prompt                                               |
-| `:Qanda /prompt_template_picker` | Open the [Prompt picker](#prompt-template-picker)               |
-| `:Qanda /prompt_window`          | Open the [Prompt window](#prompt-window)                        |
-| `:Qanda /provider_picker`        | Select a provider and a model                                   |
-| `:Qanda /readme`                 | Open Qanda `README.md` file                                     |
-| `:Qanda /repeat`                 | Re-execute the previous Qanda command                           |
-| `:Qanda /recent_models`          | Select from the list of recent models                           |
-| `:Qanda /status`                 | Print Qanda status information                                  |
-| `:Qanda /system_template_picker` | Open the [System template picker](#system-template-picker)      |
-| `:Qanda /turn_picker`            | Open the chat [Turn picker](#turn-picker)                       |
+| Command                           | Description                                                     |
+| --------------------------------- | --------------------------------------------------------------- |
+| `:Qanda`                          | Open the [Prompt template picker](#prompt-template-picker)      |
+| `:Qanda !<template>`              | Execute a named [prompt template](#prompt-and-system-templates) |
+| `:Qanda ?<prompt>`                | Execute a user prompt                                           |
+| `:Qanda /abort`                   | Abort the current model request                                 |
+| `:Qanda /chat_picker`             | Open the [Chat picker](#chat-picker)                            |
+| `:Qanda /chat_window`             | Open the [Chat window](#chat-window)                            |
+| `:Qanda /dump_diagnostics`        | Display diagnostics for the previous model request              |
+| `:Qanda /help`                    | Print help summary                                              |
+| `:Qanda /model_picker`            | Select a model from the current provider                        |
+| `:Qanda /new_chat`                | Start a new Chat                                                |
+| `:Qanda /new_prompt`              | Open a new Prompt                                               |
+| `:Qanda /prompt_template_picker`  | Open the [Prompt picker](#prompt-template-picker)               |
+| `:Qanda /prompt_window`           | Open the [Prompt window](#prompt-window)                        |
+| `:Qanda /provider_picker`         | Select a provider and a model                                   |
+| `:Qanda /readme`                  | Open Qanda `README.md` file                                     |
+| `:Qanda /repeat`                  | Re-execute the previous Qanda command                           |
+| `:Qanda /recent_models`           | Select from the list of recent models                           |
+| `:Qanda /status`                  | Print Qanda status information                                  |
+| `:Qanda /system_template_picker`  | Open the [System template picker](#system-template-picker)      |
+| `:Qanda /turn_picker`             | Open the chat [Turn picker](#turn-picker)                       |
+| `:Qanda /toggle_chat_window_mode` | Toggle Chat window mode                                         |
 
 - Appending `␣+` to `_Template_ or _Prompt_ commands inverts the [chat mode](#chat-mode).
 - _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
@@ -236,6 +237,7 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
 - Use the _[chat picker](#chat-picker)_ to select and resume previous conversations.
 - The chat window is read-only, you can't edit it directly.
 - By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
+- The `/toggle_chat_window_mode` command toggles between Chat window default and alt window modes (see the `chat_window_alt_mode` [configuration](#configuration) option).
 - Scroll through turns with the next (`<C-n>`) and previous (`<C-p>`) commands.
 - The chat window implements the following key-mapped commands:
   - `<S-Tab>` - Switch to the Prompt window

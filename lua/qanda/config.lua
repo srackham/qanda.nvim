@@ -103,7 +103,8 @@ local default = {
   system_picker_disable_key = "<C-d>",
 
   -- Window layouts --
-  chat_window_mode = "float", ---@type WindowMode
+  chat_window_mode = "float", ---@type WindowMode Default Chat window mode
+  chat_window_alt_mode = "top", ---@type WindowMode Toggled to by `/toggle_chat_window_mode` command
   chat_picker_layout = { width = 0.9, height = 0.6, preview_width = 0.65 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
   template_picker_layout = { width = 0.8, height = 0.5 }, -- Prompt and System template pickers layout

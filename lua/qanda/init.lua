@@ -121,6 +121,15 @@ function M.create_user_command()
     elseif args == "/abort" then
       curl.kill_command()
       return
+    elseif args == "/toggle_chat_window_mode" then
+      local win = State.chat_window
+      win.mode = win.mode == Config.chat_window_mode and Config.chat_window_alt_mode or Config.chat_window_mode
+      utils.notify("Window mode set to: " .. win.mode, vim.log.levels.INFO)
+      if win:is_open() then
+        win:close()
+        win:open()
+      end
+      return
     elseif args == "/help" then
       local help_message = [[-- Qanda Commands --
 
@@ -218,6 +227,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/provider_picker")
       table.insert(args, "/recent_models")
       table.insert(args, "/abort")
+      table.insert(args, "/toggle_chat_window_mode")
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
       table.insert(args, "/dump_diagnostics")
