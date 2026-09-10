@@ -851,4 +851,18 @@ function M.plugin_root()
   return root
 end
 
+---Retrieves the currently selected text in active visual mode.
+---Supports character-wise (`v`), line-wise (`V`), and block-wise (`<C-v>`) selections.
+---@return string # The selected text joined by newlines, or an empty string if not in visual mode.
+function M.get_visual_selection()
+    local mode = vim.fn.mode()
+    if not mode:match("[vV\22]") then
+        return ""
+    end
+    local pos_start = vim.fn.getpos("v")
+    local pos_end = vim.fn.getpos(".")
+    local region = vim.fn.getregion(pos_start, pos_end, { type = mode })
+    return table.concat(region, "\n")
+end
+
 return M
