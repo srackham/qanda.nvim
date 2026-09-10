@@ -122,21 +122,21 @@ function M.create_user_command()
       curl.kill_command()
       return
     elseif args:match "^/delete_old_chats$" or args:match "^/delete_old_chats%s" then
-      local retained_chats = Config.retained_chats
+      local number_retained = Config.chats_retained
       local rest = arg.args:match "^/delete_old_chats%s+(.+)"
       if rest then
-        retained_chats = tonumber(rest)
+        number_retained = tonumber(rest)
       else
-        retained_chats =
-          tonumber(vim.fn.input("Enter the number of chats to retain (older chats will be deleted): ", Config.retained_chats))
+        number_retained =
+          tonumber(vim.fn.input("Enter the number of chats to retain (older chats will be deleted): ", Config.chats_retained))
       end
-      if not retained_chats or retained_chats < 0 then
+      if not number_retained or number_retained < 0 then
         utils.notify("Invalid number of chats to retain", vim.log.levels.WARN)
         return
       end
       State.chats = Chats.load_chats()
       local current_count = #State.chats
-      local to_delete = math.max(0, current_count - retained_chats)
+      local to_delete = math.max(0, current_count - number_retained)
       if to_delete == 0 then
         utils.notify("No old chats to delete", vim.log.levels.INFO)
         return
@@ -144,7 +144,7 @@ function M.create_user_command()
       if not utils.confirm("About to delete " .. to_delete .. " chat(s). Continue?") then
         return
       end
-      Chats.delete_old_chats(retained_chats)
+      Chats.delete_old_chats(number_retained)
       return
     elseif args == "/toggle_chat_window_mode" then
       local win = State.chat_window

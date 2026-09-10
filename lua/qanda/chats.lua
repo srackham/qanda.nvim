@@ -263,11 +263,11 @@ end
 ---
 --- State.chats is assumed to be sorted by filename (oldest first).
 ---
----@param retained_chats number Number of most recent chats to retain.
-function M.delete_old_chats(retained_chats)
+---@param number_retained number Number of most recent chats to retain.
+function M.delete_old_chats(number_retained)
   -- Delete the oldest chats (first ones in sorted array), keeping the most recent
   local deleted_count = 0
-  local delete_up_to = #State.chats - retained_chats
+  local delete_up_to = #State.chats - number_retained
   for i = 1, delete_up_to do
     local chat = State.chats[i]
     if chat and chat.filename then
