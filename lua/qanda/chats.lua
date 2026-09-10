@@ -108,6 +108,11 @@ function M.load_chats(chat_file)
     end
   end
 
+  -- Sort by filename (oldest first since timestamp format is YYYYMMDD_HHMMSS)
+  table.sort(result, function(a, b)
+    return a.filename < b.filename
+  end)
+
   return result
 end
 
@@ -251,6 +256,32 @@ function M.delete_turn(chat, turn)
       M.save_chat(chat)
       State.chat_window.current_turn = nil -- Force Chat window refresh when picker is closed
     end
+  end
+end
+
+--- Delete old chats, retaining the most recent ones.
+---
+--- State.chats is assumed to be sorted by filename (oldest first).
+---
+---@param retained_chats number Number of most recent chats to retain.
+function M.delete_old_chats(retained_chats)
+  -- Delete the oldest chats (first ones in sorted array), keeping the most recent
+  local deleted_count = 0
+  local delete_up_to = #State.chats - retained_chats
+  for i = 1, delete_up_to do
+    local chat = State.chats[i]
+    if chat and chat.filename then
+      if utils.delete_file(chat.filename) then
+        table.remove(State.chats, i)
+        deleted_count = deleted_count + 1
+      end
+    end
+  end
+
+  if deleted_count > 0 then
+    utils.notify("Deleted " .. deleted_count .. " old chat(s)", vim.log.levels.INFO)
+  else
+    utils.notify("No old chats deleted", vim.log.levels.INFO)
   end
 end
 
@@ -639,12 +670,10 @@ function M.chat_picker()
 
   local function get_picker_entries()
     local picker_entries = {}
-    for _, chat in ipairs(State.chats) do
-      table.insert(picker_entries, chat)
+    -- Iterate in reverse order since State.chats is sorted oldest-first
+    for i = #State.chats, 1, -1 do
+      table.insert(picker_entries, State.chats[i])
     end
-    table.sort(picker_entries, function(a, b)
-      return a.filename > b.filename
-    end)
     return picker_entries
   end
 

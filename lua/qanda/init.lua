@@ -121,6 +121,31 @@ function M.create_user_command()
     elseif args == "/abort" then
       curl.kill_command()
       return
+    elseif args:match "^/delete_old_chats$" or args:match "^/delete_old_chats%s" then
+      local retained_chats = Config.retained_chats
+      local rest = arg.args:match "^/delete_old_chats%s+(.+)"
+      if rest then
+        retained_chats = tonumber(rest)
+      else
+        retained_chats =
+          tonumber(vim.fn.input("Enter the number of chats to retain (older chats will be deleted): ", Config.retained_chats))
+      end
+      if not retained_chats or retained_chats < 0 then
+        utils.notify("Invalid number of chats to retain", vim.log.levels.WARN)
+        return
+      end
+      State.chats = Chats.load_chats()
+      local current_count = #State.chats
+      local to_delete = math.max(0, current_count - retained_chats)
+      if to_delete == 0 then
+        utils.notify("No old chats to delete", vim.log.levels.INFO)
+        return
+      end
+      if not utils.confirm("About to delete " .. to_delete .. " chat(s). Continue?") then
+        return
+      end
+      Chats.delete_old_chats(retained_chats)
+      return
     elseif args == "/toggle_chat_window_mode" then
       local win = State.chat_window
       win.mode = win.mode == Config.chat_window_mode and Config.chat_window_alt_mode or Config.chat_window_mode
@@ -227,6 +252,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/provider_picker")
       table.insert(args, "/recent_models")
       table.insert(args, "/abort")
+      table.insert(args, "/delete_old_chats")
       table.insert(args, "/toggle_chat_window_mode")
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
