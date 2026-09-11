@@ -122,9 +122,9 @@ function M.create_user_command()
       return
     elseif args:match "^/delete_old_chats$" or args:match "^/delete_old_chats%s" then
       local number_retained = Config.chats_retained
-      local rest = arg.args:match "^/delete_old_chats%s+(.+)"
-      if rest then
-        number_retained = tonumber(rest)
+      local cmd_arg = arg.args:match "^/delete_old_chats%s+(.+)"
+      if cmd_arg then
+        number_retained = tonumber(cmd_arg)
       else
         number_retained =
           tonumber(vim.fn.input("Enter the number of chats to retain (older chats will be deleted): ", Config.chats_retained))
