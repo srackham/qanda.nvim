@@ -272,11 +272,11 @@ function M.delete_old_chats(number_retained)
   -- Delete the oldest chats (first ones in sorted array), keeping the most recent
   local deleted_count = 0
   local delete_up_to = #State.chats - number_retained
-  for i = 1, delete_up_to do
-    local chat = State.chats[i]
+  for _ = 1, delete_up_to do
+    local chat = State.chats[1]
     if chat and chat.filename then
       if utils.delete_file(chat.filename) then
-        table.remove(State.chats, i)
+        table.remove(State.chats, 1)
         deleted_count = deleted_count + 1
       end
     end
