@@ -674,6 +674,7 @@ function M.chat_picker()
         local chat = selection.value
         if utils.delete_file(chat.filename, { confirm = Config.confirm_chat_file_deletion }) then
           current_chat_deleted = (chat.filename == current_chat.filename)
+          State.chats = M.load_chats()
           return true
         end
       end
