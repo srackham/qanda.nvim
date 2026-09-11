@@ -199,11 +199,6 @@ end
 ---@return Chat|nil next_chat
 local function get_next_chat(chat)
   local i = utils.index_of(State.chats, chat)
-  -- FIXME: assertion failures
-  if i == nil then
-    print(vim.inspect(State.chats))
-    print(vim.inspect(chat))
-  end
   assert(i ~= nil)
   if i == #State.chats then
     return nil
@@ -216,11 +211,6 @@ end
 ---@return Chat|nil prev_chat
 local function get_prev_chat(chat)
   local i = utils.index_of(State.chats, chat)
-  -- FIXME: assertion failures
-  if i == nil then
-    print(vim.inspect(State.chats))
-    print(vim.inspect(chat))
-  end
   assert(i ~= nil)
   if i == 1 then
     return nil
