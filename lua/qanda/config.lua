@@ -42,7 +42,7 @@ local default = {
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
   diagnostics_register = "u", -- Diagnostics written to this register
   confirm_chat_file_deletion = true,
-  chats_retained = 20, -- Default argument for /delete_old_chats command
+  chats_retained = 50, -- Default argument for /delete_old_chats command
 
   -- Pickers, Chat and Prompt windows help key --
   help_key = "<C-h>", -- Display a list of picker commands
