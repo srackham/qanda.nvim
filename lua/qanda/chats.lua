@@ -231,6 +231,7 @@ function M.delete_turn(chat, turn)
         if chat == State.chat_window.chat then
           M.new_chat()
         end
+        State.chats = M.load_chats()
       end
     else
       M.save_chat(chat)
