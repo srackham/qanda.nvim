@@ -218,6 +218,14 @@ local function get_prev_chat(chat)
   return State.chats[i - 1]
 end
 
+--- Delete a chat from State.chats.
+---@param chat Chat The chat to delete.
+function M.delete_chat(chat)
+  local i = utils.index_of(State.chats, chat)
+  assert(i ~= nil, "chat not found in State.chats")
+  table.remove(State.chats, i)
+end
+
 --- Delete a turn from a chat.
 ---@param chat Chat The chat to modify.
 ---@param turn ChatTurn The turn to delete.
@@ -506,11 +514,9 @@ end
 -- Assign a new empty chat to the Chat window.
 function M.new_chat()
   local new_chat = { turns = {} }
-
   local win = State.chat_window
   win.chat = new_chat
   win.current_turn = nil
-
 end
 
 ---@param chat Chat
