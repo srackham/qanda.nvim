@@ -93,7 +93,6 @@ function M.create_user_command()
       vim.cmd "startinsert" -- Go to insert mode
       return
     elseif args == "/chat_picker" then
-      State.chats = Chats.load_chats()
       Chats.chat_picker()
       return
     elseif args == "/turn_picker" then
@@ -134,7 +133,6 @@ function M.create_user_command()
         utils.notify("Invalid number of chats to retain", vim.log.levels.WARN)
         return
       end
-      State.chats = Chats.load_chats()
       local current_count = #State.chats
       local to_delete = math.max(0, current_count - number_retained)
       if to_delete == 0 then

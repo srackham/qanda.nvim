@@ -21,14 +21,12 @@ function M.setup()
     end,
   })
 
-  -- Load the most recent chat
-  local chat_file = M.recent_chat_file()
-  if chat_file then
-    local chats = M.load_chats(chat_file)
-    if #chats == 1 then
-      State.chats = chats -- The full chats list is lazy-loaded later when the Chat picker is opened
-      State.chat_window.chat = chats[1]
-    end
+  -- Load all chats and set the most recent one as the current chat
+  State.chats = M.load_chats()
+  if #State.chats > 0 then
+    State.chat_window.chat = State.chats[#State.chats] -- Most recent chat
+  else
+    State.chat_window.chat = nil
   end
 end
 
@@ -61,25 +59,17 @@ local function parse_turns(lines)
   return result
 end
 
---- Loads chats. If chat_file is provided, loads only that file.
---- Otherwise, scans chats_dir for all .chat.jsonl files.
----@param chat_file string? Optional specific file to load
----@return Chat[] result A list of Chat objects
-function M.load_chats(chat_file)
+--- Loads chats from the chats directory.
+---
+---@return Chat[] result A list of Chat objects sorted by filename (oldest first).
+function M.load_chats()
   local result = {} ---@type Chat[]
-  local chat_files = {}
-  local current_chat_loaded = false
   local current_chat_filename = State.chat_window.chat and State.chat_window.chat.filename
+  local current_chat_loaded = false
 
-  -- Determine which files to load
-  if chat_file then
-    table.insert(chat_files, chat_file)
-  else
-    local glob_pattern = Config.chats_dir .. "/*.chat.jsonl"
-    chat_files = vim.fn.glob(glob_pattern, false, true)
-  end
-
-  -- Process the files
+  -- Load all chat files
+  local glob_pattern = Config.chats_dir .. "/*.chat.jsonl"
+  local chat_files = vim.fn.glob(glob_pattern, false, true)
   for _, file_path in ipairs(chat_files) do
     if utils.file_exists(file_path) then
       local lines = vim.fn.readfile(file_path)
