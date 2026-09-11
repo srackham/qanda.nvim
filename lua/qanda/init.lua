@@ -459,6 +459,9 @@ function M.execute_prompt(prompt, opts)
         -- Save chat file
         vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
           Chats.save_chat(chat)
+          if not vim.tbl_contains(State.chats, chat) then
+            table.insert(State.chats, chat)
+          end
         end)
 
       end
