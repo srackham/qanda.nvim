@@ -59,6 +59,25 @@ local function parse_turns(lines)
   return result
 end
 
+--- Loads a single chat from a JSONL file.
+---@param file_path string Path to the chat file.
+---@return Chat|nil chat The loaded Chat object, or nil if the file could not be read or parsed.
+function M.load_chat(file_path)
+  local result = nil
+  if utils.file_exists(file_path) then
+    local lines = vim.fn.readfile(file_path)
+    local turns = parse_turns(lines)
+    if turns then
+      result = { turns = turns, filename = file_path }
+    else
+      utils.notify("Failed to parse turns from '" .. file_path .. "'", vim.log.levels.ERROR)
+    end
+  else
+    utils.notify("File not readable or does not exist '" .. file_path .. "'", vim.log.levels.ERROR)
+  end
+  return result
+end
+
 --- Loads chats from the chats directory.
 ---
 ---@return Chat[] result A list of Chat objects sorted by filename (oldest first).
@@ -71,21 +90,13 @@ function M.load_chats()
   local glob_pattern = Config.chats_dir .. "/*.chat.jsonl"
   local chat_files = vim.fn.glob(glob_pattern, false, true)
   for _, file_path in ipairs(chat_files) do
-    if utils.file_exists(file_path) then
-      local lines = vim.fn.readfile(file_path)
-      local turns = parse_turns(lines)
-      if turns then
-        local chat = { turns = turns, filename = file_path }
-        table.insert(result, chat)
-        if current_chat_filename == file_path then
-          -- The chat in the Chat window is in the loaded chats.
-          current_chat_loaded = true
-        end
-      else
-        utils.notify("Failed to parse turns from '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
+    local chat = M.load_chat(file_path)
+    if chat then
+      table.insert(result, chat)
+      if current_chat_filename == file_path then
+        -- The chat in the Chat window is in the loaded chats.
+        current_chat_loaded = true
       end
-    else
-      utils.notify("File not readable or does not exist '" .. file_path .. "', skipping.", vim.log.levels.ERROR)
     end
   end
 
@@ -224,6 +235,10 @@ function M.delete_chat(chat)
   local i = utils.index_of(State.chats, chat)
   assert(i ~= nil, "chat not found in State.chats")
   table.remove(State.chats, i)
+  if State.chat_window and State.chat_window.chat == chat then
+    -- Clear chat window if it is open at the deleted chat
+    M.clear_chat_window()
+  end
 end
 
 --- Delete a turn from a chat.
@@ -519,6 +534,14 @@ function M.new_chat()
   win.current_turn = nil
 end
 
+-- Assign a blank chat to the Chat window and clear the window if it is open.
+function M.clear_chat_window()
+  M.new_chat()
+  if State.chat_window:is_open() then
+    M.open_chat()
+  end
+end
+
 ---@param chat Chat
 ---@param turn ChatTurn
 ---@return string[]
@@ -698,10 +721,7 @@ function M.chat_picker()
       callback = function()
         -- If necessary, clear the Chat window
         if current_chat_deleted then
-          M.new_chat()
-          if State.chat_window:is_open() then
-            M.open_chat()
-          end
+          M.clear_chat_window()
         end
       end,
     })
