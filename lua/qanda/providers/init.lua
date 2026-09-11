@@ -68,7 +68,7 @@ function M.is_valid_provider_model(provider_name, model_name)
   if not models then
     return nil
   end
-  if not utils.table_contains(models, model_name) then
+  if not vim.list_contains(models, model_name) then
     utils.notify("No model named '" .. model_name .. "'", vim.log.levels.ERROR)
     return nil
   end

@@ -89,19 +89,6 @@ function M.table_size(tbl)
   return count
 end
 
---- Check if a table contains a specific string value.
---- @param arr table The array-like table to search through.
---- @param str string The string value to look for.
---- @return boolean # Returns true if found, false otherwise.
-function M.table_contains(arr, str)
-  for _, v in ipairs(arr) do
-    if v == str then
-      return true
-    end
-  end
-  return false
-end
-
 ---Search an array for the first element where the `match` function returns `true`, then replace the element with the `item` element.
 ---@param array table<number, table> Array of tables to search
 ---@param item any The item table to insert or use for replacement
@@ -855,14 +842,14 @@ end
 ---Supports character-wise (`v`), line-wise (`V`), and block-wise (`<C-v>`) selections.
 ---@return string # The selected text joined by newlines, or an empty string if not in visual mode.
 function M.get_visual_selection()
-    local mode = vim.fn.mode()
-    if not mode:match("[vV\22]") then
-        return ""
-    end
-    local pos_start = vim.fn.getpos("v")
-    local pos_end = vim.fn.getpos(".")
-    local region = vim.fn.getregion(pos_start, pos_end, { type = mode })
-    return table.concat(region, "\n")
+  local mode = vim.fn.mode()
+  if not mode:match "[vV\22]" then
+    return ""
+  end
+  local pos_start = vim.fn.getpos "v"
+  local pos_end = vim.fn.getpos "."
+  local region = vim.fn.getregion(pos_start, pos_end, { type = mode })
+  return table.concat(region, "\n")
 end
 
 return M
