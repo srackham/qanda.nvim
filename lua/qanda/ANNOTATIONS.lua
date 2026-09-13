@@ -40,7 +40,7 @@
 ---@field get_lines fun(self: UIWindow): string[] Return list of buffer lines.
 ---@field set_lines fun(self: UIWindow, lines: string[]) Set buffer lines and position cursor at end.
 ---@field chat Chat? The Chat window chat object
----@field current_turn ChatTurn? Chat window current turn
+---@field turn Turn? The turn displayed in the Chat window
 
 -- State --
 
@@ -100,7 +100,7 @@
 
 ---@alias Prompts Prompt[]
 
----@class ChatTurn A model user request and response (called a turn or a turn-about)
+---@class Turn A model user request and response (called a turn or a turn-about)
 ---@field chat string? The chat name (if a custom value is set it is stored in the first turn)
 ---@field request string Model user prompt (expanded)
 ---@field response string Model response (extracted)
@@ -115,7 +115,7 @@
 ---@field total_tokens number Request plus response tokens
 
 ---@class Chat
----@field turns ChatTurn[] A list of conversation request/response pairs
+---@field turns Turn[] A list of conversation request/response pairs
 ---@field filename string? The chat JSONL file path, set when the chat is saved for the first time
 
 ---@alias Chats Chat[]

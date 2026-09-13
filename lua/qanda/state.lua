@@ -15,7 +15,7 @@ local M = {
     modifiable = false,
     mode = nil,
     chat = nil,
-    current_turn = nil,
+    turn = nil,
   },
 
   prompt_window = ui.UIWindow.new {

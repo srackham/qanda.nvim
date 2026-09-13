@@ -66,8 +66,8 @@ function M.set_system_message(system_message_template, opts)
   local win = State.chat_window
 
   local refresh_chat_window = function()
-    if win.current_turn and win.current_turn == win.chat.turns[1] then
-      local lines = require("qanda.chats").turn_to_lines(win.chat, win.current_turn)
+    if win.turn and win.turn == win.chat.turns[1] then
+      local lines = require("qanda.chats").turn_to_lines(win.chat, win.turn)
       win:set_lines(lines)
     end
   end
@@ -567,7 +567,7 @@ function M.open_prompt(prompt)
 
     -- Delete the most recent turn
     table.remove(chat_window.chat.turns)
-    chat_window.current_turn = nil
+    chat_window.turn = nil
     require("qanda.chats").open_chat()
 
     -- Execute prompt
