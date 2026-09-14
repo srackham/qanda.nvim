@@ -496,6 +496,7 @@ function M.open_chat(chat, turn)
 
 Normal mode commands:
 
+- %s - Open the turn's prompt in the Prompt window
 - %s - Switch to the Prompt window
 - %s - Open a blank Prompt window in insert mode
 - %s - Copy the turn response to clipboard
@@ -505,11 +506,11 @@ Normal mode commands:
 - %s - Open the chat file in the editor at the current turn
 - %s/%s - Go to next/previous turn
 - %s/%s - Go to next/previous chat
-- %s - Open the current turn's prompt in the Prompt window
 - %s - Delete the latest turn from the chat and open its prompt in the Prompt window
 - %s - Toggle truncated prompt and system message fields
 
 ]]):format(
+      Config.chat_prompt_key,
       Config.chat_switch_key,
       Config.chat_new_prompt_key,
       Config.chat_copy_key,
@@ -521,7 +522,6 @@ Normal mode commands:
       Config.chat_prev_turn_key,
       Config.chat_next_chat_key,
       Config.chat_prev_chat_key,
-      Config.chat_prompt_key,
       Config.chat_redo_key,
       Config.chat_truncate_key
     )

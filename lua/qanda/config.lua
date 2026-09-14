@@ -50,6 +50,7 @@ local default = {
   -- Chat window key commands --
   -- The Chat window is read-only, all commands execute in normal mode
   chat_close_key = "<Esc>",
+  chat_prompt_key = "<S-Enter>",
   chat_new_prompt_key = "<C-Del>",
   chat_switch_key = "<S-Tab>",
   chat_copy_key = "<C-c>",
@@ -60,7 +61,6 @@ local default = {
   chat_prev_turn_key = "<C-p>",
   chat_delete_key = "<C-d>",
   chat_edit_key = "<C-e>",
-  chat_prompt_key = "p",
   chat_redo_key = "r",
   chat_truncate_key = "t",
 
