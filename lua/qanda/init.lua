@@ -96,7 +96,7 @@ function M.create_user_command()
       Chats.chat_picker()
       return
     elseif args == "/turn_picker" then
-      Chats.turns_picker()
+      Chats.turns_picker(State.chats)
       return
     elseif args == "/prompt_template_picker" then
       Prompts.load_user_templates()

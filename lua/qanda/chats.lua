@@ -868,9 +868,9 @@ function M.chat_name(chat)
   return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request, 60)
 end
 
---- Open a Telescope picker to select and manage turns in the current chat.
----@param chat? Chat The chat.
-function M.turns_picker(chat)
+--- Open a Telescope picker to select and manage turns.
+---@param chats? Chat | Chats Chats containing the picker turns
+function M.turns_picker(chats)
   local actions = require "telescope.actions"
   local action_state = require "telescope.actions.state"
   local finders = require "telescope.finders"
@@ -878,9 +878,20 @@ function M.turns_picker(chat)
   local previewers = require "telescope.previewers"
   local conf = require("telescope.config").values
 
-  chat = chat or State.chat_window.chat
+  -- Handle both single Chat and Chats array
+  local chats_list ---@type Chat[]
+  if chats and chats[1] then
+    -- It's a Chats array
+    chats_list = chats
+  elseif chats and chats.turns then
+    -- It's a single Chat
+    chats_list = { chats }
+  else
+    -- Default to current chat
+    chats_list = { State.chat_window.chat }
+  end
+
   local mutated = false
-  assert(chat)
   local current_turn = State.chat_window.turn
 
   local delete_entry = function(picker_bufnr)
@@ -888,7 +899,9 @@ function M.turns_picker(chat)
 
     current_picker:delete_selection(function(selection)
       if selection then
-        table.remove(chat.turns, get_turn_index(chat, selection.value))
+        local turn = selection.value
+        local parent_chat = selection.chat
+        table.remove(parent_chat.turns, get_turn_index(parent_chat, turn))
         mutated = true
         return true
       end
@@ -904,18 +917,28 @@ function M.turns_picker(chat)
       once = true,
       callback = function()
         if mutated then
-          if #chat.turns == 0 then
-            -- All turns have been deleted so delete the parent chat so switch to the most recent chat
-            delete_chat(chat)
-            if State.chat_window.chat == chat then
-              State.chat_window.chat = State.chats[#State.chats]
-              State.chat_window.turn = nil
+          for _, chat in ipairs(chats_list) do
+            if #chat.turns == 0 then
+              -- All turns have been deleted so delete the parent chat
+              delete_chat(chat)
+              if State.chat_window.chat == chat then
+                State.chat_window.chat = State.chats[#State.chats]
+                State.chat_window.turn = nil
+              end
+            else
+              M.save_chat(chat)
             end
-          else
-            M.save_chat(chat)
-            if State.chat_window.chat == chat and not get_turn_index(chat, State.chat_window.turn) then
+          end
+          -- Handle case where current turn was deleted
+          local current_chat = State.chat_window.chat
+          local current_turn_ref = State.chat_window.turn
+          if current_turn and current_chat and current_turn_ref then
+            if not get_turn_index(current_chat, current_turn_ref) then
               -- The Chat window turn has been deleted so switch to the most recent turn
-              State.chat_window.turn = chat.turns[#chat.turns]
+              local last_turn = current_chat.turns[#current_chat.turns]
+              if last_turn then
+                State.chat_window.turn = last_turn
+              end
             end
           end
           if State.chat_window:is_open() then
@@ -930,7 +953,7 @@ function M.turns_picker(chat)
       local selection = action_state.get_selected_entry()
       actions.close(picker_bufnr)
       if selection then
-        M.open_chat(chat, selection.value)
+        M.open_chat(selection.chat, selection.value)
       end
     end, { desc = "Close the picker and open the selected turn in the chat window" })
 
@@ -965,7 +988,7 @@ function M.turns_picker(chat)
       -- Re-render preview
       local previewer = picker.previewer
       if previewer and previewer.state and previewer.state.bufnr then
-        local lines = M.turn_to_lines(chat, selection.value)
+        local lines = M.turn_to_lines(selection.chat, selection.value)
 
         if #lines == 0 then
           lines = { "**[No content available for this turn]**" }
@@ -993,32 +1016,34 @@ function M.turns_picker(chat)
     return true
   end
 
-  -- Display entry function
-  local display_entry = function(turn)
-    local display = utils.sanitize_display_entry(turn.request, 60)
-    if current_turn and turn == current_turn then
-      return "* " .. display
-    else
-      return "  " .. display
+  -- Build picker entries by concatenating turns from all chats (chronological order)
+  -- Then reverse so oldest is at top and latest is at bottom
+  local picker_entries = {} ---@type { value: Turn, chat: Chat }[]
+  for _, chat in ipairs(chats_list) do
+    for _, turn in ipairs(chat.turns) do
+      table.insert(picker_entries, { value = turn, chat = chat })
     end
   end
-
-  -- Prepare data for telescope
-  local picker_entries = {}
-  for _, turn in ipairs(chat.turns) do
-    table.insert(picker_entries, turn)
+  -- Reverse to show oldest first at top
+  for i = 1, math.floor(#picker_entries / 2) do
+    picker_entries[i], picker_entries[#picker_entries - i + 1] = picker_entries[#picker_entries - i + 1], picker_entries[i]
   end
 
-  -- The original order is the chronological turn order which makes the most sense.
-  -- This sort puts the oldest turn at the top of the displayed list; the latest is at the bottom.
-  table.sort(picker_entries, function(a, b)
-    return get_turn_index(chat, a) > get_turn_index(chat, b)
-  end)
+  -- Display entry function
+  local display_entry = function(entry)
+    local turn = entry.value
+    local display = utils.sanitize_display_entry(turn.request, 60)
+    local prefix = "  "
+    if current_turn and turn == current_turn then
+      prefix = "* "
+    end
+    return prefix .. display
+  end
 
-  -- Create previewer that shows the chat value
+  -- Create previewer that shows the turn value
   local turn_previewer = previewers.new_buffer_previewer {
     define_preview = function(self, entry)
-      local lines = M.turn_to_lines(chat, entry.value)
+      local lines = M.turn_to_lines(entry.chat, entry.value)
 
       if #lines == 0 then
         table.insert(lines, "**[No content available for this turn]**")
@@ -1041,7 +1066,8 @@ function M.turns_picker(chat)
         entry_maker = function(entry)
           local displayed_name = display_entry(entry)
           return {
-            value = entry,
+            value = entry.value,
+            chat = entry.chat,
             display = displayed_name,
             ordinal = displayed_name,
           }

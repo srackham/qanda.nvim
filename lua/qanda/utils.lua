@@ -582,7 +582,7 @@ function M.inject_files()
   end)
 end
 
---- Sanitizes strings for Telescope picker display by removing newlines and truncating.
+--- Sanitizes strings for Telescope picker display by removing non-printable characters and truncating.
 ---@param str string|nil The input text to sanitize.
 ---@param max_len number? Optional maximum length (defaults to 80).
 ---@return string
@@ -593,8 +593,8 @@ function M.sanitize_display_entry(str, max_len)
 
   local limit = max_len or 80
 
-  -- 1. Replace newlines, tabs, and carriage returns with a single space
-  local s = str:gsub("[\n\r\t]", " ")
+  -- 1. Replace non-printable characters (control chars, DEL, non-ASCII) with a space
+  local s = str:gsub("[\1-\8\11\12\14-\31\127-\255]+", " ")
 
   -- 2. Collapse multiple consecutive spaces into one
   s = s:gsub("%s+", " ")
