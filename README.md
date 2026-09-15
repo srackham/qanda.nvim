@@ -245,7 +245,7 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
   - `<S-Tab>` - Switch to the Prompt window
   - `<C-Del>` - Open a blank Prompt window in insert mode
   - `<C-c>` - Copy the turn response to clipboard
-  - `<Esc>` - Close the Chat window and abort active request
+  - `<Esc>` - Close the Chat window and terminate model request
   - `<C-d>` - Delete the turn, if it is the last turn delete the chat
   - `<C-e>` - Open the chat file in the editor
   - `<C-t>` - Open the Turn picker

@@ -586,27 +586,25 @@ end
 
 --- Sanitizes strings for Telescope picker display by removing non-printable characters and truncating.
 ---@param str string|nil The input text to sanitize.
----@param max_len number? Optional maximum length (defaults to 80).
+---@param max_len number? Optional maximum length.
 ---@return string
 function M.sanitize_display_entry(str, max_len)
   if not str or type(str) ~= "string" then
     return ""
   end
 
-  local limit = max_len or 80
-
-  -- 1. Replace non-printable characters (control chars, DEL, non-ASCII) with a space
+  -- Replace non-printable characters (control chars, DEL, non-ASCII) with a space
   local s = str:gsub("[\1-\8\11\12\14-\31\127-\255]+", " ")
 
-  -- 2. Collapse multiple consecutive spaces into one
+  -- Collapse multiple consecutive spaces into one
   s = s:gsub("%s+", " ")
 
-  -- 3. Remove leading and trailing whitespace
+  -- Remove leading and trailing whitespace
   s = vim.trim(s)
 
-  -- 4. Truncate to the limit and add ellipsis if necessary
-  if #s > limit then
-    s = s:sub(1, limit - 3) .. "..."
+  -- Truncate to the limit and add ellipsis if necessary
+  if max_len and #s > max_len then
+    s = s:sub(1, max_len - 3) .. "..."
   end
 
   return s

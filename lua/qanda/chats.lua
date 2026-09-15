@@ -502,7 +502,7 @@ Normal mode commands:
 - %s - Switch to the Prompt window
 - %s - Open a blank Prompt window in insert mode
 - %s - Copy the turn response to clipboard
-- %s - Close the Chat window and abort active request
+- %s - Close the Chat window and terminate model request
 - %s - Delete the turn, if it is the last turn delete the chat
 - %s - Open the chat file in the editor
 - %s - Open the Turn picker
@@ -878,7 +878,7 @@ end
 ---@param chat Chat The chat to name.
 ---@return string name The chat name.
 function M.chat_name(chat)
-  return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request, 60)
+  return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request)
 end
 
 --- Open a Telescope picker to select and manage turns.
@@ -1045,7 +1045,7 @@ function M.turns_picker(chats)
   -- Display entry function
   local display_entry = function(entry)
     local turn = entry.value
-    local display = utils.sanitize_display_entry(turn.request, 60)
+    local display = utils.sanitize_display_entry(turn.request)
     local prefix = "  "
     if current_turn and turn == current_turn then
       prefix = "* "
