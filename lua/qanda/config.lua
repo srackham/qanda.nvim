@@ -59,6 +59,7 @@ local default = {
   chat_prev_chat_key = "P",
   chat_next_turn_key = "<C-n>",
   chat_prev_turn_key = "<C-p>",
+  chat_turns_key = "<C-t>",
   chat_delete_key = "<C-d>",
   chat_edit_key = "<C-e>",
   chat_redo_key = "r",

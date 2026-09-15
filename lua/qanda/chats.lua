@@ -416,6 +416,13 @@ function M.open_chat(chat, turn)
     end
   end, { buffer = win.bufnr })
 
+  vim.keymap.set({ "n", "v" }, Config.chat_turns_key, function()
+    if curl.active_job_warning() then
+      return
+    end
+    M.turns_picker(win.chat)
+  end, { buffer = win.bufnr })
+
   vim.keymap.set({ "n", "v" }, Config.chat_delete_key, function()
     if curl.active_job_warning() then
       return
@@ -502,11 +509,12 @@ Normal mode commands:
 - %s - Copy the turn response to clipboard
 - %s - Close the Chat window
 - %s - Abort the current request
-- %s - Delete the current turn, if it is the last turn delete the chat
-- %s - Open the chat file in the editor at the current turn
+- %s - Delete the turn, if it is the last turn delete the chat
+- %s - Open the chat file in the editor
+- %s - Open the Turn picker
 - %s/%s - Go to next/previous turn
 - %s/%s - Go to next/previous chat
-- %s - Delete the latest turn from the chat and open its prompt in the Prompt window
+- %s - Delete the latest turn and open its prompt in the Prompt window
 - %s - Toggle truncated prompt and system message fields
 
 ]]):format(
@@ -518,6 +526,7 @@ Normal mode commands:
       Config.chat_abort_key,
       Config.chat_delete_key,
       Config.chat_edit_key,
+      Config.chat_turns_key,
       Config.chat_next_turn_key,
       Config.chat_prev_turn_key,
       Config.chat_next_chat_key,
