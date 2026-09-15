@@ -53,7 +53,6 @@ local default = {
   chat_new_prompt_key = "<C-Del>",
   chat_switch_key = "<S-Tab>",
   chat_copy_key = "<C-c>",
-  chat_abort_key = "<C-k>",
   chat_next_chat_key = "N",
   chat_prev_chat_key = "P",
   chat_next_turn_key = "<C-n>",

@@ -118,7 +118,9 @@ function M.create_user_command()
       Providers.select_recent_model()
       return
     elseif args == "/abort" then
-      curl.kill_command()
+      if curl.is_active_job() then
+        State.chat_window:close() -- Closing the Chat window aborts running command
+      end
       return
     elseif args:match "^/delete_old_chats$" or args:match "^/delete_old_chats%s" then
       local number_retained = Config.chats_retained

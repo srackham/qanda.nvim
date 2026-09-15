@@ -321,23 +321,18 @@ function M.open_chat(chat, turn)
     group = group,
     pattern = tostring(win.winid),
     callback = function()
+      win:close()
       if curl.is_active_job() then
         curl.kill_command()
         utils.notify("Request aborted because Chat window closed", vim.log.levels.INFO)
+        M.new_chat()
       end
     end,
   })
 
   -- Attach key commands.
   vim.keymap.set({ "n", "v" }, Config.chat_close_key, function()
-    if curl.active_job_warning() then
-      return
-    end
     win:close()
-  end, { buffer = win.bufnr })
-
-  vim.keymap.set({ "n", "v" }, Config.chat_abort_key, function()
-    curl.kill_command()
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v" }, Config.chat_switch_key, function()
@@ -508,7 +503,6 @@ Normal mode commands:
 - %s - Open a blank Prompt window in insert mode
 - %s - Copy the turn response to clipboard
 - %s - Close the Chat window
-- %s - Abort the current request
 - %s - Delete the turn, if it is the last turn delete the chat
 - %s - Open the chat file in the editor
 - %s - Open the Turn picker
@@ -523,7 +517,6 @@ Normal mode commands:
       Config.chat_new_prompt_key,
       Config.chat_copy_key,
       Config.chat_close_key,
-      Config.chat_abort_key,
       Config.chat_delete_key,
       Config.chat_edit_key,
       Config.chat_turns_key,
