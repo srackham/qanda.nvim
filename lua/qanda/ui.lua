@@ -192,20 +192,20 @@ function M.open_window(buf_name, opts)
     return
   end
 
-  if opts.mode == "float" then
+  if opts.location == "float" then
     open_float(buf, opts.float_layout)
-  elseif opts.mode == "normal" then
+  elseif opts.location == "normal" then
     vim.cmd "enew"
-  elseif opts.mode == "top" then
+  elseif opts.location == "top" then
     vim.cmd("split " .. vim.fn.fnameescape(buf_name))
-  elseif opts.mode == "left" then
+  elseif opts.location == "left" then
     vim.cmd("vsplit " .. vim.fn.fnameescape(buf_name))
-  elseif opts.mode == "bottom" then
+  elseif opts.location == "bottom" then
     vim.cmd("botright split " .. vim.fn.fnameescape(buf_name))
-  elseif opts.mode == "right" then
+  elseif opts.location == "right" then
     vim.cmd("botright vsplit " .. vim.fn.fnameescape(buf_name))
   else
-    utils.notify("Invalid window mode '" .. opts.mode .. "'", vim.log.levels.WARN)
+    utils.notify("Invalid window mode '" .. opts.location .. "'", vim.log.levels.WARN)
   end
 
   vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide nobuflisted"))
@@ -273,7 +273,7 @@ end
 --- @param title string The title to set.
 function M.UIWindow:set_title(title)
   local win_config = vim.api.nvim_win_get_config(self.winid)
-  if self.mode == "float" then
+  if self.location == "float" then
     win_config.title = title
     win_config.title_pos = "center"
     vim.api.nvim_win_set_config(self.winid, win_config)
@@ -296,7 +296,7 @@ function M.UIWindow:set_cursor(cursor_position)
   if cursor_position == nil then
     M.cursor_to_end(self.winid)
   else
-    vim.api.nvim_win_set_cursor(self.winid, cursor_position)
+    vim.api.nvim_win_set_cursor(self.winid, { cursor_position.row, cursor_position.col })
   end
 end
 

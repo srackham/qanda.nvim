@@ -7,7 +7,7 @@
 ---| "separate"   # Floating Prompt window and normal Chat window
 
 --- Display mode for opening a window.
----@alias WindowMode
+---@alias WindowLocation
 ---| '"normal"'  # Open in the current window
 ---| '"float"'   # Open in a floating window
 ---| '"top"'     # Horizontal split above
@@ -23,7 +23,7 @@
 ---@field [string] any Additional options forwarded to the underlying `vim.api.nvim_open_win` window creation function.
 
 ---@class UIWindow
----@field mode WindowMode
+---@field location WindowLocation
 ---@field bufnr number
 ---@field winid number
 ---@field modifiable boolean

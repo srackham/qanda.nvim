@@ -101,8 +101,8 @@ local default = {
   system_picker_disable_key = "<C-d>",
 
   -- Window layouts --
-  chat_window_mode = "float", ---@type WindowMode Default Chat window mode
-  chat_window_alt_mode = "top", ---@type WindowMode Toggled to by `/toggle_chat_window_mode` command
+  chat_window_location = "float", ---@type WindowLocation Default Chat window location
+  chat_window_alt_location = "top", ---@type WindowLocation Toggled to by `/toggle_chat_location` command
   chat_picker_layout = { width = 0.9, height = 0.6, preview_width = 0.65 },
   turn_picker_layout = { width = 0.9, height = 0.7 },
   template_picker_layout = { width = 0.8, height = 0.5 }, -- Prompt and System template pickers layout
@@ -141,7 +141,7 @@ function M.setup(opts)
   -- Restore state
   local state = require "qanda.state"
   state.prompt_window.float_layout = M.prompt_window_layout
-  state.chat_window.mode = M.chat_window_mode
+  state.chat_window.location = M.chat_window_location
   state.restore_state()
 
 end

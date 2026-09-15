@@ -199,7 +199,7 @@ There are three types of Qanda commands:
 | `:Qanda /status`                             | Print Qanda status information                                  |
 | `:Qanda /system_template_picker`             | Open the [System template picker](#system-template-picker)      |
 | `:Qanda /turn_picker`                        | Open the chat [Turn picker](#turn-picker)                       |
-| `:Qanda /toggle_chat_window_mode`            | Toggle Chat window mode                                         |
+| `:Qanda /toggle_chat_location`               | Toggle Chat window location                                     |
 
 - Appending `␣+` to `_Template_ or _Prompt_ commands inverts the [chat mode](#chat-mode).
 - _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
@@ -237,8 +237,8 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
 - The most recent chat appears when you restart Neovim.
 - Use the _[chat picker](#chat-picker)_ to select and resume previous conversations.
 - The chat window is read-only, you can't edit it directly.
-- By default, the chat window is a floating window (see the `chat_window_mode` [configuration](#configuration) option).
-- The `/toggle_chat_window_mode` command toggles between Chat window default and alt window modes (see the `chat_window_alt_mode` [configuration](#configuration) option).
+- By default, the chat window is a floating window (see the `chat_window_location` [configuration](#configuration) option).
+- The `/toggle_chat_location` command toggles between Chat window default and alt window modes (see the `chat_window_alt_location` [configuration](#configuration) option).
 - Scroll through turns with the next (`<C-n>`) and previous (`<C-p>`) commands.
 - The chat window implements the following key-mapped commands:
   - `<S-Enter>` - Open the turn's prompt in the Prompt window

@@ -146,10 +146,10 @@ function M.create_user_command()
       end
       Chats.delete_old_chats(number_retained)
       return
-    elseif args == "/toggle_chat_window_mode" then
+    elseif args == "/toggle_chat_location" then
       local win = State.chat_window
-      win.mode = win.mode == Config.chat_window_mode and Config.chat_window_alt_mode or Config.chat_window_mode
-      utils.notify("Window mode set to: " .. win.mode, vim.log.levels.INFO)
+      win.location = win.location == Config.chat_window_location and Config.chat_window_alt_location or Config.chat_window_location
+      utils.notify("Window location set to: " .. win.location, vim.log.levels.INFO)
       if win:is_open() then
         win:close()
         win:open()
@@ -253,7 +253,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/recent_models")
       table.insert(args, "/abort")
       table.insert(args, "/delete_old_chats")
-      table.insert(args, "/toggle_chat_window_mode")
+      table.insert(args, "/toggle_chat_location")
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
       table.insert(args, "/diagnostics")
