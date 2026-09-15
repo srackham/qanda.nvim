@@ -45,7 +45,7 @@ return {
     vim.keymap.set(
       { "n", "v" },
       "<leader>ld",
-      "<Cmd>Qanda /dump_diagnostics<CR>",
+      "<Cmd>Qanda /diagnostics<CR>",
       { desc = "Qanda.nvim display request/response diagnostics" }
     )
     vim.keymap.set({ "n", "v" }, "<leader>lt", "<Cmd>Qanda /turn_picker<CR>", { desc = "Qanda.nvim open turn picker" })

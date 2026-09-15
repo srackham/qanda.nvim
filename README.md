@@ -185,7 +185,7 @@ There are three types of Qanda commands:
 | `:Qanda /chat_picker`                        | Open the [Chat picker](#chat-picker)                            |
 | `:Qanda /chat_window`                        | Open the [Chat window](#chat-window)                            |
 | `:Qanda /delete_old_chats [number_retained]` | Delete all chats except the most recent `number_retained`       |
-| `:Qanda /dump_diagnostics`                   | Display diagnostics for the previous model request              |
+| `:Qanda /diagnostics`                        | Enable and view request/response diagnostics                    |
 | `:Qanda /help`                               | Print help summary                                              |
 | `:Qanda /model_picker`                       | Select a model from the current provider                        |
 | `:Qanda /new_chat`                           | Start a new Chat                                                |
@@ -245,8 +245,7 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
   - `<S-Tab>` - Switch to the Prompt window
   - `<C-Del>` - Open a blank Prompt window in insert mode
   - `<C-c>` - Copy the turn response to clipboard
-  - `<Esc>` - Close the Chat window
-  - `<C-k>` - Abort the current request
+  - `<Esc>` - Close the Chat window and abort active request
   - `<C-d>` - Delete the turn, if it is the last turn delete the chat
   - `<C-e>` - Open the chat file in the editor
   - `<C-t>` - Open the Turn picker
@@ -354,32 +353,27 @@ It implements these commands:
 
 Displayed model names are formatted like `<provider>/<model>`.
 
-## Diagnostics window
+## Diagnostics
 
-![Alt text](screenshots/diagnostics-window.png)
-
-The _diagnostics window_ shows the commands and data from the most recent model request. Open it with `:Qanda /dump_diagnostics`. It responds to these commands:
-
-- `<Esc>` or `q` - Close the diagnostics window.
+The `:Qanda /diagnostics` command enables the capture of raw model request and response data and it opens the most recently captured request and response (turn). Diagnostics capture is enabled per session i.e. Neovim opens with diagnostics disabled by default.
 
 If you have `jq` installed then diagnostics JSON data will be pretty-printed.
 
-If Neovim is configured to persist registers across sessions, the Qanda `/dump_diagnostics` command also persists. Set the maximum number of shada lines to accommodate the diagnostics, for example 999:
-
-      vim.opt.shada = "!,'100,<999,s10,h"
+![Alt text](screenshots/diagnostics-window.png)
 
 ## Data files
 
 Qanda maintains a number of history and session data files:
 
-- The `session.json` file contains the session state restored at startup:
+- The `chats` directory contains chat files:
+  - Each chat is in a separate [JSONL](https://jsonlines.org/) file named `<creation-date>.chat.json` with date format `YYYYMMDD_HHMMSS` (e.g. `20260224_104421.chat.jsonl`).
+  - Each chat file contains a chronologically ordered list of JSON-formatted turn objects.
+- The `session.json` file is located in the Qanda data directory and contains the session state restored at startup:
   - Current provider and model names
   - Most recently used chat file name
   - Current [system message](#system-messages) template name
   - List of recently used models
-- The `chats` directory contains chat files:
-  - Each chat is in a separate [JSONL](https://jsonlines.org/) file named `<creation-date>.chat.json` with date format `YYYYMMDD_HHMMSS` (e.g. `20260224_104421.chat.jsonl`).
-  - Each chat file contains a chronologically ordered list of JSON-formatted turn objects.
+- The `diagnostics.md` contains [diagnostics](#diagnostics) information and is located in the Qanda data directory.
 
 - The [prompt and system template](#prompt-and-system-templates) files.
 
@@ -515,6 +509,6 @@ model_options = {
 ## Tips
 
 - The [chat](#chat-window) and [prompt](#prompt-window) window's `<C-h>` help command displays a summary of key-mapped window commands.
-- Use the `:Qanda /dump_diagnostics` command to view the model request and response from the most recent turn.
+- Use the `:Qanda /diagnostics` command to view the model request and response from the most recent turn.
 
 - Opening a prompt template with the [prompt template picker](#prompt-template-picker) previews the expanded prompt in the [prompt window](#prompt-window). The preview is skipped if you run the template directly with `:Qanda !<template>`.

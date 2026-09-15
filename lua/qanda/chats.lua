@@ -502,7 +502,7 @@ Normal mode commands:
 - %s - Switch to the Prompt window
 - %s - Open a blank Prompt window in insert mode
 - %s - Copy the turn response to clipboard
-- %s - Close the Chat window
+- %s - Close the Chat window and abort active request
 - %s - Delete the turn, if it is the last turn delete the chat
 - %s - Open the chat file in the editor
 - %s - Open the Turn picker
