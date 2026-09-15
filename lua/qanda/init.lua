@@ -192,7 +192,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       info = info .. "\nprompts directory: " .. vim.inspect(Config.prompts_dir)
       utils.notify(info, vim.log.levels.INFO)
       return
-    elseif args == "/dump_diagnostics" then
+    elseif args == "/diagnostics" then
       diagnostics.open()
       return
     elseif args:sub(1, 1) == "!" then -- Template command
@@ -254,7 +254,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/toggle_chat_window_mode")
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
-      table.insert(args, "/dump_diagnostics")
+      table.insert(args, "/diagnostics")
       table.insert(args, "/repeat")
       table.insert(args, "/help")
       table.insert(args, "/readme")

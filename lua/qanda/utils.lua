@@ -362,13 +362,15 @@ end
 
 --- Opens a file for editing, applies syntax highlighting, positions the cursor, and sets up a post-write callback.
 --- @param filename string The path to the file to edit.
---- @param add_syntax_highlighting fun(bufnr: number) A function to apply syntax highlighting to the buffer.
+--- @param add_syntax_highlighting fun(bufnr: number)? A function to apply syntax highlighting to the buffer.
 --- @param pattern string? An optional Lua pattern to search for and position the cursor.
 --- @param postwrite fun(bufnr: number)? An optional callback function to run after the buffer is written.
 function M.edit_file(filename, add_syntax_highlighting, pattern, postwrite)
   vim.cmd("edit " .. vim.fn.fnameescape(filename))
   local bufnr = vim.api.nvim_get_current_buf()
-  add_syntax_highlighting(bufnr)
+  if add_syntax_highlighting then
+    add_syntax_highlighting(bufnr)
+  end
 
   -- Run callback after the buffer is written
   if postwrite then

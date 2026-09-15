@@ -1,8 +1,9 @@
 local Config = require "qanda.config"
-local ui = require "qanda.ui"
+local State = require "qanda.state"
 local utils = require "qanda.utils"
 
 local M = {}
+M.enabled = false
 
 -- Diagnostics file path
 local function diagnostics_file()
@@ -11,25 +12,18 @@ end
 
 --- Clear the diagnostics and add timestamped heading.
 function M.start()
+  if not M.enabled then
+    return
+  end
   utils.write_string_to_file("# Qanda Diagnostics\n\n" .. tostring(os.date(Config.TIME_STAMP_FORMAT)) .. "\n\n", diagnostics_file())
 end
 
 --- Display the diagnostics in an ephemeral floating window.
 function M.open()
-  local content
-  if not utils.file_exists(diagnostics_file()) then
-    content = ""
-  else
-    local err
-    content, err = utils.read_file_to_string(diagnostics_file())
-    if err then
-      utils.notify(err, vim.log.levels.ERROR)
-      return
-    end
-    assert(content)
-  end
-  local lines = vim.split(content, "\n")
-  ui.open_foreground_float(lines, { width = 120, height = 999 })
+  M.enabled = true
+  State.chat_window:close()
+  State.prompt_window:close()
+  utils.edit_file(diagnostics_file())
 end
 
 --- Append diagnostic text for `diagnostic` to the diagnostics file.
@@ -38,6 +32,9 @@ end
 --- @param title string
 --- @param content string?
 function M.append(diagnostic, title, content)
+  if not M.enabled then
+    return
+  end
   vim.schedule(function() -- Possible "fast context" deference
     local output = title .. "\n\n"
 
