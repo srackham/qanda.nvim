@@ -1057,7 +1057,20 @@ function M.turns_picker(chats)
     if current_turn and turn == current_turn then
       prefix = "* "
     end
-    return prefix .. display
+    -- Format timestamp prefix
+    local ts_prefix = "  "
+    if turn.timestamp then
+      local today = os.date "%Y-%m-%d"
+      local ts_date = turn.timestamp:sub(1, 10)
+      if ts_date == today then
+        -- Today's timestamp: show HH:MM
+        ts_prefix = turn.timestamp:sub(12, 16) .. ": "
+      else
+        -- Other dates: show YYYY-MM-DD
+        ts_prefix = ts_date .. ": "
+      end
+    end
+    return prefix .. ts_prefix .. display
   end
 
   -- Create previewer that shows the turn value
