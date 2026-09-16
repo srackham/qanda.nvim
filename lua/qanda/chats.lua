@@ -73,7 +73,7 @@ end
 ---@param chat Chat
 local function refresh_chat(chat)
   local new_chat = load_chat(chat.filename)
-  utils.notify("Loaded file '" .. chat.filename .. "'", vim.log.levels.INFO)
+  -- utils.notify("Loaded file '" .. chat.filename .. "'", vim.log.levels.INFO)
   if new_chat then
     chat.turns = new_chat.turns
   end
@@ -157,7 +157,7 @@ function M.save_chat(chat)
   file:write(table.concat(lines, "\n") .. "\n")
   file:close()
 
-  utils.notify("Saved file '" .. chat.filename .. "'", vim.log.levels.INFO)
+  -- utils.notify("Saved file '" .. chat.filename .. "'", vim.log.levels.INFO)
 
   -- Record the mostly recently updated chat file name
   M.set_recent_chat_file(chat.filename)

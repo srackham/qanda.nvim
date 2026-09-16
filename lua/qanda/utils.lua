@@ -703,7 +703,7 @@ function M.delete_file(filename, opts)
   -- Synchronously delete selected chat file
   local ok, err = os.remove(filename)
   if ok then
-    M.notify("Deleted file '" .. filename .. "'", vim.log.levels.INFO)
+    -- M.notify("Deleted file '" .. filename .. "'", vim.log.levels.INFO)
     return true
   else
     M.notify("Failed to delete file '" .. filename .. "': " .. (err or "unknown error"), vim.log.levels.ERROR)
