@@ -103,10 +103,7 @@ end
 function M.active_job_warning()
   if M.is_active_job() then
     spinner.suspend(1000)
-    utils.message(
-      "Model request/response is running, wait for completion or press " .. Config.chat_close_key .. " to abort",
-      { hl_group = "WarningMsg" }
-    )
+    utils.message("Model request/response is running, wait for completion or abort", { hl_group = "WarningMsg" })
     return true
   else
     return false

@@ -41,6 +41,11 @@ local last_command = nil
 function M.create_user_command()
   vim.api.nvim_create_user_command("Qanda", function(arg)
 
+    -- Block user commands when a turn is executing
+    if curl.active_job_warning() then
+      return
+    end
+
     -- One-off lazy initialisations when first command is executed
     if not initialised then
       -- If the most recently used Chat window is not loaded then create a new empty chat

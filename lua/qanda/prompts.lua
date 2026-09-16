@@ -557,7 +557,7 @@ function M.open_prompt(prompt)
 
   vim.keymap.set({ "n", "v", "i" }, Config.prompt_redo_key, function()
     local chat_window = State.chat_window
-    if curl.is_active_job() then
+    if curl.active_job_warning() then
       return
     end
     if #chat_window.chat.turns == 0 then

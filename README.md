@@ -204,6 +204,7 @@ There are three types of Qanda commands:
 - Appending `␣+` to `_Template_ or _Prompt_ commands inverts the [chat mode](#chat-mode).
 - _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
 - Qanda commands respond to tabbed command completion.
+- Command execution is blocked while a turn is executing.
 
 ## Prompt window
 
