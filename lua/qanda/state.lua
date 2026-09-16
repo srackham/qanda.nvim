@@ -42,14 +42,14 @@ function M.save_state()
   local ok, encoded = pcall(vim.fn.json_encode, M.saved_state)
 
   if not ok then
-    utils.notify("Failed to encode state to JSON: " .. tostring(encoded), vim.log.levels.ERROR)
+    utils.notify("Failed to encode session state to JSON: " .. tostring(encoded), vim.log.levels.ERROR)
     return
   end
 
   local path = Config.session_file()
   local f = io.open(path, "w")
   if not f then
-    utils.notify("Failed to open state file for writing: " .. path, vim.log.levels.ERROR)
+    utils.notify("Failed to open session state file for writing: " .. path, vim.log.levels.ERROR)
     return
   end
 
@@ -74,7 +74,7 @@ function M.restore_state()
   local f = io.open(path, "r")
   if not f then
     -- If readable check passed but open failed, something went wrong
-    utils.notify("Failed to read state file: " .. path, vim.log.levels.ERROR)
+    utils.notify("Failed to read session state file: " .. path, vim.log.levels.ERROR)
     return
   end
 
@@ -83,7 +83,7 @@ function M.restore_state()
 
   local ok, decoded = pcall(vim.json.decode, content)
   if not ok then
-    utils.notify("Failed to decode state file: " .. path, vim.log.levels.ERROR)
+    utils.notify("Failed to decode session state file: " .. path, vim.log.levels.ERROR)
     return
   end
 
