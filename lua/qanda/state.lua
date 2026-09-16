@@ -13,7 +13,7 @@ local M = {
   chat_window = ui.UIWindow.new {
     buf_name = Config.CHAT_BUFFER_NAME,
     modifiable = false,
-    mode = nil,
+    location = nil,
     chat = nil,
     turn = nil,
   },
@@ -21,7 +21,7 @@ local M = {
   prompt_window = ui.UIWindow.new {
     buf_name = Config.PROMPT_BUFFER_NAME,
     modifiable = true,
-    mode = "float",
+    location = "float",
     float_layout = nil,
   },
 }

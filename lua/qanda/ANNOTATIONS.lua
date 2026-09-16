@@ -6,7 +6,7 @@
 ---| "linked"     # Linked floating Prompt and Chat windows
 ---| "separate"   # Floating Prompt window and normal Chat window
 
---- Display mode for opening a window.
+--- Display location for opening a window.
 ---@alias WindowLocation
 ---| '"normal"'  # Open in the current window
 ---| '"float"'   # Open in a floating window

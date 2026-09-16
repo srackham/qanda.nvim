@@ -174,13 +174,13 @@ end
 
 --- Open a window according to the requested window options.
 ---
---- If `opts.window_mode` is omitted or `"normal"`, the window replaces the current window.
+--- If `opts.window_location` is omitted or `"normal"`, the window replaces the current window.
 ---
 ---@param buf_name string Buffer name
 ---@param opts? UIWindow Window and buffer options.
 ---@return nil
 function M.open_window(buf_name, opts)
-  opts = opts or { mode = "normal" }
+  opts = opts or { location = "normal" }
 
   -- Check if buffer for path already exists
   local existing_buf = M.get_buf_id(buf_name)
@@ -205,7 +205,7 @@ function M.open_window(buf_name, opts)
   elseif opts.location == "right" then
     vim.cmd("botright vsplit " .. vim.fn.fnameescape(buf_name))
   else
-    utils.notify("Invalid window mode '" .. opts.location .. "'", vim.log.levels.WARN)
+    utils.notify("Invalid window location '" .. opts.location .. "'", vim.log.levels.WARN)
   end
 
   vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide nobuflisted"))
