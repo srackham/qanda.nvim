@@ -331,104 +331,83 @@ function M.open_chat(chat, turn)
   })
 
   -- Attach key commands.
+  local function with_active_request_guard(callback)
+    return function()
+      if curl.active_job_warning() then
+        return
+      end
+      callback()
+    end
+  end
+
   vim.keymap.set({ "n", "v" }, Config.chat_close_key, function()
     win:close()
   end, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_switch_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_switch_key, with_active_request_guard(function()
     vim.cmd "Qanda /prompt_window"
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_prompt_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_prompt_key, with_active_request_guard(function()
     require("qanda.prompts").open_prompt {
       name = nil,
       content = (win.turn or {}).request,
       model_options = (win.turn or {}).model_options,
     }
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_new_prompt_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_new_prompt_key, with_active_request_guard(function()
     -- Open a blank Prompt window
     require("qanda.prompts").open_prompt { content = "" }
     -- Go to insert mode
     vim.cmd "startinsert"
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_prev_turn_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_prev_turn_key, with_active_request_guard(function()
     if win.turn then
       local t = get_prev_turn(win.chat, win.turn)
       if t then
         M.open_chat(win.chat, t)
       end
     end
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_next_turn_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_next_turn_key, with_active_request_guard(function()
     if win.turn then
       local t = get_next_turn(win.chat, win.turn)
       if t then
         M.open_chat(win.chat, t)
       end
     end
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_prev_chat_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_prev_chat_key, with_active_request_guard(function()
     local c = get_prev_chat(win.chat)
     if c then
       M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
     else
       utils.notify("No previous chat", vim.log.levels.WARN)
     end
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_next_chat_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_next_chat_key, with_active_request_guard(function()
     local c = get_next_chat(win.chat)
     if c then
       M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
     else
       utils.notify("No next chat", vim.log.levels.WARN)
     end
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_turns_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_turns_key, with_active_request_guard(function()
     M.turns_picker(win.chat)
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_delete_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_delete_key, with_active_request_guard(function()
     delete_turn(win.chat, win.turn)
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_edit_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_edit_key, with_active_request_guard(function()
     if win.chat.filename then
       local timestamp = win.turn.timestamp
       win:close() -- So we don't open the chat file in the Chat window
@@ -445,12 +424,9 @@ function M.open_chat(chat, turn)
     else
       utils.notify("Chat file does not exist (the conversation has not begun)", vim.log.levels.WARN)
     end
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.chat_redo_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_redo_key, with_active_request_guard(function()
     if #win.chat.turns == 0 then
       utils.notify("Empty chat, there is nothing to redo", vim.log.levels.WARN)
       return
@@ -464,23 +440,17 @@ function M.open_chat(chat, turn)
       content = most_recent_turn.request,
       model_options = most_recent_turn.model_options,
     }
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
   -- Toggle chat display fields
-  vim.keymap.set({ "n", "v" }, Config.chat_truncate_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_truncate_key, with_active_request_guard(function()
     M.turn_truncation = not M.turn_truncation
     local lines = M.turn_to_lines(win.chat, win.turn)
     win:set_lines(lines)
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
   -- Copy chat window response to system clipboard
-  vim.keymap.set({ "n", "v" }, Config.chat_copy_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.chat_copy_key, with_active_request_guard(function()
     if win.turn then
       local response = win.turn.response
       if response and response ~= "" then
@@ -488,12 +458,9 @@ function M.open_chat(chat, turn)
         utils.notify("Model response copied to clipboard", vim.log.levels.INFO)
       end
     end
-  end, { buffer = win.bufnr })
+  end), { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v" }, Config.help_key, function()
-    if curl.active_job_warning() then
-      return
-    end
+  vim.keymap.set({ "n", "v" }, Config.help_key, with_active_request_guard(function()
     local help_message = ([[-- Chat Window Commands --
 
 Normal mode commands:
@@ -528,7 +495,7 @@ Normal mode commands:
       Config.chat_truncate_key
     )
     utils.notify(help_message, vim.log.levels.INFO)
-  end, { buffer = win.bufnr, desc = "Show Chat window help" })
+  end), { buffer = win.bufnr, desc = "Show Chat window help" })
 end
 
 -- Assign a new empty chat to the Chat window.
