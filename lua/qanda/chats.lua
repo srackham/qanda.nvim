@@ -325,7 +325,9 @@ function M.open_chat(chat, turn)
       if curl.is_active_job() then
         curl.kill_command()
         utils.notify("Request aborted because Chat window closed", vim.log.levels.INFO)
-        M.new_chat()
+        -- Drop the aborted turn
+        table.remove(win.chat.turns)
+        win.turn = nil
       end
     end,
   })
@@ -690,6 +692,13 @@ function M.add_chat_syntax_highlighting(bufnr)
   end)
 end
 
+--- Generate a display name for a chat.
+---@param chat Chat The chat to name.
+---@return string name The chat name.
+function M.chat_name(chat)
+  return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request)
+end
+
 --- Open a Telescope picker to select and manage chats.
 function M.chat_picker()
   local actions = require "telescope.actions"
@@ -909,13 +918,6 @@ function M.chat_picker()
     })
     :find()
 
-end
-
---- Generate a display name for a chat.
----@param chat Chat The chat to name.
----@return string name The chat name.
-function M.chat_name(chat)
-  return chat.turns[1].chat or utils.sanitize_display_entry(chat.turns[1].request)
 end
 
 --- Open a Telescope picker to select and manage turns.
