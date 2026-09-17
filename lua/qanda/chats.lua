@@ -478,27 +478,6 @@ function M.open_chat(chat, turn)
     { buffer = win.bufnr }
   )
 
-  vim.keymap.set(
-    { "n", "v" },
-    Config.chat_redo_key,
-    with_active_request_guard(function()
-      if #win.chat.turns == 0 then
-        utils.notify("Empty chat, there is nothing to redo", vim.log.levels.WARN)
-        return
-      end
-
-      -- Delete the most recent turn and re-execute it
-      local most_recent_turn = table.remove(win.chat.turns)
-      win.turn = nil
-      M.open_chat()
-      require("qanda.prompts").open_prompt {
-        content = most_recent_turn.request,
-        model_options = most_recent_turn.model_options,
-      }
-    end),
-    { buffer = win.bufnr }
-  )
-
   -- Toggle chat display fields
   vim.keymap.set(
     { "n", "v" },
@@ -545,7 +524,6 @@ Normal mode commands:
 - %s - Open the Turn picker
 - %s/%s - Go to next/previous turn
 - %s/%s - Go to next/previous chat
-- %s - Delete the latest turn and open its prompt in the Prompt window
 - %s - Toggle truncated prompt and system message fields
 
 ]]):format(
@@ -561,7 +539,6 @@ Normal mode commands:
         Config.chat_prev_turn_key,
         Config.chat_next_chat_key,
         Config.chat_prev_chat_key,
-        Config.chat_redo_key,
         Config.chat_truncate_key
       )
       utils.notify(help_message, vim.log.levels.INFO)

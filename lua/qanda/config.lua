@@ -60,7 +60,6 @@ local default = {
   chat_turns_key = "<C-t>",
   chat_delete_key = "<C-d>",
   chat_edit_key = "<C-e>",
-  chat_redo_key = "r",
   chat_truncate_key = "t",
 
   -- Chat picker key commands --

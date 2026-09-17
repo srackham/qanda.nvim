@@ -218,7 +218,6 @@ The Prompt window is a floating window where you enter questions and instruction
   - `<S-Enter>` - Default prompt submission
   - `<C-a>` - Submit the prompt with the current chat
   - `<C-n>` - Submit the prompt in a new chat
-  - `<C-r>` - Submit the prompt with the current chat replacing the latest turn
   - `<C-Del>` - Clear the prompt window and enter insert mode
   - `<S-Tab>` - Switch to the Chat window †
   - `<Esc>` - Close the Prompt window †
