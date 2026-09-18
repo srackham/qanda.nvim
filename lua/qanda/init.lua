@@ -207,15 +207,12 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       local prompt_name = args:sub(2)
       if not utils.nil_or_blank(prompt_name) then
         local opts = {}
-        if utils.string_ends_with(prompt_name, Prompts.CHAT_MODE_SUFFIX) then
-          opts.new_chat_mode = not Config.new_chat_mode
-          prompt_name = utils.string_strip_ending(prompt_name, Prompts.CHAT_MODE_SUFFIX)
-        end
+        prompt_name = Prompts.extract_new_turn_mode(prompt_name, opts)
         local prompt = Prompts.get_prompt(Prompts.user_prompts, prompt_name)
         if prompt then
           M.execute_prompt(prompt, opts)
         else
-          utils.notify("Missing prompt template name: " .. prompt_name, vim.log.levels.ERROR)
+          utils.notify("Missing prompt template: " .. prompt_name, vim.log.levels.ERROR)
         end
       else
         utils.notify("Missing template name", vim.log.levels.ERROR)
@@ -224,10 +221,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       local prompt_text = args:sub(2)
       if not utils.nil_or_blank(prompt_text) then
         local opts = {}
-        if utils.string_ends_with(prompt_text, Prompts.CHAT_MODE_SUFFIX) then
-          opts.new_chat_mode = not Config.new_chat_mode
-          prompt_text = utils.string_strip_ending(prompt_text, Prompts.CHAT_MODE_SUFFIX)
-        end
+        prompt_text = Prompts.extract_new_turn_mode(prompt_text, opts)
         local prompt = { model_options = {}, content = prompt_text }
         M.execute_prompt(prompt, opts)
       else
@@ -287,11 +281,12 @@ end
 ---manages chat turns, and streams the LLM response back to the chat window.
 ---It runs in a coroutine to avoid blocking the Neovim UI.
 ---@param prompt Qanda.Prompt The prompt object to execute.
---- @param opts { new_chat_mode?: boolean }? Options.
+--- @param opts { turn_mode?: NewTurnMode }? Options.
 function M.execute_prompt(prompt, opts)
   coroutine.wrap(function()
 
     opts = opts or {}
+    opts.turn_mode = opts.turn_mode or "append"
 
     -- If the prompt is a prompt template then expand it and convert it to an anonymous prompt
     if prompt.name then
@@ -317,23 +312,27 @@ function M.execute_prompt(prompt, opts)
       return
     end
 
-    local new_chat_mode
-    if opts.new_chat_mode ~= nil then -- new_chat_mode option takes precedence
-      new_chat_mode = opts.new_chat_mode
-    elseif prompt.content:find(Prompts.CHAT_MODE_TAG) ~= nil then -- Suffix tag inverts the default
-      new_chat_mode = not Config.new_chat_mode
-      prompt.content = prompt.content:gsub(Prompts.CHAT_MODE_TAG, "") -- Delete suffix tags
-    else
-      new_chat_mode = Config.new_chat_mode
+    local turn_mode = opts.turn_mode
+    if prompt.content:find(Prompts.NEW_CHAT_TAG) ~= nil then
+      turn_mode = "new"
+    elseif prompt.content:find(Prompts.REPLACE_TURN_TAG) ~= nil then
+      turn_mode = "replace"
     end
+    prompt.content = prompt.content:gsub(Prompts.NEW_CHAT_TAG, "")
+    prompt.content = prompt.content:gsub(Prompts.REPLACE_TURN_TAG, "")
 
-    if new_chat_mode then
+    if turn_mode == "new" then
       Chats.new_chat()
     end
 
     local chat = State.chat_window.chat
     assert(chat)
-    local turns = chat.turns
+    local turns = chat.turns ---@type Turn[]
+    local prev_turn ---@type Turn?
+    if turn_mode == "replace" then
+      prev_turn = table.remove(turns)
+      State.chat_window.turn = nil
+    end
 
     local turn = {
       request = prompt.content,
@@ -342,6 +341,8 @@ function M.execute_prompt(prompt, opts)
     }
     if prompt.model_options then
       turn.model_options = utils.shallow_clone_table(prompt.model_options)
+    else
+      turn.model_options = {}
     end
 
     -- Delete the most recent chat turn if did not complete.
@@ -445,6 +446,10 @@ function M.execute_prompt(prompt, opts)
       function(curl_response) ---@type CurlResponse
         if curl.get_job_status() ~= "stopped" then
           -- Turn did not complete
+          if turn_mode == "replace" then
+            table.insert(chat.turns, prev_turn)
+            State.chat_window.turn = prev_turn
+          end
           return
         end
 
@@ -464,7 +469,7 @@ function M.execute_prompt(prompt, opts)
         payload = vim.json.encode(curl_response.response_data)
         diagnostics.append("response_data", "## Response data\nAn array of streamed response chunks.", payload)
 
-        -- Save chat file
+        -- Save chat file; remove replaced turn; insert new chat
         vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
           Chats.save_chat(chat)
           if not vim.tbl_contains(State.chats, chat) then

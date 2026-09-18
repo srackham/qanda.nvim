@@ -75,14 +75,10 @@ local default = {
   turn_picker_delete_key = "<C-d>",
   turn_picker_truncate_key = "<C-z>",
 
-  -- Set default chat mode for the `prompt_submit_default_key` and the :Qanda Template and Prompt commands
-  new_chat_mode = true,
-
   -- Prompt window key commands --
-  prompt_submit_default_key = "<S-Enter>",
   prompt_submit_append_key = "<C-a>",
   prompt_submit_new_key = "<C-n>",
-  prompt_redo_key = "<C-r>",
+  prompt_submit_replace_key = "<C-r>",
   prompt_close_key = "<Esc>",
   prompt_new_key = "<C-Del>",
   prompt_switch_key = "<S-Tab>",

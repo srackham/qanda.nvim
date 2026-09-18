@@ -2,12 +2,13 @@ local Config = require "qanda.config" -- User configuration options
 local State = require "qanda.state"
 local utils = require "qanda.utils"
 local ui = require "qanda.ui"
-local curl = require "qanda.curl"
 
 local M = {
   CURSOR_TAG = "\02(.-)\02", -- Prompt cursor placeholder tag
-  CHAT_MODE_SUFFIX = " +",
-  CHAT_MODE_TAG = "\04",
+  NEW_CHAT_SUFFIX = " +",
+  NEW_CHAT_TAG = "\04",
+  REPLACE_TURN_SUFFIX = " -",
+  REPLACE_TURN_TAG = "\05",
   user_prompts = {}, ---@type Prompts
   system_messages = {}, ---@type Prompts
 }
@@ -53,6 +54,21 @@ function M.get_prompt(prompts, name)
     end
   end
   return nil
+end
+
+---Check the `prompt` for new chat and replace turn suffixes set the `opts.turn_mode` accordingly.
+---@param prompt string
+---@param opts table
+---@return string `prompt` without turn suffix
+function M.extract_new_turn_mode(prompt, opts)
+  if utils.string_ends_with(prompt, M.NEW_CHAT_SUFFIX) then
+    opts.turn_mode = "new"
+    prompt = utils.string_strip_ending(prompt, M.NEW_CHAT_SUFFIX)
+  elseif utils.string_ends_with(prompt, M.REPLACE_TURN_SUFFIX) then
+    opts.turn_mode = "replace"
+    prompt = utils.string_strip_ending(prompt, M.REPLACE_TURN_SUFFIX)
+  end
+  return prompt
 end
 
 --- Sets the active system message.
@@ -443,7 +459,6 @@ end
 ---If the prompt window does not exist, create it and attach key-mapped commands.
 ---@param prompt Prompt?
 function M.open_prompt(prompt)
-  local new_chat_mode = Config.new_chat_mode
   local win = State.prompt_window ---@type UIWindow
   local already_open = win.winid ~= nil
   win:open()
@@ -455,10 +470,9 @@ function M.open_prompt(prompt)
   M.add_prompt_syntax_highlighting(win.bufnr)
 
   if prompt then
-    if prompt.content:find(M.CHAT_MODE_TAG) ~= nil then
-      new_chat_mode = not Config.new_chat_mode
-      prompt.content = prompt.content:gsub(M.CHAT_MODE_TAG, "") -- Delete unused tags
-    end
+    -- Turn mode input placeholder suffixes are not applicable in the prompt window
+    prompt.content = prompt.content:gsub(M.NEW_CHAT_TAG, "")
+    prompt.content = prompt.content:gsub(M.REPLACE_TURN_TAG, "")
 
     local lines = M.prompt_to_lines(prompt)
     win:set_lines(lines)
@@ -506,7 +520,7 @@ function M.open_prompt(prompt)
     vim.cmd "Qanda /chat_window"
   end, { buffer = win.bufnr })
 
-  local function submit_append()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_append_key, function()
     local lines = win:get_lines()
     win:close()
     local p = parse_prompt(lines)
@@ -515,11 +529,11 @@ function M.open_prompt(prompt)
       if err then
         return
       end
-      require("qanda").execute_prompt(p, { new_chat_mode = false })
+      require("qanda").execute_prompt(p, { turn_mode = "append" })
     end
-  end
+  end, { buffer = win.bufnr })
 
-  local function submit_new()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_new_key, function()
     local lines = win:get_lines()
     win:close()
     local p = parse_prompt(lines)
@@ -530,19 +544,7 @@ function M.open_prompt(prompt)
       end
       require("qanda.chats").new_chat()
       require("qanda.chats").open_chat()
-      require("qanda").execute_prompt(p, { new_chat_mode = true })
-    end
-  end
-
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_append_key, submit_append, { buffer = win.bufnr })
-
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_new_key, submit_new, { buffer = win.bufnr })
-
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_default_key, function()
-    if new_chat_mode then
-      submit_new()
-    else
-      submit_append()
+      require("qanda").execute_prompt(p, { turn_mode = "new" })
     end
   end, { buffer = win.bufnr })
 
@@ -555,34 +557,24 @@ function M.open_prompt(prompt)
 
   vim.keymap.set("n", Config.prompt_inject_key, utils.inject_files, { buffer = win.bufnr })
 
-  vim.keymap.set({ "n", "v", "i" }, Config.prompt_redo_key, function()
+  vim.keymap.set({ "n", "v", "i" }, Config.prompt_submit_replace_key, function()
     local chat_window = State.chat_window
-    if curl.active_job_warning() then
-      return
-    end
-    if #chat_window.chat.turns == 0 then
-      utils.notify("Empty chat, there is nothing to redo", vim.log.levels.WARN)
-      return
-    end
 
-    -- Delete the most recent turn
-    table.remove(chat_window.chat.turns)
-    chat_window.turn = nil
-    require("qanda.chats").open_chat()
+    if #chat_window.chat.turns == 0 then
+      utils.notify("Empty chat, there is no turn to replace", vim.log.levels.WARN)
+      return
+    end
 
     -- Execute prompt
     local prompt_lines = win:get_lines()
     utils.trim_table(prompt_lines)
     local content = table.concat(prompt_lines, "\n")
-    require("qanda").execute_prompt {
-      content = content,
-    }
+    require("qanda").execute_prompt({ content = content }, { turn_mode = "replace" })
   end, { buffer = win.bufnr })
 
   vim.keymap.set({ "n", "v", "i" }, Config.help_key, function()
     local help_message = ([[-- Prompt Window Commands --
 
-- %s - Default prompt submission
 - %s - Submit the prompt with the current chat
 - %s - Submit the prompt in a new chat
 - %s - Submit the prompt with the current chat replacing the latest turn
@@ -594,10 +586,9 @@ function M.open_prompt(prompt)
 † Normal mode
 
 ]]):format(
-      Config.prompt_submit_default_key,
       Config.prompt_submit_append_key,
       Config.prompt_submit_new_key,
-      Config.prompt_redo_key,
+      Config.prompt_submit_replace_key,
       Config.prompt_new_key,
       Config.prompt_switch_key,
       Config.prompt_close_key,
@@ -913,7 +904,7 @@ function M.substitute_placeholders(prompt_string, opts)
       cancelled = true
     end
     if answer:match " %+$" then
-      answer = answer:gsub(" %+$", M.CHAT_MODE_TAG)
+      answer = answer:gsub(" %+$", M.NEW_CHAT_TAG)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))

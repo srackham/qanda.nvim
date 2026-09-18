@@ -114,6 +114,12 @@
 ---@field response_tokens number The number of tokens in the model response
 ---@field total_tokens number Request plus response tokens
 
+--- How a new turn is processed
+---@alias NewTurnMode
+---| '"append"'     # The turn is appended to the current chat
+---| '"new"'        # A new chat is created for the turn
+---| '"replace"'    # The turn replaces the most recent turn in the current chat
+
 ---@class Chat
 ---@field turns Turn[] A list of conversation request/response pairs
 ---@field filename string? The chat JSONL file path, set when the chat is saved for the first time
