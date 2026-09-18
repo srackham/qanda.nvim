@@ -20,7 +20,7 @@ There are plenty of feature-rich AI plugins out there and most are not designed 
 - [Providers](#providers)
 - [Authentication](#authentication)
 - [Key mappings](#key-mappings)
-- [Chat Mode](#chat-mode)
+- [Turn Execution Modes](#turn-execution-modes)
 - [Qanda commands](#qanda-commands)
 - [Prompt window](#prompt-window)
 - [Chat window](#chat-window)
@@ -31,7 +31,7 @@ There are plenty of feature-rich AI plugins out there and most are not designed 
 - [Provider picker](#provider-picker)
 - [Model picker](#model-picker)
 - [Recent model picker](#recent-model-picker)
-- [Diagnostics window](#diagnostics-window)
+- [Diagnostics](#diagnostics)
 - [Data files](#data-files)
 - [Data directories](#data-directories)
 - [Prompt and System templates](#prompt-and-system-templates)
@@ -57,11 +57,12 @@ return {
 }
 ```
 
-- Set some [keyboard shortcuts](#key-mappings).
-- The full list of configuration options along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
+- Set [keyboard shortcuts](#key-mappings) (optional).
 - Restart Neovim to enable the changes.
 
-See
+### Configuration options
+
+The full list of [configuration options](#configuration-options) along with their default values can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
 
 ## Quick start
 
@@ -107,7 +108,7 @@ Use the `:Qanda /provider_picker` command to select a provider and the `:Qanda /
 
 ## Authentication
 
-Provider API keys come from exported shell environment variables. The variable name is specified in the provider's `api_key` configuration option. Here are the default provider options:
+Provider API keys come from exported shell environment variables. The variable name is specified in the provider's `api_key` [configuration option](#configuration-options). Here are the default provider options:
 
 ```lua
 -- Provider specific options
@@ -132,8 +133,8 @@ These are the standard Vim key mappings in a Neovim configuration file. They map
 These are configurable key sequences for the built-in pickers, mapped to picker-specific commands.
 
 - To list a picker's key commands and their assigned key sequences, open the picker and enter `<C-h>`.
-- These configuration options are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
-- To disable a _[built-in key mapping](#key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
+- These [configuration options](#configuration-options) are named like `*_KEY` and the full list of names, along with their default values, can be found in [lua/qanda/config.lua](lua/qanda/config.lua).
+- To disable a _[built-in key mapping](#built-in-key-mappings)_ set the configuration key to `"<NOP>"` (the do nothing no-op key sequence).
 
 ### Default key mappings
 
@@ -146,65 +147,78 @@ The default mappings include:
 
 † See the Vim mappings in the [example plugin configuration file](examples/example-qanda-configuration.lua).
 
-## Chat Mode
+## Turn Execution Modes
 
-A new turn is either appended to the current chat (_current_ chat mode) or to a newly created chat (_new_ chat mode).
+There are three modes of turn execution:
 
-The `new_chat_mode` [configuration option](#configuration) sets the default chat mode, it can be overridden by appending `␣+` (a space followed by a plus) to _Template_ and _Prompt_ commands or to user inputs. Examples:
+- _Append_: The new turn is appended to the current chat (this is the default behaviour).
+- _New_: A new chat is created for the new turn.
+- _Replace_: The new turn replaces the current chat's most recent turn.
 
-| Command                   | `new_chat_mode` Option | Turn Destination |
-| ------------------------- | ---------------------- | ---------------- |
-| `:Qanda !Query`           | `true`                 | New chat         |
-| `:Qanda !Query +`         | `true`                 | Current chat     |
-| `:Qanda ?Four plus one`   | `false`                | Current chat     |
-| `:Qanda ?Four plus one +` | `false`                | New chat         |
+Turn execution modes can be specified:
 
-Appending `␣+` to an `$input` [placeholder's](#template-placeholders) user input overrides the default chat mode. Examples:
-
-| Input    | `new_chat_mode` Option | Turn Destination |
-| -------- | ---------------------- | ---------------- |
-| `Ping`   | `true`                 | New chat         |
-| `Ping +` | `true`                 | Current chat     |
-| `Ping`   | `false`                | Current chat     |
-| `Ping +` | `false`                | New chat         |
+- With the [Prompt window](#prompt-window) keyboard commands
+- By appending `␣+` or `␣-` to `_Prompt_ or _Template_ commands sets the [turn execution mode](#turn-execution-modes) to _new_ or _replace_ respectively.
+- In [`${input}` placeholder](#template-placeholders) inputs.
 
 ## Qanda commands
 
-There are three types of Qanda commands:
+There are three types of Qanda commands
 
-- _Builtin commands_: Execute a builtin command (`:Qanda /<command>`)
-- _Template commands_: Execute a prompt template (`:Qanda !<template>`)
-- _Prompt commands_: Execute a user prompt (`:Qanda ?<prompt>`)
+| Command Type       | Syntax                      | Description                                                     |
+| ------------------ | --------------------------- | --------------------------------------------------------------- |
+| _Builtin_ command  | `:Qanda /<command>`         | Execute a builtin command                                       |
+| _Template_ command | `:Qanda !<template> [+\|-]` | Execute a named [prompt template](#prompt-and-system-templates) |
+| _Prompt_ command   | `:Qanda ?<prompt> [+\|-]`   | Execute a prompt                                                |
 
-| Command                                      | Description                                                     |
-| -------------------------------------------- | --------------------------------------------------------------- |
-| `:Qanda`                                     | Print help message                                              |
-| `:Qanda !<template>`                         | Execute a named [prompt template](#prompt-and-system-templates) |
-| `:Qanda ?<prompt>`                           | Execute a user prompt                                           |
-| `:Qanda /abort`                              | Abort the current model request                                 |
-| `:Qanda /chat_picker`                        | Open the [Chat picker](#chat-picker)                            |
-| `:Qanda /chat_window`                        | Open the [Chat window](#chat-window)                            |
-| `:Qanda /delete_old_chats [number_retained]` | Delete all chats except the most recent `number_retained`       |
-| `:Qanda /diagnostics`                        | Enable and view request/response diagnostics                    |
-| `:Qanda /help`                               | Print help summary                                              |
-| `:Qanda /model_picker`                       | Select a model from the current provider                        |
-| `:Qanda /new_chat`                           | Start a new Chat                                                |
-| `:Qanda /new_prompt`                         | Open a new Prompt                                               |
-| `:Qanda /prompt_template_picker`             | Open the [Prompt picker](#prompt-template-picker)               |
-| `:Qanda /prompt_window`                      | Open the [Prompt window](#prompt-window)                        |
-| `:Qanda /provider_picker`                    | Select a provider and a model                                   |
-| `:Qanda /readme`                             | Open Qanda `README.md` file                                     |
-| `:Qanda /repeat`                             | Re-execute the previous Qanda command                           |
-| `:Qanda /recent_models`                      | Select from the list of recent models                           |
-| `:Qanda /status`                             | Print Qanda status information                                  |
-| `:Qanda /system_template_picker`             | Open the [System template picker](#system-template-picker)      |
-| `:Qanda /turn_picker`                        | Open the chat [Turn picker](#turn-picker)                       |
-| `:Qanda /toggle_chat_location`               | Toggle Chat window location                                     |
-
-- Appending `␣+` to `_Template_ or _Prompt_ commands inverts the [chat mode](#chat-mode).
-- _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
+- Optionally appending `␣+` or `␣-` to `_Prompt_ or _Template_ commands sets the [turn execution mode](#turn-execution-modes) to _new_ or _replace_ respectively (the default mode is _append_).
 - Qanda commands respond to tabbed command completion.
 - Command execution is blocked while a turn is executing.
+- _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
+
+Examples:
+
+| Command                   | Turn Execution           |
+| ------------------------- | ------------------------ |
+| `:Qanda !Query`           | Append to current chat   |
+| `:Qanda !Query +`         | Create new chat          |
+| `:Qanda !Query -`         | Replace most recent turn |
+| `:Qanda ?Four plus one`   | Append to current chat   |
+| `:Qanda ?Four plus one +` | Create new chat          |
+| `:Qanda ?Four plus one -` | Replace most recent turn |
+
+Append `␣+` or `␣-` to `_Prompt_ or _Template_ commands to change the [turn execution mode](#turn-execution-modes):
+
+| Placeholder Input | Turn Execution           |
+| ----------------- | ------------------------ |
+| `Ping`            | Append to current chat   |
+| `Ping +`          | Create new chat          |
+| `Ping -`          | Replace most recent turn |
+
+### Builtin commands
+
+| Command                                      | Description                                                |
+| -------------------------------------------- | ---------------------------------------------------------- |
+| `:Qanda`                                     | Print help message                                         |
+| `:Qanda /abort`                              | Abort the current model request                            |
+| `:Qanda /chat_picker`                        | Open the [Chat picker](#chat-picker)                       |
+| `:Qanda /chat_window`                        | Open the [Chat window](#chat-window)                       |
+| `:Qanda /delete_old_chats [number_retained]` | Delete all chats except the most recent `number_retained`  |
+| `:Qanda /diagnostics`                        | Enable and view request/response diagnostics               |
+| `:Qanda /help`                               | Print help summary                                         |
+| `:Qanda /model_picker`                       | Select a model from the current provider                   |
+| `:Qanda /new_chat`                           | Start a new Chat                                           |
+| `:Qanda /new_prompt`                         | Open a new Prompt                                          |
+| `:Qanda /prompt_template_picker`             | Open the [Prompt picker](#prompt-template-picker)          |
+| `:Qanda /prompt_window`                      | Open the [Prompt window](#prompt-window)                   |
+| `:Qanda /provider_picker`                    | Select a provider and a model                              |
+| `:Qanda /readme`                             | Open Qanda `README.md` file                                |
+| `:Qanda /repeat`                             | Re-execute the previous Qanda command                      |
+| `:Qanda /recent_models`                      | Select from the list of recent models                      |
+| `:Qanda /status`                             | Print Qanda status information                             |
+| `:Qanda /system_template_picker`             | Open the [System template picker](#system-template-picker) |
+| `:Qanda /turn_picker`                        | Open the chat [Turn picker](#turn-picker)                  |
+| `:Qanda /toggle_chat_location`               | Toggle Chat window location                                |
 
 ## Prompt window
 
@@ -215,9 +229,9 @@ The Prompt window is a floating window where you enter questions and instruction
 - Submit a prompt from the prompt window or with a `:Qanda !<template>` command.
 - Create a new prompt with `:Qanda /new_prompt`, `:Qanda /prompt_template_picker`, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
-  - `<S-Enter>` - Default prompt submission
   - `<C-a>` - Submit the prompt with the current chat
   - `<C-n>` - Submit the prompt in a new chat
+  - `<C-r>` - Submit the prompt with the current chat replacing the latest turn
   - `<C-Del>` - Clear the prompt window and enter insert mode
   - `<S-Tab>` - Switch to the Chat window †
   - `<Esc>` - Close the Prompt window †
@@ -237,8 +251,8 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
 - The most recent chat appears when you restart Neovim.
 - Use the _[chat picker](#chat-picker)_ to select and resume previous conversations.
 - The chat window is read-only, you can't edit it directly.
-- By default, the chat window is a floating window (see the `chat_window_location` [configuration](#configuration) option).
-- The `/toggle_chat_location` command toggles between Chat window default and alt window modes (see the `chat_window_alt_location` [configuration](#configuration) option).
+- By default, the chat window is a floating window (see the `chat_window_location` [configuration option](#configuration-options)).
+- The `/toggle_chat_location` command toggles between Chat window default and alt window modes (see the `chat_window_alt_location` [configuration option](#configuration-options)).
 - Scroll through turns with the next (`<C-n>`) and previous (`<C-p>`) commands.
 - The chat window implements the following key-mapped commands:
   - `<S-Enter>` - Open the turn's prompt in the Prompt window
@@ -381,7 +395,7 @@ Qanda maintains a number of history and session data files:
 
 Qanda [data files](#data-files) are sourced from two locations:
 
-- The _global data directory_ is set by the `data_dir` [configuration](#configuration) option and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
+- The _global data directory_ is set by the `data_dir` [configuration option](#configuration-options) and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
 - An optional _workspace data directory_ `$PWD/.qanda_nvim`
 - Workspace data directory files take priority.
 - If there is no workspace `.qanda/chats` folder, Qanda uses the global chats folder.
@@ -450,7 +464,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 
 - Placeholders cannot span multiple lines.
 
-- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) inverts the default [chat mode](#chat-mode).
+- An `$input` placeholder's user input ending with a `␣+` (a space followed by a plus) changes the [turn execution mode](#turn-execution-modes).
 
 - The `${file:<file name>}` placeholder injects the raw file. The `$files` placeholder injects files as Markdown (the file path followed by the fenced contents).
 
@@ -486,7 +500,7 @@ Model options are parameters passed to the model in the request data. Common opt
 
 A Qanda request merges model options from:
 
-- The provider `provider_options` [configuration](#configuration) option (**lowest priority**). All options except `api_key` are passed to the AI model. Example:
+- The provider `provider_options` [configuration option](#configuration-options) (**lowest priority**). All options except `api_key` are passed to the AI model. Example:
 
 ```lua
 provider_options = {
@@ -494,7 +508,7 @@ provider_options = {
 },
 ```
 
-- The model specific `model_options` [configuration](#configuration) option. Model names are formatted like `<provider>/<model>`. Example:
+- The model specific `model_options` [configuration option](#configuration-options). Model names are formatted like `<provider>/<model>`. Example:
 
 ```lua
 model_options = {
