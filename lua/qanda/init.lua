@@ -281,7 +281,7 @@ end
 ---manages chat turns, and streams the LLM response back to the chat window.
 ---It runs in a coroutine to avoid blocking the Neovim UI.
 ---@param prompt Qanda.Prompt The prompt object to execute.
---- @param opts { turn_mode?: NewTurnMode }? Options.
+--- @param opts { turn_mode?: TurnExecutionMode }? Options.
 function M.execute_prompt(prompt, opts)
   coroutine.wrap(function()
 

@@ -115,7 +115,7 @@
 ---@field total_tokens number Request plus response tokens
 
 --- How a new turn is processed
----@alias NewTurnMode
+---@alias TurnExecutionMode
 ---| '"append"'     # The turn is appended to the current chat
 ---| '"new"'        # A new chat is created for the turn
 ---| '"replace"'    # The turn replaces the most recent turn in the current chat
