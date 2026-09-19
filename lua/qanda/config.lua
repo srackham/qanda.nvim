@@ -40,7 +40,6 @@ local default = {
   -- Miscellaneous --
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
-  confirm_chat_file_deletion = true,
   chats_retained = 50, -- Default argument for /delete_old_chats command
 
   -- Pickers, Chat and Prompt windows help key --
