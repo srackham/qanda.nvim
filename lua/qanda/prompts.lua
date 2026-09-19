@@ -337,7 +337,7 @@ local function load_templates(role)
   local glob_pattern = Config.prompts_dir .. "/*." .. role .. ".md"
   local template_files = vim.fn.glob(glob_pattern, false, true)
 
-  -- If there are no role templates files then create default examples
+  -- If there are no user templates files then create default examples
   if #template_files == 0 then
     local path = Config.prompts_dir .. "/default." .. role .. ".md"
 
@@ -561,7 +561,7 @@ function M.open_prompt(prompt)
     local chat_window = State.chat_window
 
     if #chat_window.chat.turns == 0 then
-      utils.notify("Empty chat, there is no turn to replace", vim.log.levels.WARN)
+      utils.notify("Empty chat, there is no turn to replace", vim.log.levels.ERROR)
       return
     end
 

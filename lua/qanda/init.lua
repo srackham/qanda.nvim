@@ -330,6 +330,10 @@ function M.execute_prompt(prompt, opts)
     local turns = chat.turns ---@type Turn[]
     local prev_turn ---@type Turn?
     if turn_mode == "replace" then
+      if #turns == 0 then
+        utils.notify("Empty chat, there is no turn to replace", vim.log.levels.ERROR)
+        return
+      end
       prev_turn = table.remove(turns)
       State.chat_window.turn = nil
     end
