@@ -125,8 +125,13 @@ function M.set_system_message(system_message_template, opts)
   State.save_state()
 end
 
+--- Return `true` if the line is a prompt template header section delimiter.
+local match_ruler = function(line)
+  return line:match "^---+%s*$" or line:match "^___+%s*$"
+end
+
 --- Parses markdown-style templates file into a Prompts array.
----Each prompt section starts and ends with `___`.
+---Each prompt section starts and ends with `___` or `---` delimiters.
 ---The header envelopes prompt fields formatted like `<name>: <value>`.
 ---The `name` field (template name) is mandatory, all other fields are model options.
 ---@param lines string[] The full content of the markdown prompt file as an array of strings.
@@ -134,10 +139,6 @@ end
 local function parse_templates(lines)
   local result = {}
   local i = 1
-
-  local match_ruler = function(line)
-    return line:match "^___+%s*$"
-  end
 
   while i <= #lines do
     -- Look for start of header
@@ -226,10 +227,6 @@ local function parse_prompt(lines)
 
   local prompt = { model_options = {} }
   local i = 1
-
-  local match_ruler = function(line)
-    return line:match "^___+%s*$"
-  end
 
   -- Match blank lines
   local match_blank_line = function()
