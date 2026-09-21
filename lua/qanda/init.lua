@@ -52,15 +52,20 @@ function M.create_user_command()
       if not State.chat_window.chat then
         Chats.new_chat()
       end
-      initialised = true
-      -- Provider restoration
+      -- Validate the provider/model and, if they`re not valid, prompt with user selection dialogs.
       local provider_name = State.saved_state.provider or Config.provider
       local model_name = State.saved_state.model or Config.model
-      if not Providers.set_provider(provider_name, model_name) then
-        -- Return if the saved provider/model is invalid because the ensuing user selection is asynchronous,
-        -- otherwise continue and execute the original command.
+      if
+        Providers.set_provider(provider_name, model_name, function()
+          vim.cmd("Qanda " .. arg.args) -- Re-execute command on successful provider/model selection
+        end) == nil
+      then
+        utils.notify("Invalid provider/model '" .. (provider_name or "-") .. "/" .. (model_name or "-") .. "'", vim.log.levels.ERROR)
+        -- IMPORTANT: Return if the current provider/model is invalid because `Providers.set_provider` selection is asynchronous.
         return
       end
+      -- Continue executing the command
+      initialised = true
     end
 
     local args = arg.args

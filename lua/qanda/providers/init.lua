@@ -42,9 +42,12 @@ function M.setup()
 end
 
 ---Retrieve provider by name.
----@param name string The name of the provider.
+---@param name string? The name of the provider.
 ---@return Provider|nil The provider. Return `nil` if provider not found.
 function M.get_provider(name)
+  if not name then
+    return nil
+  end
   for _, provider in ipairs(M.providers) do
     if provider.name == name then
       return provider
@@ -54,25 +57,19 @@ function M.get_provider(name)
   return nil
 end
 
----Checks provider and model names are valid.
+---Checks provider name and model name are valid.
 ---@param provider_name string The name of the provider.
 ---@param model_name string The name of the model.
----@return Provider|nil Returns the provider if the provider and model names are valid, else returns `nil`.
-function M.is_valid_provider_model(provider_name, model_name)
+---@return boolean Return `true` if the model exists
+function M.is_valid_model(provider_name, model_name)
   local provider = M.get_provider(provider_name)
-  if not provider then
-    utils.notify("No provider named '" .. provider_name .. "'", vim.log.levels.ERROR)
-    return nil
-  end
+  assert(provider, "No provider named '" .. provider_name .. "'") -- Provider names should always be valid
   local models = provider.module.models(Config)
-  if not models then
-    return nil
+  assert(models and #models > 0, "Provider '" .. provider_name .. "' has no models") -- Providers should always have one or more models
+  if not model_name or not vim.list_contains(models, model_name) then
+    return false
   end
-  if not vim.list_contains(models, model_name) then
-    utils.notify("No model named '" .. model_name .. "'", vim.log.levels.ERROR)
-    return nil
-  end
-  return provider
+  return true
 end
 
 -- If the model is in the list then delete it.
@@ -94,21 +91,22 @@ end
 
 --- Restores the provider and model.
 --- If the provider or model names are invalid, it prompts the user for selection.
----@param provider_name? string The name of the provider.
----@param model_name? string The name of the model.
+--- @param provider_name? string The name of the provider.
+--- @param model_name? string The name of the model.
+--- @param on_selection fun(selected_model: Model)? The function to call on successful selection.
 --- @return Provider|nil The restored provider if successful, otherwise `nil` (if a selection was scheduled).
-function M.set_provider(provider_name, model_name)
-  if not provider_name then
-    vim.cmd "Qanda /provider_picker"
+function M.set_provider(provider_name, model_name, on_selection)
+  local provider = M.get_provider(provider_name)
+  if not provider then
+    M.select_provider(State.provider, function(p_name)
+      M.select_model(p_name, on_selection)
+    end)
   else
-    local provider = M.get_provider(provider_name)
-    if not provider then
-      return nil
-    end
-    State.provider = provider
-    if not model_name or not M.is_valid_provider_model(provider.name, model_name) then
-      vim.cmd "Qanda /model_picker"
+    if not model_name or not M.is_valid_model(provider.name, model_name) then
+      M.select_model(provider_name, on_selection)
     else
+      -- Arrive here when called with a valid provider and model
+      State.provider = provider
       State.provider.model = model_name
       State.saved_state.model = model_name
       State.saved_state.provider = provider.name
@@ -117,13 +115,13 @@ function M.set_provider(provider_name, model_name)
       return provider
     end
   end
-  return nil
+  return nil -- Exit having initiated asynchronous provider/model selection
 end
 
 --- Prompts the user to select a provider.
 --- @param current_provider Provider? The currently active provider, if any, to highlight.
---- @param callback fun(selected_provider_name: string) The function to call with the name of the selected provider.
-function M.select_provider(current_provider, callback)
+--- @param on_selection fun(selected_provider_name: string)? The function to call on successful selection.
+function M.select_provider(current_provider, on_selection)
   local items = {}
   for _, v in ipairs(M.providers) do
     table.insert(items, v.name)
@@ -135,18 +133,20 @@ function M.select_provider(current_provider, callback)
       items[i] = "  " .. v
     end
   end
-  vim.ui.select(items, { prompt = "Providers" }, function(item)
-    if item then
-      item = string.sub(item, 3)
+  vim.ui.select(items, { prompt = "Providers" }, function(provider_name)
+    if provider_name then
+      provider_name = string.sub(provider_name, 3)
       -- Perform provider health check before calling callback
-      local provider = M.get_provider(item)
+      local provider = M.get_provider(provider_name)
       assert(provider)
       local diagnostic_message = provider.module.health_check(Config)
       if diagnostic_message then
         local lines = vim.split(utils.trim_string(diagnostic_message), "\n")
         ui.open_foreground_float(lines, { width = 120, height = 999 })
       else
-        callback(item)
+        if on_selection then
+          on_selection(provider_name)
+        end
       end
     end
   end)
@@ -157,12 +157,14 @@ end
 ---Allows the user to select a model from the currently active provider.
 ---The selected model is then saved in the application state.
 ---@param provider_name string? The name of the provider to select models from. If nil, uses the current State.provider.
-function M.select_model(provider_name)
+--- @param on_completion fun(selected_model: Model)? The function to call on successful selection.
+function M.select_model(provider_name, on_completion)
   local provider
   if provider_name then
     provider = M.get_provider(provider_name)
   else
     provider = State.provider
+    assert(provider)
     provider_name = provider.name
   end
   assert(provider)
@@ -185,6 +187,9 @@ function M.select_model(provider_name)
     if model_name then
       model_name = string.sub(model_name, 3)
       M.set_provider(provider_name, model_name)
+      if on_completion then
+        on_completion { provider_name = provider_name, model_name = model_name }
+      end
     end
   end)
 end
@@ -224,7 +229,7 @@ function M.select_recent_model()
 
     selection = string.sub(selection, 3)
     local provider_name, model_name = string.match(selection, "([^/]+)/(.+)")
-    if M.is_valid_provider_model(provider_name, model_name) then
+    if M.is_valid_model(provider_name, model_name) then
       M.set_provider(provider_name, model_name)
     else
       M.drop_recent_model(provider_name, model_name)
