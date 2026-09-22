@@ -1082,24 +1082,12 @@ function M.turns_picker(chats)
     end,
   }
 
-  -- Find the default selection index
-  local default_selection_index = 1
-  if current_turn then
-    for i, entry in ipairs(picker_entries) do
-      if entry.value == current_turn then
-        default_selection_index = i
-        break
-      end
-    end
-  end
-
   -- Create and run the telescope picker
   pickers
     .new({}, {
       results_title = "Turns",
       preview_title = "Preview",
       prompt_title = "[" .. Config.help_key .. " help]",
-      default_selection_index = default_selection_index,
       finder = finders.new_table {
         results = picker_entries,
         entry_maker = function(entry)
