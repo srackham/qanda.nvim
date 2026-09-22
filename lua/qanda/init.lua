@@ -60,7 +60,6 @@ function M.create_user_command()
           vim.cmd("Qanda " .. arg.args) -- Re-execute command on successful provider/model selection
         end) == nil
       then
-        utils.notify("Invalid provider/model '" .. (provider_name or "-") .. "/" .. (model_name or "-") .. "'", vim.log.levels.ERROR)
         -- IMPORTANT: Return if the current provider/model is invalid because `Providers.set_provider` selection is asynchronous.
         return
       end

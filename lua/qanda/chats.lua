@@ -192,6 +192,7 @@ local function get_next_turn(chat, turn)
   if index and index < #chat.turns then
     return chat.turns[index + 1]
   else
+    utils.notify("No next turn", vim.log.levels.WARN)
     return nil
   end
 end
@@ -204,6 +205,7 @@ local function get_prev_turn(chat, turn)
   if index and index > 1 then
     return chat.turns[index - 1]
   else
+    utils.notify("No previous turn", vim.log.levels.WARN)
     return nil
   end
 end
@@ -213,8 +215,8 @@ end
 ---@return Chat|nil next_chat
 local function get_next_chat(chat)
   local i = get_chat_index(chat)
-  assert(i ~= nil)
-  if i == #State.chats then
+  if not i or i == #State.chats then
+    utils.notify("No next chat", vim.log.levels.WARN)
     return nil
   end
   return State.chats[i + 1]
@@ -225,8 +227,8 @@ end
 ---@return Chat|nil prev_chat
 local function get_prev_chat(chat)
   local i = get_chat_index(chat)
-  assert(i ~= nil)
-  if i == 1 then
+  if not i or i == 1 then
+    utils.notify("No previous chat", vim.log.levels.WARN)
     return nil
   end
   return State.chats[i - 1]
@@ -384,11 +386,9 @@ function M.open_chat(chat, turn)
     { "n", "v" },
     Config.chat_prev_turn_key,
     with_active_request_guard(function()
-      if win.turn then
-        local t = get_prev_turn(win.chat, win.turn)
-        if t then
-          M.open_chat(win.chat, t)
-        end
+      local t = get_prev_turn(win.chat, win.turn)
+      if t then
+        M.open_chat(win.chat, t)
       end
     end),
     { buffer = win.bufnr }
@@ -398,25 +398,9 @@ function M.open_chat(chat, turn)
     { "n", "v" },
     Config.chat_next_turn_key,
     with_active_request_guard(function()
-      if win.turn then
-        local t = get_next_turn(win.chat, win.turn)
-        if t then
-          M.open_chat(win.chat, t)
-        end
-      end
-    end),
-    { buffer = win.bufnr }
-  )
-
-  vim.keymap.set(
-    { "n", "v" },
-    Config.chat_prev_chat_key,
-    with_active_request_guard(function()
-      local c = get_prev_chat(win.chat)
-      if c then
-        M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
-      else
-        utils.notify("No previous chat", vim.log.levels.WARN)
+      local t = get_next_turn(win.chat, win.turn)
+      if t then
+        M.open_chat(win.chat, t)
       end
     end),
     { buffer = win.bufnr }
@@ -429,8 +413,18 @@ function M.open_chat(chat, turn)
       local c = get_next_chat(win.chat)
       if c then
         M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
-      else
-        utils.notify("No next chat", vim.log.levels.WARN)
+      end
+    end),
+    { buffer = win.bufnr }
+  )
+
+  vim.keymap.set(
+    { "n", "v" },
+    Config.chat_prev_chat_key,
+    with_active_request_guard(function()
+      local c = get_prev_chat(win.chat)
+      if c then
+        M.open_chat(c, c.turns[#c.turns]) -- Open chat at last turn
       end
     end),
     { buffer = win.bufnr }
@@ -449,7 +443,11 @@ function M.open_chat(chat, turn)
     { "n", "v" },
     Config.chat_delete_key,
     with_active_request_guard(function()
-      delete_turn(win.chat, win.turn)
+      if win.turn then
+        delete_turn(win.chat, win.turn)
+      else
+        utils.notify("No chat turns", vim.log.levels.WARN)
+      end
     end),
     { buffer = win.bufnr }
   )
