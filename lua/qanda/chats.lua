@@ -865,25 +865,14 @@ function M.chat_picker()
     end,
   }
 
-  -- Find the default selection index (entries are in reverse order: most recent first)
-  local default_selection_index = 1
-  local picker_entries = get_picker_entries()
-  for i, chat in ipairs(picker_entries) do
-    if chat == current_chat then
-      default_selection_index = i
-      break
-    end
-  end
-
   -- Create and run the telescope picker
   pickers
     .new({}, {
       results_title = "Chats",
       preview_title = "Turns",
       prompt_title = "[" .. Config.help_key .. " help]",
-      default_selection_index = default_selection_index,
       finder = finders.new_table {
-        results = picker_entries,
+        results = get_picker_entries(),
         entry_maker = entry_maker,
       },
       sorter = conf.generic_sorter {},
