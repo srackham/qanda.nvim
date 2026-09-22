@@ -227,11 +227,15 @@ end
 ---@return Chat|nil prev_chat
 local function get_prev_chat(chat)
   local i = get_chat_index(chat)
-  if not i or i == 1 then
-    utils.notify("No previous chat", vim.log.levels.WARN)
-    return nil
+  if not i then -- The new chat has not been saved
+    if #State.chats > 0 then
+      return State.chats[#State.chats] -- Choose the most recent chat
+    end
+  elseif i > 1 then
+    return State.chats[i - 1]
   end
-  return State.chats[i - 1]
+  utils.notify("No previous chat", vim.log.levels.WARN)
+  return nil
 end
 
 -- If `turn` is the current Chat window turn unbind it and bind the last turn.
