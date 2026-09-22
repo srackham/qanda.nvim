@@ -407,8 +407,9 @@ Named templates for user prompts and [system messages](#system-messages) are sel
 
 Both _[template types](#prompt-and-system-templates)_ use the same text file format. They generate model request messages with "user" and "system" roles.
 
-- _[Templates](#prompt-and-system-templates)_ are in the `templates` subdirectory of the global data directory (defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
 - Template files are named like `*.user.md` or `*.system.md`.
+- _[Templates](#prompt-and-system-templates)_ files are in the `templates` subdirectory of the global data directory (defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
+- If there are no templates files then Qanda creates a `default.user.md` template file and populates it with some example templates.
 - Templates can contain [template placeholders](#template-placeholders) which are expanded to the user prompt and system message.
 
 ### Template format
@@ -487,6 +488,9 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 - The `${shell:<command>}` placeholder is replaced by the output of the shell command.
   - The shell command extends from the colon up to the last `}` character on the line.
   - The shell command runs the command from Neovim’s current working directory.
+  - Useful if you want to submit extracted data without submitting entire files e.g.
+
+        ${shell:awk '/^### Heart Rate Recovery/{p=1;print;next} /^##/{p=0} p' ./medical-notes.md}
 
 ## System messages
 
