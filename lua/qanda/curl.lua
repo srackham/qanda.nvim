@@ -1,6 +1,5 @@
 ---@meta
 
-local Config = require "qanda.config"
 local utils = require "qanda.utils"
 
 local M = {}
@@ -114,7 +113,7 @@ end
 ---The `data_normaliser` should convert raw_json response data into Ollama‑shape response data.
 ---@param cmd table The command array (e.g., `{'curl', ...}`).
 ---@param stdin string|string[]|nil If non-nil, this content is written to the process's stdin.
----@param data_normaliser fun(raw_json: string): table|nil, table|nil A function that converts raw JSON strings into a normalized table format (e.g., Ollama-shape).
+---@param data_normaliser fun(raw_json: string): table|nil, table|nil A function that converts raw JSON strings into a normalized table format (i.e. Ollama-shape).
 ---@param set_turn_stats fun(raw_decoded: table, curl_response: CurlResponse) A function that extracts request and response tokens from raw decoded `response` object to the `curl_response` object.
 ---@param winid number The Neovim window ID to target for streaming output.
 ---@param on_exit_callback fun(curl_response: CurlResponse): nil Function to call when the job finishes.
@@ -135,7 +134,7 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
 
   local start_ms = utils.get_time_ms()
   local duration = nil -- Turn duration in seconds
-  local curl_response = { response_data = {} } ---@type CurlResponse
+  local curl_response = { normalised_data = {}, raw_data = {} } ---@type CurlResponse
 
   local log_error = function(msg)
     error_message = msg
@@ -197,7 +196,25 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
         if not normalised then
           goto continue
         end
-        table.insert(curl_response.response_data, raw)
+        table.insert(curl_response.raw_data, raw)
+        table.insert(curl_response.normalised_data, normalised)
+        if normalised.model then
+          curl_response.model = normalised.model
+          -- Update the second line in the Chat window to reflect the model
+          vim.schedule(function()
+            -- Scheduled because we're running in a fast event context
+            local bufnr = vim.api.nvim_win_get_buf(winid)
+            vim.api.nvim_set_option_value("modifiable", true, {
+              buf = bufnr,
+            })
+            vim.api.nvim_buf_set_lines(bufnr, 1, 2, false, {
+              "model: " .. normalised.model,
+            })
+            vim.api.nvim_set_option_value("modifiable", false, {
+              buf = bufnr,
+            })
+          end)
+        end
 
         -- If we already emitted the done message, skip all further processing for that line
         if done then

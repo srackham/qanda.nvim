@@ -122,8 +122,9 @@ function M.data_normaliser(raw_json)
       }
     end
   end
-
-  -- Map finish_reason to Ollama‑style done flag
+  if raw_decoded.model then
+    normalised.model = raw_decoded.model
+  end
   if raw_decoded.usage then
     normalised.done = true
   end

@@ -444,10 +444,10 @@ function M.execute_prompt(prompt, opts)
     Chats.open_chat(chat, turn)
 
     -- Execute the curl command streaming the output to the Chat window.
-    local payload = vim.json.encode(request.data)
+    local json_request = vim.json.encode(request.data)
     curl.execute_command(
       curl_args,
-      payload,
+      json_request,
       State.provider.module.data_normaliser,
       State.provider.module.set_turn_stats,
       State.chat_window.winid,
@@ -472,10 +472,21 @@ function M.execute_prompt(prompt, opts)
         turns[#turns].request_tokens = curl_response.request_tokens
         turns[#turns].response_tokens = curl_response.response_tokens
         turns[#turns].total_tokens = curl_response.total_tokens
+        if curl_response.model then
+          print("MODEL: " .. curl_response.model)
+          turns[#turns].model = curl_response.model
+        end
 
-        diagnostics.append("request_data", "## Request data", payload)
-        payload = vim.json.encode(curl_response.response_data)
-        diagnostics.append("response_data", "## Response data\nAn array of streamed response chunks.", payload)
+        diagnostics.append(
+          "raw_data",
+          "## Raw response data\nAn array of streamed response chunks.",
+          vim.json.encode(curl_response.raw_data)
+        )
+        diagnostics.append(
+          "normalised_data",
+          "## Normalised response data\nAn array of normalised raw response chunks.",
+          vim.json.encode(curl_response.normalised_data)
+        )
 
         -- Save chat file; remove replaced turn; insert new chat
         vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
