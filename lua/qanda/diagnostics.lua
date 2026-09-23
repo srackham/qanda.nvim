@@ -3,8 +3,6 @@ local State = require "qanda.state"
 local utils = require "qanda.utils"
 
 local M = {}
-M.enabled = false
-
 -- Diagnostics file path
 local function diagnostics_file()
   return Config.data_dir .. "/diagnostics.md"
@@ -12,15 +10,11 @@ end
 
 --- Clear the diagnostics and add timestamped heading.
 function M.start()
-  if not M.enabled then
-    return
-  end
   utils.write_string_to_file("# Qanda Diagnostics\n\n" .. tostring(os.date(Config.TIME_STAMP_FORMAT)) .. "\n\n", diagnostics_file())
 end
 
 --- Display the diagnostics in an ephemeral floating window.
 function M.open()
-  M.enabled = true
   State.chat_window:close()
   State.prompt_window:close()
   utils.edit_file(diagnostics_file())
@@ -32,9 +26,6 @@ end
 --- @param title string
 --- @param content string?
 function M.append(diagnostic, title, content)
-  if not M.enabled then
-    return
-  end
   vim.schedule(function() -- Possible "fast context" deference
     local output = title .. "\n\n"
 

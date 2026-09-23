@@ -409,9 +409,6 @@ function M.execute_prompt(prompt, opts)
     -- Ensure numeric string values are converted to numbers
     utils.normalize_numerics(request_data)
 
-    -- Clear diagnostics
-    diagnostics.start()
-
     local messages = {}
 
     -- Add the system message
@@ -473,23 +470,26 @@ function M.execute_prompt(prompt, opts)
         turns[#turns].response_tokens = curl_response.response_tokens
         turns[#turns].total_tokens = curl_response.total_tokens
         if curl_response.model then
-          print("MODEL: " .. curl_response.model)
           turns[#turns].model = curl_response.model
         end
 
-        diagnostics.append(
-          "raw_data",
-          "## Raw response data\nAn array of streamed response chunks.",
-          vim.json.encode(curl_response.raw_data)
-        )
-        diagnostics.append(
-          "normalised_data",
-          "## Normalised response data\nAn array of normalised raw response chunks.",
-          vim.json.encode(curl_response.normalised_data)
-        )
+        -- Scheduled because we're running in a fast event context
+        vim.schedule(function()
+          -- Write diagnostics file
+          diagnostics.start()
+          diagnostics.append("request_data", "## Request data", json_request)
+          diagnostics.append(
+            "raw_data",
+            "## Raw response data\nAn array of streamed response chunks.",
+            vim.json.encode(curl_response.raw_data)
+          )
+          diagnostics.append(
+            "normalised_data",
+            "## Normalised response data\nAn array of normalised raw response chunks.",
+            vim.json.encode(curl_response.normalised_data)
+          )
 
-        -- Save chat file; remove replaced turn; insert new chat
-        vim.schedule(function() -- Defer because we're in a Neovim "fast event" context
+          -- Save chat file; remove replaced turn; insert new chat
           Chats.save_chat(chat)
           if not vim.tbl_contains(State.chats, chat) then
             table.insert(State.chats, chat)
