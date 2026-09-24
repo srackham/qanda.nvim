@@ -37,7 +37,6 @@ end
 ---@param request Request
 ---@return string[]
 function M.command(request)
-  local _ = request -- Suppress unused variable warning
   return {
     "curl",
     "-q",

@@ -204,7 +204,9 @@ Append `␣+` or `␣-` to `_Prompt_ or _Template_ commands to change the [turn 
 | `:Qanda /chat_picker`                        | Open the [Chat picker](#chat-picker)                       |
 | `:Qanda /chat_window`                        | Open the [Chat window](#chat-window)                       |
 | `:Qanda /delete_old_chats [number_retained]` | Delete all chats except the most recent `number_retained`  |
-| `:Qanda /diagnostics`                        | Enable and view request/response diagnostics               |
+| `:Qanda /diagnostics_enable`                 | Enable [diagnostics](#diagnostics) capture                 |
+| `:Qanda /diagnostics_disable`                | Disable [diagnostics](#diagnostics) capture                |
+| `:Qanda /diagnostics_view`                   | View the [diagnostics](#diagnostics) file                  |
 | `:Qanda /help`                               | Print help summary                                         |
 | `:Qanda /model_picker`                       | Select a model from the current provider                   |
 | `:Qanda /new_chat`                           | Start a new Chat                                           |
@@ -369,7 +371,12 @@ Displayed model names are formatted like `<provider>/<model>`.
 
 ## Diagnostics
 
-The `:Qanda /diagnostics` command enables the capture of raw model request and response data and it opens the most recently captured request and response (turn). Diagnostics capture is enabled per session i.e. Neovim opens with diagnostics disabled by default.
+Qanda has [commands](#builtin-commands) to enable and capture and save the low level turn data sent to and received from the AI model. The captured turn reveals exactly what's going on under the hood.
+
+> [!NOTE]
+> Diagnostics are disabled by default and can be enabled using for the current session using the `:Qanda /diagnostics_enable` command.
+
+The `:Qanda /diagnostics_view` command opens the most recently captured request and response (turn).
 
 If you have `jq` installed then diagnostics JSON data will be pretty-printed.
 
@@ -527,6 +534,6 @@ model_options = {
 ## Tips
 
 - The [chat](#chat-window) and [prompt](#prompt-window) window's `<C-h>` help command displays a summary of key-mapped window commands.
-- Use the `:Qanda /diagnostics` command to view the model request and response from the most recent turn.
+- Use the `:Qanda /diagnostics_view` command to view the model request and response from the most recent turn.
 
 - Opening a prompt template with the [prompt template picker](#prompt-template-picker) previews the expanded prompt in the [prompt window](#prompt-window). The preview is skipped if you run the template directly with `:Qanda !<template>`.

@@ -191,7 +191,13 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       end
       return
     elseif args == "/status" then
-      local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
+      local info = "\nprovider: "
+        .. vim.inspect(State.provider.name)
+        .. "\nmodel: "
+        .. vim.inspect(State.provider.model)
+        .. "\ndiagnostics: "
+        .. (diagnostics.enabled and "enabled" or "disabled")
+        .. "\nchat: "
       local chat = State.chat_window.chat
       if chat and #chat.turns > 0 then
         info = info .. '"' .. utils.sanitize_display_entry(Chats.chat_name(chat), 60) .. '"'
@@ -204,8 +210,16 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       info = info .. "\nsession file: " .. vim.inspect(Config.session_file())
       utils.notify(info, vim.log.levels.INFO)
       return
-    elseif args == "/diagnostics" then
-      diagnostics.open()
+    elseif args == "/diagnostics_enable" then
+      diagnostics.enabled = true
+      utils.notify("Diagnostics enabled", vim.log.levels.INFO)
+      return
+    elseif args == "/diagnostics_disable" then
+      diagnostics.enabled = false
+      utils.notify("Diagnostics disabled", vim.log.levels.INFO)
+      return
+    elseif args == "/diagnostics_view" then
+      diagnostics.view()
       return
     elseif args:sub(1, 1) == "!" then -- Template command
       local prompt_name = args:sub(2)
@@ -260,7 +274,9 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/toggle_chat_location")
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
-      table.insert(args, "/diagnostics")
+      table.insert(args, "/diagnostics_enable")
+      table.insert(args, "/diagnostics_disable")
+      table.insert(args, "/diagnostics_view")
       table.insert(args, "/repeat")
       table.insert(args, "/help")
       table.insert(args, "/readme")
@@ -433,14 +449,12 @@ function M.execute_prompt(prompt, opts)
       port = Config.port,
       data = request_data,
     }
-    local curl_args = State.provider.module.command(request)
-
-    diagnostics.append("curl_command", "## Curl command", utils.curl_args_to_shell_command(curl_args))
 
     -- Clear the Chat window and write the header.
     Chats.open_chat(chat, turn)
 
     -- Execute the curl command streaming the output to the Chat window.
+    local curl_args = State.provider.module.command(request)
     local json_request = vim.json.encode(request.data)
     curl.execute_command(
       curl_args,
@@ -476,20 +490,10 @@ function M.execute_prompt(prompt, opts)
         -- Scheduled because we're running in a fast event context
         vim.schedule(function()
           -- Write diagnostics file
-          diagnostics.start()
-          diagnostics.append("request_data", "## Request data", json_request)
-          diagnostics.append(
-            "raw_data",
-            "## Raw response data\nAn array of streamed response chunks.",
-            vim.json.encode(curl_response.raw_data)
-          )
-          diagnostics.append(
-            "normalised_data",
-            "## Normalised response data\nAn array of normalised raw response chunks.",
-            vim.json.encode(curl_response.normalised_data)
-          )
+          if diagnostics.enabled then
+            diagnostics.write_to_file(curl_args, json_request, curl_response)
+          end
 
-          -- Save chat file; remove replaced turn; insert new chat
           Chats.save_chat(chat)
           if not vim.tbl_contains(State.chats, chat) then
             table.insert(State.chats, chat)
