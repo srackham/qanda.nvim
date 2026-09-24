@@ -584,27 +584,32 @@ function M.inject_files()
   end)
 end
 
---- Sanitizes strings for Telescope picker display by removing non-printable characters and truncating.
+--- Sanitizes strings for Telescope picker display by replacing control characters
+--- and truncating. Valid UTF-8 (e.g. "Mīlitēs") is left untouched.
 ---@param str string|nil The input text to sanitize.
----@param max_len number? Optional maximum length.
+---@param max_len number? Optional maximum length (in characters).
 ---@return string
 function M.sanitize_display_entry(str, max_len)
   if not str or type(str) ~= "string" then
     return ""
   end
 
-  -- Replace non-printable characters (control chars, DEL, non-ASCII) with a space
-  local s = str:gsub("[\1-\8\11\12\14-\31\127-\255]+", " ")
+  -- Replace ASCII control chars (except tab/LF/CR, which the whitespace
+  -- collapse below handles) and DEL with a space
+  local s = str:gsub("[\1-\8\11\12\14-\31\127]+", " ")
 
-  -- Collapse multiple consecutive spaces into one
+  -- Replace C1 control characters (U+0080–U+009F, encoded as \194\128–\194\159)
+  s = s:gsub("\194[\128-\159]+", " ")
+
+  -- Collapse multiple consecutive whitespace characters into one space
   s = s:gsub("%s+", " ")
 
   -- Remove leading and trailing whitespace
   s = vim.trim(s)
 
-  -- Truncate to the limit and add ellipsis if necessary
-  if max_len and #s > max_len then
-    s = s:sub(1, max_len - 3) .. "..."
+  -- Truncate by characters (not bytes) so we never split a multi-byte character
+  if max_len and vim.fn.strchars(s) > max_len then
+    s = vim.fn.strcharpart(s, 0, math.max(max_len - 3, 0)) .. "..."
   end
 
   return s
