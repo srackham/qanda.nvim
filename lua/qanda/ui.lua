@@ -1,5 +1,8 @@
 local utils = require "qanda.utils"
 
+---@module "qanda.ui"
+---@brief A UIWindow class for Chat and Prompt windows plus some helper functions for window management
+
 local M = {} -- This module
 
 --- Move cursor to the end of the content in a Neovim window and focus it
