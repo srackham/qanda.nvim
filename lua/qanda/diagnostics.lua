@@ -7,21 +7,27 @@ local M = {}
 M.enabled = false
 
 -- Diagnostics file path
-local function diagnostics_file()
+function M.diagnostics_file()
   return Config.data_dir .. "/diagnostics.md"
 end
 
 --- Display the diagnostics in an ephemeral floating window.
 function M.view()
-  utils.notify("Diagnostics capture is currently " .. (M.enabled and "enabled" or "disabled"), vim.log.levels.WARN)
-  State.chat_window:close()
-  State.prompt_window:close()
-  utils.edit_file(diagnostics_file())
+  if not M.enabled then
+    utils.notify("Diagnostics capture is currently disabled", vim.log.levels.WARN)
+  end
+  if utils.file_exists(M.diagnostics_file()) then
+    State.chat_window:close()
+    State.prompt_window:close()
+    utils.edit_file(M.diagnostics_file())
+  else
+    utils.notify("There is no diagnostics file `" .. M.diagnostics_file() .. "'", vim.log.levels.WARN)
+  end
 end
 
 --- Clear the diagnostics file and add timestamped heading.
 local function write_title()
-  utils.write_string_to_file("# Qanda Diagnostics\n\n" .. tostring(os.date(Config.TIME_STAMP_FORMAT)) .. "\n\n", diagnostics_file())
+  utils.write_string_to_file("# Qanda Diagnostics\n\n" .. tostring(os.date(Config.TIME_STAMP_FORMAT)) .. "\n\n", M.diagnostics_file())
 end
 
 --- Append diagnostic text for `diagnostic` to the diagnostics file.
@@ -52,7 +58,7 @@ local function append_section(diagnostic, title, content)
       end
     end
 
-    utils.append_string_to_file(output, diagnostics_file())
+    utils.append_string_to_file(output, M.diagnostics_file())
   end)
 end
 

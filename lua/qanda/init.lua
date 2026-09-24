@@ -191,13 +191,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       end
       return
     elseif args == "/status" then
-      local info = "\nprovider: "
-        .. vim.inspect(State.provider.name)
-        .. "\nmodel: "
-        .. vim.inspect(State.provider.model)
-        .. "\ndiagnostics: "
-        .. (diagnostics.enabled and "enabled" or "disabled")
-        .. "\nchat: "
+      local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
       local chat = State.chat_window.chat
       if chat and #chat.turns > 0 then
         info = info .. '"' .. utils.sanitize_display_entry(Chats.chat_name(chat), 60) .. '"'
@@ -208,6 +202,8 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       info = info .. "\nchats directory: " .. vim.inspect(Config.chats_dir)
       info = info .. "\nprompts directory: " .. vim.inspect(Config.prompts_dir)
       info = info .. "\nsession file: " .. vim.inspect(Config.session_file())
+      info = info .. "\ndiagnostics: " .. (diagnostics.enabled and "enabled" or "disabled")
+      info = info .. "\ndiagnostics file: " .. vim.inspect(diagnostics.diagnostics_file())
       utils.notify(info, vim.log.levels.INFO)
       return
     elseif args == "/diagnostics_enable" then
