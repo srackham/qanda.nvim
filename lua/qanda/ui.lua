@@ -208,7 +208,7 @@ function M.open_window(buf_name, opts)
     utils.notify("Invalid window location '" .. opts.location .. "'", vim.log.levels.WARN)
   end
 
-  vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide nobuflisted"))
+  vim.cmd("setlocal " .. (opts.setlocal or "buftype=nofile bufhidden=hide nobuflisted noswapfile winfixbuf"))
   vim.cmd("file " .. buf_name)
 end
 
