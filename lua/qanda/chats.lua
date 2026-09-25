@@ -153,22 +153,10 @@ function M.save_chat(chat)
     utils.notify("Failed to open file '" .. chat.filename .. "'", vim.log.levels.ERROR)
     return
   end
-
   file:write(table.concat(lines, "\n") .. "\n")
   file:close()
+  State.saved_state.chat_file = chat.filename -- Remember the mostly recently updated chat file
 
-  -- utils.notify("Saved file '" .. chat.filename .. "'", vim.log.levels.INFO)
-
-  -- Record the mostly recently updated chat file name
-  M.set_recent_chat_file(chat.filename)
-
-end
-
---- Set the most recently updated chat file in saved state.
----@param chat_file string Path to the chat file.
-function M.set_recent_chat_file(chat_file)
-  State.saved_state.chat_file = chat_file
-  State.save_state()
 end
 
 --- Returns the full path of the most recently updated chat file
@@ -762,7 +750,7 @@ function M.chat_picker()
         local chat = selection.value
         assert(chat)
         M.open_chat(chat, chat.turns[#chat.turns]) -- Open at most recent turn
-        M.set_recent_chat_file(chat.filename)
+        State.saved_state.chat_file = chat.filename -- Remember the mostly recently updated chat file
       end
     end, { desc = "Close the picker and open the chat in the Chat window" })
 
