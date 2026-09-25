@@ -161,22 +161,6 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
 
       line_buffer = line_buffer .. data
 
-      -- TODO: Why do we need this special case?
-      -- Handle non-newline delimited Ollama errors.
-      -- If the buffer starts like a JSON object and contains "error", try to parse it immediately.
-      -- NOTE: This match is valid for all providers.
-      if line_buffer:match "^%s*{" and line_buffer:match '"error"%s*:' then
-        local normalised, _ = data_normaliser(line_buffer)
-        if not normalised then
-          log_error "Failed to normalise response object"
-          return
-        end
-        if normalised.error then
-          log_error(normalised.error)
-          return
-        end
-      end
-
       -- Process complete JSON objects delimited by newlines
       while true do
         local newline_pos = line_buffer:find "\n"
@@ -270,6 +254,9 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
       end
     end,
   }, function(_)
+    if #curl_response.raw_data == 0 or #curl_response.normalised_data == 0 then
+      log_error "Empty model response"
+    end
     if job_status == "aborted" then
       spinner.stop("User aborted!", { hl_group = "WarningMsg" })
     elseif job_status == "error" then
