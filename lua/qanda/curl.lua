@@ -161,6 +161,7 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
 
       line_buffer = line_buffer .. data
 
+      -- TODO: Why do we need this special case?
       -- Handle non-newline delimited Ollama errors.
       -- If the buffer starts like a JSON object and contains "error", try to parse it immediately.
       -- NOTE: This match is valid for all providers.
@@ -214,6 +215,10 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
               buf = bufnr,
             })
           end)
+        end
+        if normalised.error then
+          log_error(normalised.error)
+          return
         end
 
         -- If we already emitted the done message, skip all further processing for that line
