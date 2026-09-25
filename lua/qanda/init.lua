@@ -459,16 +459,19 @@ function M.execute_prompt(prompt, opts)
       State.provider.module.set_turn_stats,
       State.chat_window.winid,
       function(curl_response) ---@type CurlResponse
+        if diagnostics.enabled then
+          vim.schedule(function() -- Fast event context
+            -- Write diagnostics file
+            diagnostics.write_to_file(curl_args, json_request, curl_response)
+          end)
+        end
+
         if curl.get_job_status() ~= "stopped" then
-          -- Turn did not complete
+          -- Turn did not complete (error, aborted, running)
           if turn_mode == "replace" then
             table.insert(chat.turns, prev_turn)
             State.chat_window.turn = prev_turn
           end
-          return
-        end
-
-        if curl_response.error then
           return
         end
 
@@ -483,13 +486,7 @@ function M.execute_prompt(prompt, opts)
           turns[#turns].model = curl_response.model
         end
 
-        -- Scheduled because we're running in a fast event context
-        vim.schedule(function()
-          -- Write diagnostics file
-          if diagnostics.enabled then
-            diagnostics.write_to_file(curl_args, json_request, curl_response)
-          end
-
+        vim.schedule(function() -- Fast event context
           Chats.save_chat(chat)
           if not vim.tbl_contains(State.chats, chat) then
             table.insert(State.chats, chat)
