@@ -30,7 +30,17 @@ local default = {
   -- All options except `api_key` are passed through as AI model request options.
   provider_options = {
     ollama = { think = false, stream = true },
-    openrouter = { api_key = "$OPENROUTER_API_KEY", stream = true, stream_options = { include_usage = true } },
+    openrouter = {
+      api_key = "$OPENROUTER_API_KEY",
+      stream = true,
+      stream_options = { include_usage = true },
+      plugins = {
+        {
+          id = "auto-router",
+          allowed_models = { "minimax/minimax-2.7", "perplexity/sonar", "google/gemini-*-flash" },
+        },
+      },
+    },
     gemini = { api_key = "$GEMINI_API_KEY", stream = true, stream_options = { include_usage = true } },
   },
 
