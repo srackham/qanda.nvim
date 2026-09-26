@@ -191,19 +191,15 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       end
       return
     elseif args == "/status" then
-      local info = "\nprovider: " .. vim.inspect(State.provider.name) .. "\nmodel: " .. vim.inspect(State.provider.model) .. "\nchat: "
-      local chat = State.chat_window.chat
-      if chat and #chat.turns > 0 then
-        info = info .. '"' .. utils.sanitize_display_entry(Chats.chat_name(chat), 60) .. '"'
-      else
-        info = info .. "nil"
-      end
-      info = info .. "\ndata directory: " .. vim.inspect(Config.data_dir)
-      info = info .. "\nchats directory: " .. vim.inspect(Config.chats_dir)
-      info = info .. "\ntemplates directory: " .. vim.inspect(Config.prompts_dir)
-      info = info .. "\nsession file: " .. vim.inspect(Config.session_file())
-      info = info .. "\ndiagnostics: " .. (diagnostics.enabled and "enabled" or "disabled")
-      info = info .. "\ndiagnostics file: " .. vim.inspect(diagnostics.diagnostics_file())
+      local info = string.format("%-27s%s", "\nprovider:", State.provider.name)
+      info = info .. string.format("%-27s%s", "\nmodel:", State.provider.model)
+      info = info .. string.format("%-27s%s", "\nglobal data directory:", Config.global_data_dir)
+      info = info .. string.format("%-27s%s", "\nworkspace data directory:", (Config.workspace_data_dir or ""))
+      info = info .. string.format("%-27s%s", "\nchats directory:", Config.chats_dir)
+      info = info .. string.format("%-27s%s", "\ntemplates directory:", Config.templates_dir)
+      info = info .. string.format("%-27s%s", "\nsession file:", Config.session_file())
+      info = info .. string.format("%-27s%s", "\ndiagnostics:", (diagnostics.enabled and "enabled" or "disabled"))
+      info = info .. string.format("%-27s%s", "\ndiagnostics file:", diagnostics.diagnostics_file())
       utils.notify(info, vim.log.levels.INFO)
       return
     elseif args == "/diagnostics_enable" then
