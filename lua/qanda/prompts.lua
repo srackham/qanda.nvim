@@ -331,12 +331,12 @@ local function load_templates(role)
   local result = {} ---@type Prompts
 
   -- Read and merge all *.md templates files
-  local glob_pattern = Config.prompts_dir .. "/*." .. role .. ".md"
+  local glob_pattern = Config.templates_dir .. "/*." .. role .. ".md"
   local template_files = vim.fn.glob(glob_pattern, false, true)
 
   -- If there are no user templates files then create default examples
   if #template_files == 0 then
-    local path = Config.prompts_dir .. "/default." .. role .. ".md"
+    local path = Config.templates_dir .. "/default." .. role .. ".md"
 
     -- Create parent directory if it does not already exist
     local dir = vim.fn.fnamemodify(path, ":h")
@@ -855,8 +855,8 @@ function M.resolve_prompt_path(file_path)
   -- vim.fn.fnamemodify(file_path, ':t') extracts only the filename part.
   -- If it's equal to the original file_path, then there was no directory component.
   if vim.fn.fnamemodify(file_path, ":t") == file_path then
-    -- If it's just a filename, prepend prompts_dir and then resolve to an absolute path.
-    local full_path = Config.prompts_dir .. "/" .. file_path
+    -- If it's just a filename, prepend the templates directory and then resolve to an absolute path.
+    local full_path = Config.templates_dir .. "/" .. file_path
     return vim.fn.fnamemodify(full_path, ":p")
   elseif vim.fn.fnamemodify(file_path, ":p") == file_path or file_path:sub(1, 1) == "~" then
     -- Already absolute or starts with '~'; expand and return as is.

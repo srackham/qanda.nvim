@@ -11,7 +11,7 @@ function M.diagnostics_file()
   if Config.workspace_data_dir then
     return Config.workspace_data_dir .. "/" .. Config.DIAGNOSTICS_FILE
   else
-    return Config.data_dir .. "/" .. Config.DIAGNOSTICS_FILE
+    return Config.global_data_dir .. "/" .. Config.DIAGNOSTICS_FILE
   end
 end
 

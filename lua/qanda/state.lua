@@ -37,7 +37,7 @@ function M.save_state()
     M.saved_state.recent_models = M.recent_models
   end
 
-  local dir = Config.data_dir
+  local dir = Config.global_data_dir
   vim.fn.mkdir(dir, "p") -- ensure directory exists
   local ok, encoded = pcall(vim.fn.json_encode, M.saved_state)
 

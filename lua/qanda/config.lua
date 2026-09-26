@@ -48,7 +48,7 @@ local default = {
   },
 
   -- Global configuration data files root directory
-  data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
+  global_data_dir = vim.fn.stdpath "data" .. "/qanda_nvim",
 
   -- Miscellaneous --
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
@@ -136,8 +136,8 @@ function M.setup(opts)
   end
 
   -- Set data file locations
-  M.data_dir = vim.fn.expand(M.data_dir)
-  M.prompts_dir = M.data_dir .. "/templates"
+  M.global_data_dir = vim.fn.expand(M.global_data_dir)
+  M.templates_dir = M.global_data_dir .. "/templates"
 
   M.workspace_data_dir = M.ROOT_DIR .. "/.qanda_nvim"
   if not utils.dir_exists(M.workspace_data_dir) then
@@ -147,7 +147,7 @@ function M.setup(opts)
   if M.workspace_data_dir then
     M.chats_dir = M.workspace_data_dir .. "/chats"
     if not utils.dir_exists(M.chats_dir) then
-      M.chats_dir = M.data_dir .. "/chats"
+      M.chats_dir = M.global_data_dir .. "/chats"
     end
   end
 
@@ -165,7 +165,7 @@ function M.session_file()
   if M.workspace_data_dir then
     return M.workspace_data_dir .. "/" .. M.SESSION_FILE
   else
-    return M.data_dir .. "/" .. M.SESSION_FILE
+    return M.global_data_dir .. "/" .. M.SESSION_FILE
   end
 end
 
