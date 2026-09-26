@@ -1,3 +1,5 @@
+local utils
+
 local M = {} -- This module
 
 -- Constants --
@@ -5,6 +7,7 @@ M.CHAT_BUFFER_NAME = "[qanda.chat]"
 M.PROMPT_BUFFER_NAME = "[qanda.prompt]"
 M.TIME_STAMP_FORMAT = "%Y-%m-%d %H:%M:%S"
 M.SESSION_FILE = "session.json"
+M.DIAGNOSTICS_FILE = "diagnostics.md"
 M.ROOT_DIR = vim.fn.getcwd() -- Lock the root directory to the Neovim's startup working directory.
 
 -- Default configuration options --
@@ -117,6 +120,8 @@ local default = {
 
 function M.setup(opts)
 
+  utils = require "qanda.utils" -- Load utils here to eliminate cyclic dependency
+
   for k, v in pairs(default) do
     M[k] = v
   end
@@ -130,16 +135,20 @@ function M.setup(opts)
     end
   end
 
-  -- Set configuration file locations
+  -- Set data file locations
   M.data_dir = vim.fn.expand(M.data_dir)
   M.prompts_dir = M.data_dir .. "/templates"
-  M.chats_dir = M.data_dir .. "/chats"
 
-  local workspace_data_dir = M.ROOT_DIR .. "/.qanda_nvim"
-  local dir = workspace_data_dir .. "/chats"
-  if vim.fn.isdirectory(dir) == 1 then
-    M.chats_dir = dir
-  else
+  M.workspace_data_dir = M.ROOT_DIR .. "/.qanda_nvim"
+  if not utils.dir_exists(M.workspace_data_dir) then
+    M.workspace_data_dir = nil
+  end
+
+  if M.workspace_data_dir then
+    M.chats_dir = M.workspace_data_dir .. "/chats"
+    if not utils.dir_exists(M.chats_dir) then
+      M.chats_dir = M.data_dir .. "/chats"
+    end
   end
 
   -- Restore state
@@ -153,7 +162,11 @@ end
 --- Return the session file path.
 ---@return string The absolute path to the session file
 function M.session_file()
-  return M.data_dir .. "/" .. M.SESSION_FILE
+  if M.workspace_data_dir then
+    return M.workspace_data_dir .. "/" .. M.SESSION_FILE
+  else
+    return M.data_dir .. "/" .. M.SESSION_FILE
+  end
 end
 
 return M

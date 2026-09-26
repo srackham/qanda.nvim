@@ -200,7 +200,7 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       end
       info = info .. "\ndata directory: " .. vim.inspect(Config.data_dir)
       info = info .. "\nchats directory: " .. vim.inspect(Config.chats_dir)
-      info = info .. "\nprompts directory: " .. vim.inspect(Config.prompts_dir)
+      info = info .. "\ntemplates directory: " .. vim.inspect(Config.prompts_dir)
       info = info .. "\nsession file: " .. vim.inspect(Config.session_file())
       info = info .. "\ndiagnostics: " .. (diagnostics.enabled and "enabled" or "disabled")
       info = info .. "\ndiagnostics file: " .. vim.inspect(diagnostics.diagnostics_file())

@@ -723,6 +723,13 @@ function M.file_exists(path)
   return vim.fn.filereadable(path) == 1
 end
 
+--- Check if a directory exists
+-- @param path string: directory path to check
+-- @return boolean: true if directory exists
+function M.dir_exists(path)
+  return vim.fn.isdirectory(path) == 1
+end
+
 --- Finds the first index of a given value in an array-like table.
 --- @param tbl table The table to search.
 --- @param value any The value to find.

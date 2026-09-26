@@ -8,7 +8,11 @@ M.enabled = false
 
 -- Diagnostics file path
 function M.diagnostics_file()
-  return Config.data_dir .. "/diagnostics.md"
+  if Config.workspace_data_dir then
+    return Config.workspace_data_dir .. "/" .. Config.DIAGNOSTICS_FILE
+  else
+    return Config.data_dir .. "/" .. Config.DIAGNOSTICS_FILE
+  end
 end
 
 --- Display the diagnostics in an ephemeral floating window.
