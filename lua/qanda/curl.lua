@@ -184,10 +184,10 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
         table.insert(curl_response.raw_data, raw)
         table.insert(curl_response.normalised_data, normalised)
         if normalised.model then
+          -- The model name is typically returned from auto-routing end points
           curl_response.model = normalised.model
           -- Update the second line in the Chat window to reflect the model
-          vim.schedule(function()
-            -- Scheduled because we're running in a fast event context
+          vim.schedule(function() -- Fast event context
             local bufnr = vim.api.nvim_win_get_buf(winid)
             vim.api.nvim_set_option_value("modifiable", true, {
               buf = bufnr,
