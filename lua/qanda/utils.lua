@@ -1,5 +1,3 @@
-local Config = require "qanda.config"
-
 local M = {} -- This module
 
 function M.string_ends_with(str, ending)
@@ -182,6 +180,7 @@ function M.message(msg, opts)
   echo_opts.hl_group = nil
   echo_opts.history = nil
   vim.schedule(function() -- Defer because of Neovim's "fast event" context
+    local Config = require "qanda.config"
     vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, Config.debug or opts.history or false, echo_opts)
   end)
 end
