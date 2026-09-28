@@ -144,11 +144,9 @@ function M.setup(opts)
     M.workspace_data_dir = nil
   end
 
+  M.chats_dir = M.global_data_dir .. "/chats"
   if M.workspace_data_dir then
     M.chats_dir = M.workspace_data_dir .. "/chats"
-    if not utils.dir_exists(M.chats_dir) then
-      M.chats_dir = M.global_data_dir .. "/chats"
-    end
   end
 
   -- Restore state

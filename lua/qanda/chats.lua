@@ -750,7 +750,7 @@ function M.chat_picker()
         local chat = selection.value
         assert(chat)
         M.open_chat(chat, chat.turns[#chat.turns]) -- Open at most recent turn
-        State.session.chat_file = chat.filename -- Remember the mostly recently updated chat file
+        State.session.chat_file = chat.filename -- Remember the mostly recently selected chat file
       end
     end, { desc = "Close the picker and open the chat in the Chat window" })
 
