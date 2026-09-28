@@ -122,7 +122,6 @@ function M.set_system_message(system_message_template, opts)
       refresh_chat_window()
     end
   end
-  State.save_state()
 end
 
 --- Return `true` if the line is a prompt template header section delimiter.

@@ -25,6 +25,12 @@ function M.setup()
   State.chats = M.load_chats()
   if #State.chats > 0 then
     State.chat_window.chat = State.chats[#State.chats] -- Most recent chat
+    for _, chat in ipairs(State.chats) do
+      if chat.filename == State.saved_state.chat_file then -- Matching chat from saved session state
+        State.chat_window.chat = chat
+        break
+      end
+    end
   else
     State.chat_window.chat = nil
   end
@@ -157,12 +163,6 @@ function M.save_chat(chat)
   file:close()
   State.saved_state.chat_file = chat.filename -- Remember the mostly recently updated chat file
 
-end
-
---- Returns the full path of the most recently updated chat file
----@return string|nil The most recently updated chat file path, or nil if not set.
-function M.recent_chat_file()
-  return State.saved_state.chat_file
 end
 
 ---@param chat Chat

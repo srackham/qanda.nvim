@@ -30,6 +30,13 @@ function M.setup(opts)
   M.create_user_command()
 end
 
+vim.api.nvim_create_autocmd("VimLeavePre", {
+  group = vim.api.nvim_create_augroup("QandaCleanup", { clear = true }),
+  callback = function()
+    State.save_state()
+  end,
+})
+
 local initialised = false
 local last_command = nil
 

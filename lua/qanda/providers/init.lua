@@ -111,7 +111,6 @@ function M.set_provider(provider_name, model_name, on_selection)
       State.saved_state.model = model_name
       State.saved_state.provider = provider.name
       M.update_recent_models(provider_name, model_name)
-      State.save_state()
       return provider
     end
   end
@@ -233,7 +232,6 @@ function M.select_recent_model()
       M.set_provider(provider_name, model_name)
     else
       M.drop_recent_model(provider_name, model_name)
-      State.save_state()
       utils.notify("Invalid model `" .. provider_name .. "/" .. model_name .. "' removed from recent models list", vim.log.levels.INFO)
     end
 

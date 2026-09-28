@@ -52,7 +52,6 @@ function M.save_state()
     utils.notify("Failed to open session state file for writing: " .. path, vim.log.levels.ERROR)
     return
   end
-
   f:write(encoded)
   f:close()
 end
