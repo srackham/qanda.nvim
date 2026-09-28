@@ -108,8 +108,8 @@ function M.set_provider(provider_name, model_name, on_selection)
       -- Arrive here when called with a valid provider and model
       State.provider = provider
       State.provider.model = model_name
-      State.saved_state.model = model_name
-      State.saved_state.provider = provider.name
+      State.session.model = model_name
+      State.session.provider = provider.name
       M.update_recent_models(provider_name, model_name)
       return provider
     end

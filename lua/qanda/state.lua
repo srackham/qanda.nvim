@@ -7,7 +7,7 @@ local M = {
   provider = nil, ---@type Provider
   system_message = nil, ---@type Prompt System message with placeholders expanded
   chats = {}, ---@type Chats
-  saved_state = nil, ---@type SavedState
+  session = nil, ---@type Session
   recent_models = nil, ---@type Model[]
 
   chat_window = ui.UIWindow.new {
@@ -30,16 +30,16 @@ local M = {
 function M.save_state()
   -- Assemble the saved state object
   if M.provider then
-    M.saved_state.model = M.provider.model
-    M.saved_state.provider = M.provider.name
+    M.session.model = M.provider.model
+    M.session.provider = M.provider.name
   end
   if M.recent_models then
-    M.saved_state.recent_models = M.recent_models
+    M.session.recent_models = M.recent_models
   end
 
   local dir = Config.global_data_dir
   vim.fn.mkdir(dir, "p") -- ensure directory exists
-  local ok, encoded = pcall(vim.fn.json_encode, M.saved_state)
+  local ok, encoded = pcall(vim.fn.json_encode, M.session)
 
   if not ok then
     utils.notify("Failed to encode session state to JSON: " .. tostring(encoded), vim.log.levels.ERROR)
@@ -62,7 +62,7 @@ function M.restore_state()
   local path = Config.session_file()
 
   -- Blank saved state
-  M.saved_state = { recent_models = {} }
+  M.session = { recent_models = {} }
   M.recent_models = {}
 
   -- If file doesn't exist, it's not an error (the user may be onboarding)
@@ -90,7 +90,7 @@ function M.restore_state()
     decoded.chat_file = nil
   end
 
-  M.saved_state = decoded
+  M.session = decoded
   if decoded.recent_models then
     M.recent_models = decoded.recent_models
   else

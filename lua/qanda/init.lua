@@ -60,8 +60,8 @@ function M.create_user_command()
         Chats.new_chat()
       end
       -- Validate the provider/model and, if they`re not valid, prompt with user selection dialogs.
-      local provider_name = State.saved_state.provider or Config.provider
-      local model_name = State.saved_state.model or Config.model
+      local provider_name = State.session.provider or Config.provider
+      local model_name = State.session.model or Config.model
       if
         Providers.set_provider(provider_name, model_name, function()
           vim.cmd("Qanda " .. arg.args) -- Re-execute command on successful provider/model selection

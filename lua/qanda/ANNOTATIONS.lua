@@ -52,7 +52,7 @@
 ---@field system_message Prompt The current system message object
 ---@field recent_models Model[] A list of the most recently selected models
 
----@class SavedState -- Saved in STATE.json
+---@class Session -- Saved in session file
 ---@field provider? string -- Most recently selected provider
 ---@field model? string -- Most recently selected model
 ---@field chat_file? string -- Most recently updated chat file

@@ -26,7 +26,7 @@ function M.setup()
   if #State.chats > 0 then
     State.chat_window.chat = State.chats[#State.chats] -- Most recent chat
     for _, chat in ipairs(State.chats) do
-      if chat.filename == State.saved_state.chat_file then -- Matching chat from saved session state
+      if chat.filename == State.session.chat_file then -- Matching chat from saved session state
         State.chat_window.chat = chat
         break
       end
@@ -161,7 +161,7 @@ function M.save_chat(chat)
   end
   file:write(table.concat(lines, "\n") .. "\n")
   file:close()
-  State.saved_state.chat_file = chat.filename -- Remember the mostly recently updated chat file
+  State.session.chat_file = chat.filename -- Remember the mostly recently updated chat file
 
 end
 
@@ -750,7 +750,7 @@ function M.chat_picker()
         local chat = selection.value
         assert(chat)
         M.open_chat(chat, chat.turns[#chat.turns]) -- Open at most recent turn
-        State.saved_state.chat_file = chat.filename -- Remember the mostly recently updated chat file
+        State.session.chat_file = chat.filename -- Remember the mostly recently updated chat file
       end
     end, { desc = "Close the picker and open the chat in the Chat window" })
 
