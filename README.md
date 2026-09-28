@@ -6,9 +6,7 @@ An easy-to-use Neovim plugin for conversing with AI models.
 
 ## Overview
 
-Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. It is designed for easy onboarding with a familiar prompt/response chat UI.
-
-There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve.
+There are plenty of feature-rich AI plugins out there and most are not designed for quick Q&A sessions. Most are coding oriented, opinionated, and have a steep learning curve. Qanda is for getting answers and performing tasks interactively, not for automated workflow execution. Qanda is designed for easy onboarding with a familiar prompt/response chat UI.
 
 ## Table of contents
 
@@ -32,8 +30,8 @@ There are plenty of feature-rich AI plugins out there and most are not designed 
 - [Model picker](#model-picker)
 - [Recent model picker](#recent-model-picker)
 - [Diagnostics](#diagnostics)
-- [Data files](#data-files)
 - [Data directories](#data-directories)
+- [Data files](#data-files)
 - [Prompt and System templates](#prompt-and-system-templates)
 - [System messages](#system-messages)
 - [Model options](#model-options)
@@ -71,28 +69,23 @@ Run the `:Qanda /help` command.
 ## Qanda features
 
 - Familiar turn-about chatbot UI.
-- Chats are persistent, resumable and editable.
+- _Chats_ are contextual, persistent, resumable and editable.
 - Ollama, OpenRouter and Google Gemini model providers.
 - Models and providers can be switched at any time.
-- Reusable named [prompt templates](#prompt-and-system-templates) canned prompts and [system templates](#prompt-and-system-templates) for custom [system messages](#system-messages).
-- The user has interactive _chats_ (conversations) with the selected AI model.
-- _Chats_ are contextual, persistent, resumable and editable.
-- Each _turn_ (model request + model response) consists of a user prompt and the model's response.
-- A turn starts when the user sends a _prompt_ (a question or an instruction).
-- Chats can include an optional _[system message](#system-messages)_.
+- Reusable named [prompt templates](#prompt-and-system-templates) and [system templates](#prompt-and-system-templates).
 - Qanda minimizes token use: model requests are explicit with no hidden contexts or automatic requests.
 
 ## Glossary of terms
 
-- _chat_: An ordered series of model requests and responses pairs (turns) representing a single turn-based conversation.
+- _prompt_: User questions or instructions submitted to the AI model.
+- _chat_: An ordered series of model request and response pairs (turns) representing a turn-based conversation.
 - _turn_: (or "turn-about") is one full back-and-forth LLM request and response.
-- _request_: The user prompt, the context and the [model options](#model-options) sent to the model.
+- _context_: Each chat maintains its own context comprising the chat's [system message](#system-messages) and previous turns.
+- _request_: The user prompt, context and [options](#model-options) sent to the model.
 - _response_: Data returned by the model and streamed to the [chat window](#chat-window) in response to a request.
-- _context_: Each chat maintains its own context comprising the chat's [system message](#system-messages), previous user prompts and the corresponding model responses. When you submit a new user prompt, it includes the current context.
-- _prompt_: User questions or instructions submitted to the AI model from the [prompt window](#prompt-window).
 
 > [!NOTE]
-> A user prompt is not the same as a model request; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous requests and responses) and [model options](#model-options).
+> A user _prompt_ is not the same as a model _request_; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous turns and [model options](#model-options).
 
 ## Providers
 
@@ -157,8 +150,8 @@ There are three modes of turn execution:
 
 Turn execution modes can be specified:
 
-- With the [Prompt window](#prompt-window) keyboard commands
-- By appending `␣+` or `␣-` to `_Prompt_ or _Template_ commands sets the [turn execution mode](#turn-execution-modes) to _new_ or _replace_ respectively.
+- Using [Prompt window](#prompt-window) keyboard commands.
+- By appending `␣+` or `␣-` to _Prompt_ or _Template_ [commands](#qanda-commands).
 - In [`${input}` placeholder](#template-placeholders) inputs.
 
 ## Qanda commands
@@ -168,13 +161,13 @@ There are three types of Qanda commands
 | Command Type       | Syntax                      | Description                                                     |
 | ------------------ | --------------------------- | --------------------------------------------------------------- |
 | _Builtin_ command  | `:Qanda /<command>`         | Execute a builtin command                                       |
-| _Template_ command | `:Qanda !<template> [+\|-]` | Execute a named [prompt template](#prompt-and-system-templates) |
+| _Template_ command | `:Qanda !<template> [+\|-]` | Execute a named [Prompt template](#prompt-and-system-templates) |
 | _Prompt_ command   | `:Qanda ?<prompt> [+\|-]`   | Execute a prompt                                                |
 
-- Optionally appending `␣+` or `␣-` to `_Prompt_ or _Template_ commands sets the [turn execution mode](#turn-execution-modes) to _new_ or _replace_ respectively (the default mode is _append_).
+- Optionally appending `␣+` or `␣-` to _Prompt_ and _Template_ commands sets the [turn execution mode](#turn-execution-modes) to _new_ or _replace_ respectively (the default mode is _append_).
 - Qanda commands respond to tabbed command completion.
 - Command execution is blocked while a turn is executing.
-- _Template_ commands that encounter a `$cursor` [placeholder](#template-placeholders) are previewed in the Prompt window.
+- Templates containing a `$cursor` [placeholder](#template-placeholders) are always previewed in the Prompt window.
 
 Examples:
 
@@ -382,31 +375,32 @@ If you have `jq` installed then diagnostics JSON data will be pretty-printed.
 
 ![Alt text](screenshots/diagnostics-window.png)
 
+## Data directories
+
+[Qanda data files](#data-files) are sourced from two locations:
+
+- The _Global data directory_ is set by the `global_data_dir` [configuration option](#configuration-options) and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
+- An optional _Workspace data directory_ `$PWD/.qanda_nvim`
+- The _Workspace data directory_ is used for session, diagnostics, and chat files (user and system templates are always global).
+- If the _Workspace data directory_ does not exist then all data files are stored in the _Global data directory_.
+- If there is no `chats` folder in the _Workspace data directory_ then the global `chats` subdirectory is used.
+
+The `:Qanda /status` command lists the paths of data directories and files.
+
 ## Data files
 
-Qanda maintains a number of history and session data files:
+Qanda creates and maintains chats, session, templates, and diagnostics data files in the [Qanda data directories](#data-directories):
 
-- The `chats` directory contains chat files:
-  - Each chat is in a separate [JSONL](https://jsonlines.org/) file named `<creation-date>.chat.json` with date format `YYYYMMDD_HHMMSS` (e.g. `20260224_104421.chat.jsonl`).
-  - Each chat file contains a chronologically ordered list of JSON-formatted turn objects.
-- The `session.json` file is located in the Qanda data directory and contains the session state restored at startup:
+- Chat files:
+  - Each chat is in a separate [JSONL](https://jsonlines.org/) file named `<creation-date>.chat.jsonl` with date format `YYYYMMDD_HHMMSS` (e.g. `20260224_104421.chat.jsonl`).
+  - Each chat file contains a chronologically ordered list of JSON-formatted turn objects beginning with the oldest chat.
+- The `session.json` file contains the session state which is restored at startup:
   - Current provider and model names
   - Most recently used chat file name
   - Current [system message](#system-messages) template name
-  - List of recently used models
-- The `diagnostics.md` contains [diagnostics](#diagnostics) information and is located in the Qanda data directory.
-
-- The [prompt and system template](#prompt-and-system-templates) files.
-
-## Data directories
-
-Qanda [data files](#data-files) are sourced from two locations:
-
-- The _global data directory_ is set by the `data_dir` [configuration option](#configuration-options) and defaults to `vim.fn.stdpath "data" .. "/qanda_nvim"` (usually `~/.local/share/nvim/qanda_nvim` on Linux).
-- An optional _workspace data directory_ `$PWD/.qanda_nvim`
-- Workspace data directory files take priority.
-- If there is no workspace `.qanda/chats` folder, Qanda uses the global chats folder.
-- [User prompt templates and system message templates](#prompt-and-system-templates) always come from the _global data directory_.
+  - A list of recently used models
+- The `diagnostics.md` file contains [diagnostics](#diagnostics) information.
+- [User and system template](#prompt-and-system-templates) files are always sourced from the _Global data directory_.
 
 ## Prompt and System templates
 
@@ -414,8 +408,8 @@ Named templates for user prompts and [system messages](#system-messages) are sel
 
 Both _[template types](#prompt-and-system-templates)_ use the same text file format. They generate model request messages with "user" and "system" roles.
 
-- Template files are named like `*.user.md` or `*.system.md`.
-- _[Templates](#prompt-and-system-templates)_ files are in the `templates` subdirectory of the global data directory (defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
+- _[Template](#prompt-and-system-templates)_ files are saved in the `templates` subdirectory of the [global data directory](#data-directories) (defaults to `~/.local/share/nvim/qanda_nvim/templates/` on Linux).
+- User and system template files are named like `*.user.md` and `*.system.md` respectively.
 - If there are no templates files then Qanda creates a `default.user.md` template file and populates it with some example templates.
 - Templates can contain [template placeholders](#template-placeholders) which are expanded to the user prompt and system message.
 
@@ -466,7 +460,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 | `${file:<file name>}`           | Inject text file                                                  |
 | `$files`                        | Prompts the user with a file picker and injects the file(s)       |
 | `$input`, `${input:<prompt>}`   | Prompts user for input and substitutes the input                  |
-| `$register_<register name>`     | Substitutes content of specified register                         |
+| `$register_<register name>`     | Substitutes content of specified Vim register                         |
 | `${shell:<command>}`            | Substitutes `stdout` output from shell command                    |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 
