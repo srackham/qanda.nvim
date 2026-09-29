@@ -15,6 +15,7 @@ There are plenty of feature-rich AI plugins out there and most are not designed 
 - [Quick start](#quick-start)
 - [Qanda features](#qanda-features)
 - [Glossary of terms](#glossary-of-terms)
+- [Plugin Architecture and Codebase](#plugin-architecture-and-codebase)
 - [Providers](#providers)
 - [Authentication](#authentication)
 - [Key mappings](#key-mappings)
@@ -85,7 +86,11 @@ Run the `:Qanda /help` command.
 - _response_: Data returned by the model and streamed to the [chat window](#chat-window) in response to a request.
 
 > [!NOTE]
-> A user _prompt_ is not the same as a model _request_; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous turns and [model options](#model-options).
+> A user _prompt_ is not the same as a model _request_; a model request includes the user prompt along with the chat context ([system message](#system-messages) plus previous turns and [model options](#model-options)).
+
+## Plugin Architecture and Codebase
+
+See the [qanda.nvim DeepWiki](https://deepwiki.com/srackham/qanda.nvim).
 
 ## Providers
 
@@ -460,7 +465,7 @@ The following placeholders are used in [prompt and system templates](#prompt-and
 | `${file:<file name>}`           | Inject text file                                                  |
 | `$files`                        | Prompts the user with a file picker and injects the file(s)       |
 | `$input`, `${input:<prompt>}`   | Prompts user for input and substitutes the input                  |
-| `$register_<register name>`     | Substitutes content of specified Vim register                         |
+| `$register_<register name>`     | Substitutes content of specified Vim register                     |
 | `${shell:<command>}`            | Substitutes `stdout` output from shell command                    |
 | `$yanked`                       | Substitutes most recently yanked text (alias for `$register_0`)   |
 
