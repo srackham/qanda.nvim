@@ -38,6 +38,7 @@ local default = {
       stream = true,
       stream_options = { include_usage = true },
       plugins = {
+        -- openrouter/auto auto-router model options
         {
           id = "auto-router",
           allowed_models = { "minimax/minimax-2.7", "perplexity/sonar", "google/gemini-*-flash" },

@@ -1016,6 +1016,7 @@ function M.turns_picker(chats)
 - %s - Open the selected turn in the Prompt window
 - %s - Delete the selected turn
 - %s - Toggle truncated fields in the Preview
+- <Esc> - Close the picker
 
 ]]):format(Config.turn_picker_open_key, Config.turn_picker_prompt_key, Config.turn_picker_delete_key, Config.turn_picker_truncate_key)
       vim.notify(help_message, vim.log.levels.INFO)

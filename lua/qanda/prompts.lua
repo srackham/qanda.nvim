@@ -739,6 +739,7 @@ function M.prompt_template_picker()
 - %s - Expand the prompt template and open in the prompt window
 - %s - Expand and execute the selected prompt template
 - %s - Edit the prompt templates file
+- <Esc> - Close the picker
 
 ]]):format(Config.prompt_picker_open_key, Config.prompt_picker_exec_key, Config.prompt_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)
