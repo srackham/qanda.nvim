@@ -450,7 +450,6 @@ function M.open_chat(chat, turn)
     with_active_request_guard(function()
       if win.chat.filename then
         local timestamp = win.turn.timestamp
-        win:close() -- So we don't open the chat file in the Chat window
         utils.edit_file(
           win.chat.filename,
           M.add_chat_syntax_highlighting,
@@ -800,7 +799,6 @@ function M.chat_picker()
         assert(chat)
         assert(chat.filename)
         actions.close(picker_bufnr)
-        State.chat_window:close() -- So we don't open the chat file in the Chat window
         utils.edit_file(chat.filename, M.add_chat_syntax_highlighting, nil, function()
           -- Update chat after edited file is saved
           refresh_chat(chat)

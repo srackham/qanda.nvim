@@ -15,14 +15,12 @@ function M.diagnostics_file()
   end
 end
 
---- Display the diagnostics in an ephemeral floating window.
+--- Open the diagnostics file.
 function M.view()
   if not M.enabled then
     utils.notify("Diagnostics capture is currently disabled", vim.log.levels.WARN)
   end
   if utils.file_exists(M.diagnostics_file()) then
-    State.chat_window:close()
-    State.prompt_window:close()
     utils.edit_file(M.diagnostics_file())
   else
     utils.notify("There is no diagnostics file `" .. M.diagnostics_file() .. "'", vim.log.levels.WARN)

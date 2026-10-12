@@ -710,7 +710,6 @@ function M.prompt_template_picker()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
-          -- State.prompt_window:close()
           require("qanda").execute_prompt(selection.value)
         else
           utils.notify("User cancelled", vim.log.levels.INFO)
