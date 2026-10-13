@@ -901,6 +901,14 @@ function M.substitute_placeholders(prompt_string, opts)
     end
     if answer:match " %+$" then
       answer = answer:gsub(" %+$", M.NEW_CHAT_TAG)
+    elseif answer:match " %-$" then
+      answer = answer:gsub(" %-$", M.REPLACE_TURN_TAG)
+    elseif answer:match "%+$" then
+      vim.api.nvim_echo({ { "The '+' suffix must be preceded by a space", "WarningMsg" } }, false, {})
+      vim.wait(1000)
+    elseif answer:match "%-$" then
+      vim.api.nvim_echo({ { "The '-' suffix must be preceded by a space", "WarningMsg" } }, false, {})
+      vim.wait(1000)
     end
     -- NOTE: `text:gsub("%%", "%%%%")` doubles every `%` so that the outer `gsub` interprets each `%%` as a literal `%` in the output.
     return (answer:gsub("%%", "%%%%"):gsub("%$", DOLLAR_TAG))
