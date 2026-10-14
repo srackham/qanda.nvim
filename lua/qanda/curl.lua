@@ -19,6 +19,9 @@ local spinner
 --- @param opts { window_only?: boolean }? Optional configuration.
 local function append_to_win(winid, text, opts)
   vim.schedule(function()
+    if not vim.api.nvim_win_is_valid(winid) then
+      return
+    end
     local window_only = (opts or {}).window_only
     local bufnr = vim.api.nvim_win_get_buf(winid)
 
@@ -188,6 +191,9 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
           curl_response.model = normalised.model
           -- Update the second line in the Chat window to reflect the model
           vim.schedule(function() -- Fast event context
+            if not vim.api.nvim_win_is_valid(winid) then
+              return
+            end
             local bufnr = vim.api.nvim_win_get_buf(winid)
             vim.api.nvim_set_option_value("modifiable", true, {
               buf = bufnr,
@@ -254,14 +260,14 @@ function M.execute_command(cmd, stdin, data_normaliser, set_turn_stats, winid, o
       end
     end,
   }, function(_)
-    if #curl_response.raw_data == 0 or #curl_response.normalised_data == 0 then
-      log_error "Empty model response"
-    end
     if job_status == "aborted" then
-      spinner.stop("User aborted!", { hl_group = "WarningMsg" })
+      spinner.stop("User aborted!", "WarningMsg")
     elseif job_status == "error" then
-      spinner.stop("Error: " .. error_message, { hl_group = "ErrorMsg" })
+      spinner.stop("Error: " .. error_message, "ErrorMsg")
     else
+      if #curl_response.raw_data == 0 or #curl_response.normalised_data == 0 then
+        log_error "Empty model response"
+      end
       spinner.stop "Execution complete!"
     end
     active_job = nil

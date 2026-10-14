@@ -309,13 +309,12 @@ function M.open_chat(chat, turn)
     win:set_lines { "" }
   end
 
-  -- Auto-command to abort the current request if the Chat window is closed
+  -- Auto-command to abort the current request when the Chat window is closed
   local group = vim.api.nvim_create_augroup("_qanda_WinClosed_", { clear = true })
   vim.api.nvim_create_autocmd("WinClosed", {
     group = group,
     pattern = tostring(win.winid),
     callback = function()
-      win:close()
       if curl.is_active_job() then
         curl.kill_command()
         utils.notify("Request aborted because Chat window closed", vim.log.levels.INFO)
