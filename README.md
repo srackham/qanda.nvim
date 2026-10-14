@@ -229,7 +229,7 @@ The Prompt window is a floating window where you enter questions and instruction
 - Submit a prompt from the prompt window or with a `:Qanda !<template>` command.
 - Create a new prompt with `:Qanda /new_prompt`, `:Qanda /prompt_template_picker`, or by resubmitting a previous prompt from the [Chat window](#chat-window).
 - The Prompt window implements the following key-mapped commands (these mappings are [configurable](lua/qanda/config.lua)):
-  - `<C-a>` - Submit the prompt with the current chat
+  - `<S-Enter>` - Submit the prompt with the current chat
   - `<C-n>` - Submit the prompt in a new chat
   - `<C-r>` - Submit the prompt with the current chat replacing the latest turn
   - `<C-Del>` - Clear the prompt window and enter insert mode

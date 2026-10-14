@@ -159,29 +159,12 @@ function M.append_string_to_file(str, fname)
   return M.write_string_to_file(str, fname, "a+")
 end
 
---- @class MessageOpts
---- @field hl_group? string Highlight group name for the message (default: "Normal")
---- @field history? boolean Whether to save the message to command history (default: false)
---- @field [string] any Additional options passed directly to vim.api.nvim_echo
-
---- Display a message using vim's echo interface
---- Shows a message in the command line area with optional highlighting.
---- This function wraps vim.api.nvim_echo with simplified parameter handling.
---- @param msg string The message text to display
---- @param opts MessageOpts|nil Optional configuration table forwarded to vim.api.nvim_echo
---- @usage
---- M.message("Hello World")  -- displays with Normal highlight
---- M.message("Error occurred", {hl_group = "ErrorMsg"})  -- displays with ErrorMsg highlight
---- M.message("Command output", {history = true})  -- saves to command history
-function M.message(msg, opts)
-  opts = opts or {}
-  -- Copy `opts` to `echo_opts` and delete non vim.api.nvim_echo options
-  local echo_opts = vim.tbl_deep_extend("force", {}, opts)
-  echo_opts.hl_group = nil
-  echo_opts.history = nil
+--- Display a message using vim's echo interface.
+--- @param message string The message text to display
+--- @params hl_group? string Highlight group name for the message (default: "Normal")
+function M.echo(message, hl_group)
   vim.schedule(function() -- Defer because of Neovim's "fast event" context
-    local Config = require "qanda.config"
-    vim.api.nvim_echo({ { msg, opts.hl_group or "Normal" } }, Config.debug or opts.history or false, echo_opts)
+    vim.api.nvim_echo({ { message, hl_group or "Normal" } }, false, {})
   end)
 end
 
@@ -192,7 +175,7 @@ vim.cmd [[
 --- Controls a notification spinner.
 --- @class SpinnerControl
 --- @field start fun() Starts the spinner animation.
---- @field stop fun(done_message?: string, done_opts?: MessageOpts) Stops the spinner and displays an optional completion message.
+--- @field stop fun(msg?: string, hl_group?: string) Stops the spinner and displays an optional completion message.
 --- @field suspend fun(duration_ms: integer) Suspends spinner updates for the specified duration in milliseconds.
 --- Display a notification message with an animated spinner.
 ---
@@ -217,7 +200,7 @@ function M.new_spinner(message, opts)
     local i = 1
     while not stopped do
       local frame = spinner_frames[i]
-      M.message(frame .. " " .. message, opts)
+      M.echo(frame .. " " .. message, "QandaSpinner")
       i = i % #spinner_frames + 1
       coroutine.yield()
     end
@@ -237,13 +220,14 @@ function M.new_spinner(message, opts)
     start()
   end
 
-  ---@param done_message? string
-  ---@param done_opts? table
-  function control.stop(done_message, done_opts)
+  --- Stop the spinner.
+  ---@param msg? string
+  ---@param hl_group? string
+  function control.stop(msg, hl_group)
     stopped = true
     spinner_timer:stop()
     spinner_timer:close()
-    M.message(done_message or "Done!", vim.tbl_deep_extend("force", opts, done_opts or {}))
+    M.echo(msg or "Done!", hl_group)
   end
 
   --- Suspend status line updates for the specified duration in milliseconds.

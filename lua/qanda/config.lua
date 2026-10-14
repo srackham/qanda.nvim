@@ -89,7 +89,7 @@ local default = {
   turn_picker_truncate_key = "<C-z>",
 
   -- Prompt window key commands --
-  prompt_submit_append_key = "<C-a>",
+  prompt_submit_append_key = "<S-Enter>",
   prompt_submit_new_key = "<C-n>",
   prompt_submit_replace_key = "<C-r>",
   prompt_close_key = "<Esc>",
