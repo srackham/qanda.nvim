@@ -195,30 +195,31 @@ Append `␣+` or `␣-` to `_Prompt_ or _Template_ commands to change the [turn 
 
 ### Builtin commands
 
-| Command                                      | Description                                                |
-| -------------------------------------------- | ---------------------------------------------------------- |
-| `:Qanda`                                     | Print help message                                         |
-| `:Qanda /abort`                              | Abort the current model request                            |
-| `:Qanda /chat_picker`                        | Open the [Chat picker](#chat-picker)                       |
-| `:Qanda /chat_window`                        | Open the [Chat window](#chat-window)                       |
-| `:Qanda /delete_old_chats [number_retained]` | Delete all chats except the most recent `number_retained`  |
-| `:Qanda /diagnostics_enable`                 | Enable [diagnostics](#diagnostics) capture                 |
-| `:Qanda /diagnostics_disable`                | Disable [diagnostics](#diagnostics) capture                |
-| `:Qanda /diagnostics_view`                   | View the [diagnostics](#diagnostics) file                  |
-| `:Qanda /help`                               | Print help summary                                         |
-| `:Qanda /model_picker`                       | Select a model from the current provider                   |
-| `:Qanda /new_chat`                           | Start a new Chat                                           |
-| `:Qanda /new_prompt`                         | Open a new Prompt                                          |
-| `:Qanda /prompt_template_picker`             | Open the [Prompt picker](#prompt-template-picker)          |
-| `:Qanda /prompt_window`                      | Open the [Prompt window](#prompt-window)                   |
-| `:Qanda /provider_picker`                    | Select a provider and a model                              |
-| `:Qanda /readme`                             | Open Qanda `README.md` file                                |
-| `:Qanda /repeat`                             | Re-execute the previous Qanda command                      |
-| `:Qanda /recent_models`                      | Select from the list of recent models                      |
-| `:Qanda /status`                             | Print Qanda status information                             |
-| `:Qanda /system_template_picker`             | Open the [System template picker](#system-template-picker) |
-| `:Qanda /turn_picker`                        | Open the chat [Turn picker](#turn-picker)                  |
-| `:Qanda /toggle_chat_location`               | Toggle Chat window location                                |
+| Command                                      | Description                                                                          |
+| -------------------------------------------- | ------------------------------------------------------------------------------------ |
+| `:Qanda`                                     | Print help message                                                                   |
+| `:Qanda /abort`                              | Abort the current model request                                                      |
+| `:Qanda /chat_picker`                        | Open the [Chat picker](#chat-picker)                                                 |
+| `:Qanda /chat_window`                        | Open the [Chat window](#chat-window)                                                 |
+| `:Qanda /delete_old_chats [NUMBER_RETAINED]` | Delete all chats except the most recent `NUMBER_RETAINED`                            |
+| `:Qanda /diagnostics_enable`                 | Enable [diagnostics](#diagnostics) capture                                           |
+| `:Qanda /diagnostics_disable`                | Disable [diagnostics](#diagnostics) capture                                          |
+| `:Qanda /diagnostics_view`                   | View the [diagnostics](#diagnostics) file                                            |
+| `:Qanda /help`                               | Print help summary                                                                   |
+| `:Qanda /model_picker`                       | Select a model from the current provider                                             |
+| `:Qanda /new_chat`                           | Start a new Chat                                                                     |
+| `:Qanda /new_prompt`                         | Open a new Prompt                                                                    |
+| `:Qanda /prompt_template_picker`             | Open the [Prompt picker](#prompt-template-picker)                                    |
+| `:Qanda /prompt_window`                      | Open the [Prompt window](#prompt-window)                                             |
+| `:Qanda /provider_picker`                    | Select a provider and a model                                                        |
+| `:Qanda /readme`                             | Open Qanda `README.md` file                                                          |
+| `:Qanda /repeat`                             | Re-execute the previous Qanda command                                                |
+| `:Qanda /recent_models`                      | Select from the list of recent models                                                |
+| `:Qanda /set_chat_location WINDOW_LOCATION`  | Set the Chat `WINDOW_LOCATION` (`normal`, `float`, `top`, `bottom`, `left`, `right`) |
+| `:Qanda /status`                             | Print Qanda status information                                                       |
+| `:Qanda /system_template_picker`             | Open the [System template picker](#system-template-picker)                           |
+| `:Qanda /turn_picker`                        | Open the chat [Turn picker](#turn-picker)                                            |
+| `:Qanda /toggle_chat_location`               | Toggle Chat window window_location                                                   |
 
 ## Prompt window
 

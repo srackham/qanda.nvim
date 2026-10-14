@@ -171,6 +171,21 @@ function M.create_user_command()
         win:open()
       end
       return
+    elseif args:match "^/set_chat_location%s" then
+      local location = args:match "^/set_chat_location%s+(.+)"
+      local valid_locations = { "normal", "float", "top", "bottom", "left", "right" }
+      if not location or not vim.tbl_contains(valid_locations, location) then
+        utils.notify("Invalid location. Valid locations are: " .. table.concat(valid_locations, ", "), vim.log.levels.ERROR)
+        return
+      end
+      local win = State.chat_window
+      win.location = location
+      utils.notify("Window location set to: " .. win.location, vim.log.levels.INFO)
+      if win:is_open() then
+        win:close()
+        win:open()
+      end
+      return
     elseif args == "/help" then
       local help_message = [[-- Qanda Commands --
 
@@ -271,6 +286,12 @@ Press <Tab> for command completion e.g. :Qanda /<Tab> to list builtin commands.
       table.insert(args, "/abort")
       table.insert(args, "/delete_old_chats")
       table.insert(args, "/toggle_chat_location")
+      table.insert(args, "/set_chat_location normal")
+      table.insert(args, "/set_chat_location float")
+      table.insert(args, "/set_chat_location top")
+      table.insert(args, "/set_chat_location bottom")
+      table.insert(args, "/set_chat_location left")
+      table.insert(args, "/set_chat_location right")
       table.insert(args, "/system_template_picker")
       table.insert(args, "/status")
       table.insert(args, "/diagnostics_enable")
