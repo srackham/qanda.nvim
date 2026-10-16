@@ -126,7 +126,7 @@ end
 
 --- Return `true` if the line is a prompt template header section delimiter.
 local match_ruler = function(line)
-  return line:match "^---+%s*$" or line:match "^___+%s*$"
+  return line:match "^%-%-%-%s*$" or line:match "^___%s*$"
 end
 
 --- Parses markdown-style templates file into a Prompts array.
