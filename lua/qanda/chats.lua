@@ -827,6 +827,13 @@ function M.chat_picker()
       vim.notify(help_message, vim.log.levels.INFO)
     end, { buffer = picker_bufnr, desc = "Show Chat picker help" })
 
+    -- Disable builtin Telescope mappings that conflict with Qanda defaults
+    vim.schedule(function()
+      for _, lhs in ipairs { "<C-r><C-w>", "<C-r><C-a>", "<C-r><C-f>", "<C-r><C-l>" } do
+        vim.keymap.del("i", lhs, { buffer = picker_bufnr })
+      end
+    end)
+
     return true
   end
 
