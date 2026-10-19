@@ -771,7 +771,7 @@ function M.chat_picker()
       end
 
       local chat = selection.value
-      local new_name = vim.fn.input("Enter chat name: ", M.chat_name(chat))
+      local new_name = vim.fn.input("Enter chat name: ", chat.turns[1].chat or "")
       if new_name == "" then
         return -- User cancelled
       end
