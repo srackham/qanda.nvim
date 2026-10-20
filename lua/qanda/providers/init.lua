@@ -84,9 +84,13 @@ function M.drop_recent_model(provider_name, model_name)
 end
 
 -- If the model is in the list then delete it, then append it to the list.
-function M.update_recent_models(provider_name, model_name)
+function M.append_recent_model(provider_name, model_name)
   M.drop_recent_model(provider_name, model_name)
   table.insert(State.recent_models, { provider_name = provider_name, model_name = model_name })
+  -- Trim the list if it exceeds max_recent_models
+  while #State.recent_models > Config.max_recent_models do
+    table.remove(State.recent_models, 1)
+  end
 end
 
 --- Restores the provider and model.
@@ -110,7 +114,7 @@ function M.set_provider(provider_name, model_name, on_selection)
       State.provider.model = model_name
       State.session.model = model_name
       State.session.provider = provider.name
-      M.update_recent_models(provider_name, model_name)
+      M.append_recent_model(provider_name, model_name)
       return provider
     end
   end

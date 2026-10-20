@@ -55,6 +55,7 @@ local default = {
   user_prompt_lines = 10, -- The maximum number of user prompt lines to display in the Chat window
   system_message_lines = 5, -- The maximum number of system message lines to display in the Chat window
   chats_retained = 50, -- Default argument for /delete_old_chats command
+  max_recent_models = 50, -- Maximum number of retained recent models for /recent_models command
 
   -- Pickers, Chat and Prompt windows help key --
   help_key = "<C-h>", -- Display a list of picker commands
