@@ -620,17 +620,18 @@ function M.turn_to_lines(chat, turn)
   table.insert(lines, string.format("turn: %d of %d", get_turn_index(chat, turn), #chat.turns))
 
   local max_lines
+
+  max_lines = not M.turn_truncation and 999 or Config.user_prompt_lines
+  local request_lines = get_limited_lines("prompt", turn.request, max_lines)
+  vim.list_extend(lines, request_lines)
+  table.insert(lines, "")
+
   if turn.system then
     max_lines = not M.turn_truncation and 999 or Config.system_message_lines
     local system_lines = get_limited_lines("system", turn.system, max_lines)
     vim.list_extend(lines, system_lines)
     table.insert(lines, "")
   end
-
-  max_lines = not M.turn_truncation and 999 or Config.user_prompt_lines
-  local request_lines = get_limited_lines("prompt", turn.request, max_lines)
-  vim.list_extend(lines, request_lines)
-  table.insert(lines, "")
 
   table.insert(lines, rule)
   for _, v in ipairs(vim.split(utils.trim_string(turn.response or ""), "\n")) do
