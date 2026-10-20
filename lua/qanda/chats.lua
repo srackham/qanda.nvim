@@ -325,7 +325,7 @@ function M.open_chat(chat, turn)
     end,
   })
 
-  -- Attach key commands.
+  -- Used to ensure Chat window commands are not executed if a model request is active
   local function with_active_request_guard(callback)
     return function()
       if curl.active_job_warning() then
@@ -335,6 +335,7 @@ function M.open_chat(chat, turn)
     end
   end
 
+  -- Attach key commands.
   vim.keymap.set({ "n", "v" }, Config.chat_close_key, function()
     win:close()
   end, { buffer = win.bufnr })
@@ -466,6 +467,25 @@ function M.open_chat(chat, turn)
     { buffer = win.bufnr }
   )
 
+  vim.keymap.set(
+    { "n", "v" },
+    Config.chat_rename_key,
+    with_active_request_guard(function()
+      if not win.chat.turns[1] then
+        utils.notify("No chat turns", vim.log.levels.WARN)
+        return
+      end
+      local new_name = vim.fn.input("Enter chat name: ", win.chat.turns[1].chat or "")
+      if new_name == "" then
+        return -- User cancelled
+      end
+      -- Update and persist
+      win.chat.turns[1].chat = new_name
+      M.save_chat(win.chat)
+    end),
+    { buffer = win.bufnr }
+  )
+
   -- Toggle chat display fields
   vim.keymap.set(
     { "n", "v" },
@@ -509,6 +529,7 @@ Normal mode commands:
 - %s - Close the Chat window and terminate model request
 - %s - Delete the turn, if it is the last turn delete the chat
 - %s - Open the chat file in the editor
+- %s - Rename the chat
 - %s - Open the Turn picker
 - %s/%s - Go to next/previous turn
 - %s/%s - Go to next/previous chat
@@ -522,6 +543,7 @@ Normal mode commands:
         Config.chat_close_key,
         Config.chat_delete_key,
         Config.chat_edit_key,
+        Config.chat_rename_key,
         Config.chat_turns_key,
         Config.chat_next_turn_key,
         Config.chat_prev_turn_key,

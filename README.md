@@ -263,6 +263,7 @@ The Chat window shows a chat, one turn at a time. Open it with `:Qanda /chat_win
   - `<Esc>` - Close the Chat window and terminate model request
   - `<C-d>` - Delete the turn, if it is the last turn delete the chat
   - `<C-e>` - Open the chat file in the editor
+  - `<C-r>` - Rename the chat
   - `<C-t>` - Open the Turn picker
   - `<C-n>/<C-p>` - Go to next/previous turn
   - `N/P` - Go to next/previous chat
@@ -315,7 +316,7 @@ The _chat picker_ is used to list, preview, select and manage [chats](#glossary-
   - `<Enter>` - Open the selected chat in Chat window
   - `<C-t>` - Open the selected chat in the Turn picker
   - `<C-d>` - Delete the selected chat
-  - `<C-l>` - Rename the selected chat
+  - `<C-r>` - Rename the selected chat
   - `<C-e>` - Edit the chat file
   - `<Esc>` - Close the picker
   - `<C-h>` - List key-mapped commands
