@@ -100,15 +100,15 @@ local default = {
   prompt_inject_key = "<Leader>fi",
 
   -- Prompt template picker key commands --
-  prompt_picker_open_key = "<Enter>",
-  prompt_picker_exec_key = "<C-x>",
-  prompt_picker_delete_key = "<C-d>",
-  prompt_picker_edit_key = "<C-e>",
+  prompt_template_picker_open_key = "<Enter>",
+  prompt_template_picker_exec_key = "<C-x>",
+  prompt_template_picker_delete_key = "<C-d>",
+  prompt_template_picker_edit_key = "<C-e>",
 
   -- System template picker key commands --
-  system_picker_edit_key = "<C-e>",
-  system_picker_select_key = "<Enter>",
-  system_picker_disable_key = "<C-d>",
+  system_template_picker_edit_key = "<C-e>",
+  system_template_picker_select_key = "<Enter>",
+  system_template_picker_disable_key = "<C-d>",
 
   -- Window layouts --
   chat_window_location = "float", ---@type WindowLocation Default Chat window location

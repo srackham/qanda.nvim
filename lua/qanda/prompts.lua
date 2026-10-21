@@ -683,7 +683,7 @@ function M.prompt_template_picker()
 
     attach_mappings = function(picker_bufnr, map)
 
-      map({ "n", "i" }, Config.prompt_picker_open_key, function()
+      map({ "n", "i" }, Config.prompt_template_picker_open_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
@@ -706,7 +706,7 @@ function M.prompt_template_picker()
         end
       end, { desc = "Expand the prompt template and open in the prompt window" })
 
-      map({ "n", "i" }, Config.prompt_picker_exec_key, function()
+      map({ "n", "i" }, Config.prompt_template_picker_exec_key, function()
         local selection = action_state.get_selected_entry()
         actions.close(picker_bufnr)
         if selection then
@@ -716,7 +716,7 @@ function M.prompt_template_picker()
         end
       end, { desc = "Expand and execute the selected prompt template" })
 
-      map({ "n", "i" }, Config.prompt_picker_edit_key, function()
+      map({ "n", "i" }, Config.prompt_template_picker_edit_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           local prompt = selection.value
@@ -740,7 +740,7 @@ function M.prompt_template_picker()
 - %s - Edit the prompt templates file
 - <Esc> - Close the picker
 
-]]):format(Config.prompt_picker_open_key, Config.prompt_picker_exec_key, Config.prompt_picker_edit_key)
+]]):format(Config.prompt_template_picker_open_key, Config.prompt_template_picker_exec_key, Config.prompt_template_picker_edit_key)
         vim.notify(help_message, vim.log.levels.INFO)
       end, { buffer = picker_bufnr, desc = "Show User prompt picker help" })
 
@@ -789,7 +789,7 @@ function M.system_template_picker()
     prompt_title = "[" .. Config.help_key .. " help]",
     attach_mappings = function(picker_bufnr, map)
 
-      map({ "n", "i" }, Config.system_picker_select_key, function()
+      map({ "n", "i" }, Config.system_template_picker_select_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           M.set_system_message(selection.value, { update_chat = true })
@@ -798,7 +798,7 @@ function M.system_template_picker()
         end
       end, { desc = "Set the system message and refresh the picker" })
 
-      map({ "n", "i" }, Config.system_picker_disable_key, function()
+      map({ "n", "i" }, Config.system_template_picker_disable_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           M.set_system_message(nil, { update_chat = true })
@@ -807,7 +807,7 @@ function M.system_template_picker()
         end
       end, { desc = "Disable the system message and refresh the picker" })
 
-      map({ "n", "i" }, Config.system_picker_edit_key, function()
+      map({ "n", "i" }, Config.system_template_picker_edit_key, function()
         local selection = action_state.get_selected_entry()
         if selection then
           local prompt = selection.value
@@ -831,7 +831,11 @@ function M.system_template_picker()
 - %s - Edit the system message templates file
 - <Esc> - Close the picker
 
-]]):format(Config.system_picker_select_key, Config.system_picker_disable_key, Config.system_picker_edit_key)
+]]):format(
+          Config.system_template_picker_select_key,
+          Config.system_template_picker_disable_key,
+          Config.system_template_picker_edit_key
+        )
         vim.notify(help_message, vim.log.levels.INFO)
       end, { buffer = picker_bufnr, desc = "Show System message picker help" })
 
