@@ -21,9 +21,11 @@ function M.setup()
     end,
   })
 
-  -- Load all chats and set the most recent one as the current chat
   State.chats = M.load_chats()
-  if #State.chats > 0 then
+  State.chat_window.chat = nil
+
+  -- Select the chat from the previous session
+  if Config.resume_last_chat and #State.chats > 0 then
     State.chat_window.chat = State.chats[#State.chats] -- Most recent chat
     for _, chat in ipairs(State.chats) do
       if chat.filename == State.session.chat_file then -- Matching chat from saved session state
@@ -31,8 +33,6 @@ function M.setup()
         break
       end
     end
-  else
-    State.chat_window.chat = nil
   end
 end
 
