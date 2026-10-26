@@ -38,7 +38,8 @@ end
 
 --- Parse JSONL lines into chat turns.
 ---@param lines string[] Array of JSON strings.
----@return Turn[]|nil result Array of parsed turns, or nil on parse error.
+---@return Turn[]? result Array of parsed turns, or nil on parse error.
+---@return string? err Error message.
 local function parse_turns(lines)
   local result = {}
   for i, line in ipairs(lines) do
@@ -48,8 +49,7 @@ local function parse_turns(lines)
       if ok and type(parsed_line) == "table" then
         table.insert(result, parsed_line)
       else
-        utils.notify("JSON parse error at line " .. i .. ": " .. tostring(parsed_line), vim.log.levels.ERROR)
-        return nil
+        return nil, "JSON parse error at line " .. i
       end
     end
   end
@@ -63,11 +63,11 @@ local function load_chat(file_path)
   local result = nil
   if utils.file_exists(file_path) then
     local lines = vim.fn.readfile(file_path)
-    local turns = parse_turns(lines)
+    local turns, err = parse_turns(lines)
     if turns then
       result = { turns = turns, filename = file_path }
     else
-      utils.notify("Failed to parse turns from '" .. file_path .. "'", vim.log.levels.ERROR)
+      utils.notify("Failed to parse turns from '" .. file_path .. "': " .. err, vim.log.levels.ERROR)
     end
   else
     utils.notify("File not readable or does not exist '" .. file_path .. "'", vim.log.levels.ERROR)
